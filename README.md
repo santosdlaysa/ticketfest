@@ -2,6 +2,22 @@
 
 Sistema completo de venda de ingressos para eventos e festas com frontend web, aplicativo mobile e backend API.
 
+## 📚 Documentação Importante
+
+### 🚨 Começando Agora?
+- **[TODO-URGENTE.md](TODO-URGENTE.md)** - Checklist rápido do que fazer AGORA
+- **[PROBLEMAS-E-SOLUCOES.md](PROBLEMAS-E-SOLUCOES.md)** - Guia completo de problemas e correções
+
+### 📖 Guias Completos
+- **[START.md](START.md)** - Guia passo a passo para iniciar o sistema
+- **[CHECKOUT-SETUP.md](CHECKOUT-SETUP.md)** - Configurar checkout e Stripe
+- **[RESUMO-EXECUTIVO.md](RESUMO-EXECUTIVO.md)** - Visão geral para não-técnicos
+
+### 📊 Status e Progresso
+- **[CHECKLIST.md](CHECKLIST.md)** - Checklist detalhado de desenvolvimento
+- **[CHANGELOG.md](CHANGELOG.md)** - Histórico de mudanças
+- **[PROJETO-STATUS.md](PROJETO-STATUS.md)** - Status técnico completo
+
 ## 📁 Estrutura do Projeto
 
 ```
@@ -25,9 +41,10 @@ ticketfest/
 
 ## 🚀 Status do Projeto
 
-- ✅ **Backend API**: Implementado e funcional
-- ✅ **Frontend Web**: Implementado e funcional
-- ⏳ **Mobile App**: Próxima etapa
+- ✅ **Backend API**: 100% Completo e Funcional
+- ✅ **Frontend Web**: 90% Completo (Checkout Implementado!)
+- ⚠️ **Configuração**: Requer PostgreSQL e Stripe
+- ⏳ **Mobile App**: Planejado (Fase 3)
 
 ## 🎯 Funcionalidades Implementadas (Backend)
 
@@ -229,14 +246,16 @@ MIT
 - [x] QR codes e check-in
 - [x] Emails transacionais
 
-### Fase 2 (Concluída) ✅
+### Fase 2 (90% Concluída) 🟢
 - [x] Frontend Web (Next.js)
 - [x] Páginas de eventos
 - [x] Carrinho funcional
 - [x] Autenticação e registro
 - [x] Layout responsivo
-- [ ] Checkout completo (em andamento)
-- [ ] Área do usuário completa (em andamento)
+- [x] Checkout completo com Stripe ✨ **NOVO!**
+- [x] Suporte PIX e Boleto ✨ **NOVO!**
+- [ ] Página "Meus Ingressos"
+- [ ] Página "Meus Pedidos"
 
 ### Fase 3
 - [ ] Aplicativo Mobile
@@ -262,4 +281,32 @@ Desenvolvido por TicketFest Team
 
 ---
 
-**Status**: 🟢 Backend Completo | 🟢 Frontend Web Funcional | 🟡 Mobile Planejado
+## ⚡ Quick Start
+
+**Precisa configurar PostgreSQL?** Veja [TODO-URGENTE.md](TODO-URGENTE.md)
+
+```bash
+# 1. Setup Database
+cd backend
+npm install
+npm run prisma:migrate
+npm run prisma:seed
+
+# 2. Start Backend
+npm run dev
+
+# 3. Start Frontend (novo terminal)
+cd ../web
+npm install
+npm run dev
+
+# 4. Acessar
+# http://localhost:3001
+# Login: user@ticketfest.com / password123
+```
+
+---
+
+**Status**: 🟢 Backend 100% | 🟢 Frontend 90% (Checkout ✅) | 🟡 Mobile Planejado
+
+**Versão Atual:** 1.1.0 | **Data:** 20 de Outubro de 2025

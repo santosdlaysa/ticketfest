@@ -4,7 +4,8 @@
       "Bash(dir:*)",
       "Bash(mkdir:*)",
       "Bash(npm install)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm run prisma:migrate:*)"
     ],
     "deny": [],
     "ask": []
