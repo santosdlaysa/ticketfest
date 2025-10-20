@@ -1,0 +1,26 @@
+import { PrismaClient } from '@prisma/client';
+
+// Singleton pattern for Prisma Client
+class DatabaseService {
+  private static instance: PrismaClient;
+
+  private constructor() {}
+
+  public static getInstance(): PrismaClient {
+    if (!DatabaseService.instance) {
+      DatabaseService.instance = new PrismaClient({
+        log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      });
+    }
+    return DatabaseService.instance;
+  }
+
+  public static async disconnect(): Promise<void> {
+    if (DatabaseService.instance) {
+      await DatabaseService.instance.$disconnect();
+    }
+  }
+}
+
+export const prisma = DatabaseService.getInstance();
+export default DatabaseService;
