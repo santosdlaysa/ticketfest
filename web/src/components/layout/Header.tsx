@@ -117,6 +117,20 @@ export const Header: React.FC = () => {
                     <p className="text-sm font-medium text-gray-900">{user.name}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
+                  {(user.role === 'ORGANIZER' || user.role === 'ADMIN') && (
+                    <Link
+                      href="/admin/events"
+                      className="block px-4 py-2 text-sm text-primary-600 font-medium hover:bg-primary-50"
+                    >
+                      Meus Eventos
+                    </Link>
+                  )}
+                  <Link
+                    href="/user/profile"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    Meu Perfil
+                  </Link>
                   <Link
                     href="/user/tickets"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"

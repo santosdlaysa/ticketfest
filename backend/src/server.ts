@@ -2,7 +2,7 @@ import app from './app.js';
 import { env } from './config/env.js';
 import DatabaseService from './config/database.js';
 
-const PORT = parseInt(env.PORT) || 3000;
+const PORT = parseInt(env.PORT) || 4000;
 
 // Start server
 const server = app.listen(PORT, () => {

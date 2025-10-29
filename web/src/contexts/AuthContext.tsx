@@ -12,6 +12,7 @@ interface AuthState {
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
+  loginMock: (email: string, password: string) => void;
   register: (data: {
     email: string;
     password: string;
@@ -58,6 +59,26 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           set({ isLoading: false });
         }
+      },
+
+      loginMock: (email: string, password: string) => {
+        // Mock login - não chama API
+        const mockUser: User = {
+          id: 'mock-user-id',
+          email: email,
+          name: email.split('@')[0],
+          role: 'ORGANIZER', // ORGANIZER para permitir criar eventos
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const mockAuthResponse: AuthResponse = {
+          user: mockUser,
+          accessToken: 'mock-access-token',
+          refreshToken: 'mock-refresh-token',
+        };
+
+        get().setAuth(mockAuthResponse);
       },
 
       register: async (data) => {

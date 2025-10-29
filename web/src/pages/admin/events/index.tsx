@@ -1,0 +1,257 @@
+import React, { useEffect, useState } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import toast from 'react-hot-toast';
+import { useAuthStore } from '@/contexts/AuthContext';
+import { eventsApi } from '@/services/api';
+import type { Event } from '@/types';
+import { Button } from '@/components/common/Button';
+
+export default function AdminEvents() {
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+
+    if (!authLoading && user && user.role !== 'ORGANIZER' && user.role !== 'ADMIN') {
+      toast.error('Você não tem permissão para acessar esta página');
+      router.push('/');
+    }
+  }, [authLoading, isAuthenticated, user, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && user && (user.role === 'ORGANIZER' || user.role === 'ADMIN')) {
+      loadEvents();
+    }
+  }, [isAuthenticated, user]);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      const data = await eventsApi.getAll();
+      setEvents(data.events);
+    } catch (error: any) {
+      toast.error('Erro ao carregar eventos');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja deletar este evento?')) {
+      return;
+    }
+
+    try {
+      setDeletingId(id);
+      await eventsApi.delete(id);
+      toast.success('Evento deletado com sucesso');
+      loadEvents();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao deletar evento');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; className: string }> = {
+      DRAFT: { label: 'Rascunho', className: 'badge badge-gray' },
+      PUBLISHED: { label: 'Publicado', className: 'badge badge-success' },
+      CANCELLED: { label: 'Cancelado', className: 'badge badge-error' },
+      COMPLETED: { label: 'Concluído', className: 'badge badge-primary' },
+    };
+    const info = statusMap[status] || statusMap.DRAFT;
+    return <span className={info.className}>{info.label}</span>;
+  };
+
+  if (authLoading || loading) {
+    return (
+      <>
+        <Head><title>Meus Eventos - TicketFest</title></Head>
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+            <p className="mt-4 text-gray-600">Carregando eventos...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user || (user.role !== 'ORGANIZER' && user.role !== 'ADMIN')) {
+    return null;
+  }
+
+  return (
+    <>
+      <Head><title>Meus Eventos - TicketFest</title></Head>
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Meus Eventos</h1>
+            <p className="text-gray-600 mt-2">
+              Gerencie seus eventos e ingressos
+            </p>
+          </div>
+          <Link href="/admin/events/create">
+            <Button>
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Criar Evento
+            </Button>
+          </Link>
+        </div>
+
+        {events.length === 0 ? (
+          <div className="card p-12 text-center">
+            <svg
+              className="mx-auto h-16 w-16 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              Nenhum evento criado
+            </h3>
+            <p className="mt-2 text-gray-600">
+              Comece criando seu primeiro evento!
+            </p>
+            <Link href="/admin/events/create">
+              <Button className="mt-6">
+                Criar Primeiro Evento
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {events.map((event) => (
+              <div key={event.id} className="card p-6">
+                <div className="flex flex-col md:flex-row gap-6">
+                  {/* Imagem */}
+                  {event.images && event.images[0] && (
+                    <div className="w-full md:w-48 flex-shrink-0">
+                      <img
+                        src={event.images[0]}
+                        alt={event.name}
+                        className="w-full h-32 md:h-full object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
+
+                  {/* Conteúdo */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold">{event.name}</h3>
+                          {getStatusBadge(event.status)}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {event.category}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-700 mb-4 line-clamp-2">
+                      {event.description}
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-600 mb-4">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>
+                          {new Date(event.date).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>{event.location}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                          Criado em {new Date(event.createdAt).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex flex-wrap gap-2">
+                      <Link href={`/events/${event.slug}`}>
+                        <Button variant="outline" size="sm">
+                          Ver Página
+                        </Button>
+                      </Link>
+                      <Link href={`/admin/events/${event.id}/edit`}>
+                        <Button variant="outline" size="sm">
+                          Editar
+                        </Button>
+                      </Link>
+                      <Link href={`/admin/events/${event.id}/tickets`}>
+                        <Button variant="outline" size="sm">
+                          Ingressos
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(event.id)}
+                        isLoading={deletingId === event.id}
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                      >
+                        Deletar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}

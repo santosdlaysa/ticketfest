@@ -15,15 +15,23 @@ interface LoginForm {
 
 export default function Login() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, loginMock } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
+  const useMockAuth = process.env.NEXT_PUBLIC_MOCK_AUTH === 'true';
 
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
-      await login(data.email, data.password);
-      toast.success('Login realizado com sucesso!');
+      if (useMockAuth) {
+        // Usar login mock (sem chamar API)
+        loginMock(data.email, data.password);
+        toast.success('Login realizado com sucesso! (modo mock)');
+      } else {
+        // Usar login real (chama API)
+        await login(data.email, data.password);
+        toast.success('Login realizado com sucesso!');
+      }
       router.push('/');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao fazer login');

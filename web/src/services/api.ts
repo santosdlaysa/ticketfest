@@ -67,6 +67,32 @@ export const eventsApi = {
     const response = await api.get(`/events/category/${category}`);
     return response.data;
   },
+
+  create: async (data: {
+    name: string;
+    description: string;
+    date: string;
+    endDate?: string;
+    location: string;
+    address: string;
+    latitude?: number;
+    longitude?: number;
+    category: string;
+    images?: string[];
+    status?: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+  }): Promise<Event> => {
+    const response = await api.post('/events', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<Event>): Promise<Event> => {
+    const response = await api.put(`/events/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/events/${id}`);
+  },
 };
 
 // Tickets API
@@ -79,6 +105,29 @@ export const ticketsApi = {
   getById: async (id: string): Promise<Ticket> => {
     const response = await api.get(`/tickets/${id}`);
     return response.data;
+  },
+
+  create: async (data: {
+    eventId: string;
+    name: string;
+    description?: string;
+    price: number;
+    quantity: number;
+    salesStart: string;
+    salesEnd: string;
+    features?: string[];
+  }): Promise<Ticket> => {
+    const response = await api.post('/tickets', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<Ticket>): Promise<Ticket> => {
+    const response = await api.put(`/tickets/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/tickets/${id}`);
   },
 };
 
