@@ -10,7 +10,11 @@ const envSchema = z.object({
   API_URL: z.string().url().default('http://localhost:3000'),
 
   // Database
-  DATABASE_URL: z.string().url(),
+  DATABASE_URL: z.string().optional(),
+
+  // Supabase
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
 
   // JWT
   JWT_SECRET: z.string().min(32),
