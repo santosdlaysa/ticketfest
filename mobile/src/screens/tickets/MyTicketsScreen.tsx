@@ -24,6 +24,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { lightColors, darkColors, spacing, fontSize, lumeraColors } from '../../theme';
 import { useThemeStore } from '../../stores/themeStore';
 import { ordersApi } from '../../services/api';
+import { MyTicketsScreenSkeleton } from '../../components/common/SkeletonLoader';
 import type { TicketsStackParamList } from '../../navigation/types';
 
 type NavigationProp = NativeStackNavigationProp<TicketsStackParamList>;
@@ -212,8 +213,21 @@ export default function MyTicketsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <LinearGradient
+          colors={isDark
+            ? [lumeraColors.pretoObsidian, lumeraColors.cinzaFumaca]
+            : [lumeraColors.roxoLumera, lumeraColors.azulGlow]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.header, { paddingTop: insets.top + spacing.md }]}
+        >
+          <Text style={styles.headerTitle}>Meus Ingressos</Text>
+          <Text style={styles.headerSubtitle}>Seus ingressos comprados</Text>
+        </LinearGradient>
+        <MyTicketsScreenSkeleton />
       </View>
     );
   }

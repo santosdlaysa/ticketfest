@@ -28,6 +28,7 @@ import { lightColors, darkColors, spacing, fontSize, lightTheme, darkTheme, lume
 import { useThemeStore } from '../../stores/themeStore';
 import { eventsApi } from '../../services/api';
 import { useCartStore } from '../../stores/cartStore';
+import { HomeScreenSkeleton } from '../../components/common/SkeletonLoader';
 import type { Event } from '../../types';
 import type { HomeStackParamList } from '../../navigation/types';
 
@@ -281,9 +282,7 @@ export default function HomeScreen() {
       </LinearGradient>
 
       {loading && !refreshing ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
+        <HomeScreenSkeleton />
       ) : (
         <FlatList
           data={events}

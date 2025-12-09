@@ -27,6 +27,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme, spacing, lumeraColors } from '../../theme';
 import { eventsApi, ticketsApi } from '../../services/api';
 import { useCartStore } from '../../stores/cartStore';
+import { EventDetailsSkeleton } from '../../components/common/SkeletonLoader';
 import type { Event, Ticket } from '../../types';
 import type { HomeStackParamList } from '../../navigation/types';
 
@@ -110,14 +111,6 @@ export default function EventDetailsScreen() {
     try {
       await addToCart(selectedTicket.id, quantity);
       setModalVisible(false);
-      Alert.alert(
-        'Adicionado ao carrinho',
-        `${quantity}x ${selectedTicket.name}`,
-        [
-          { text: 'Continuar', style: 'cancel' },
-          { text: 'Ver carrinho', onPress: () => navigation.navigate('Cart') },
-        ]
-      );
     } catch (error: any) {
       Alert.alert('Erro', error.response?.data?.error || 'Erro ao adicionar ao carrinho');
     }
@@ -151,12 +144,7 @@ export default function EventDetailsScreen() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Carregando evento...</Text>
-      </View>
-    );
+    return <EventDetailsSkeleton />;
   }
 
   if (!event) {
@@ -216,12 +204,6 @@ export default function EventDetailsScreen() {
               </View>
             )}
           </TouchableOpacity>
-
-          {/* Date Badge */}
-          <View style={styles.dateBadge}>
-            <Text style={styles.dateDay}>{dateInfo.day}</Text>
-            <Text style={styles.dateMonth}>{dateInfo.month}</Text>
-          </View>
 
           {/* Hero Content */}
           <View style={styles.heroContent}>
@@ -538,27 +520,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 11,
     fontWeight: '700',
-  },
-  dateBadge: {
-    position: 'absolute',
-    top: 48,
-    right: spacing.md + 50,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    alignItems: 'center',
-    elevation: 4,
-  },
-  dateDay: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: lumeraColors.roxoLumera,
-  },
-  dateMonth: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#666',
   },
   heroContent: {
     position: 'absolute',

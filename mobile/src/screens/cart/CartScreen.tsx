@@ -23,6 +23,7 @@ import { lightColors, darkColors, spacing, fontSize } from '../../theme';
 import { useThemeStore } from '../../stores/themeStore';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/authStore';
+import { CartScreenSkeleton } from '../../components/common/SkeletonLoader';
 import type { CartItem } from '../../types';
 import type { HomeStackParamList } from '../../navigation/types';
 
@@ -199,10 +200,21 @@ export default function CartScreen() {
 
   if (loading && !cart) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Carregando carrinho...</Text>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.surface, borderBottomColor: colors.divider }]}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.backButton, { backgroundColor: colors.surfaceVariant }]}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Carrinho</Text>
+          </View>
+          <View style={styles.headerPlaceholder} />
+        </View>
+        <CartScreenSkeleton />
       </View>
     );
   }
