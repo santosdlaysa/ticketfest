@@ -137,12 +137,6 @@ export default function EventDetailsScreen() {
     return { text: `${available} disponíveis`, color: '#4CAF50', icon: 'check-circle' };
   };
 
-  const getMinPrice = () => {
-    if (tickets.length === 0) return null;
-    const prices = tickets.map(t => t.price);
-    return Math.min(...prices);
-  };
-
   if (loading) {
     return <EventDetailsSkeleton />;
   }
@@ -162,7 +156,6 @@ export default function EventDetailsScreen() {
   const imageUrl = event.images?.[0] || 'https://via.placeholder.com/400x250?text=Evento';
   const dateInfo = formatEventDate(event.date);
   const category = categoryConfig[event.category] || { icon: 'calendar', color: theme.colors.primary };
-  const minPrice = getMinPrice();
 
   return (
     <View style={styles.container}>
@@ -333,22 +326,20 @@ export default function EventDetailsScreen() {
         </View>
       </Animated.ScrollView>
 
-      {/* Bottom Bar */}
-      {minPrice !== null && (
+      {/* Cart Bottom Bar - Only shows when cart has items */}
+      {itemCount > 0 && (
         <Surface style={styles.bottomBar}>
           <View style={styles.bottomPricing}>
-            <Text style={styles.bottomLabel}>A partir de</Text>
-            <Text style={styles.bottomPrice}>{formatPrice(minPrice)}</Text>
+            <Text style={styles.bottomLabel}>
+              {itemCount === 1 ? '1 item no carrinho' : `${itemCount} itens no carrinho`}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.bottomButton}
-            onPress={() => {
-              const availableTicket = tickets.find(t => isTicketAvailable(t));
-              if (availableTicket) handleSelectTicket(availableTicket);
-            }}
+            onPress={() => navigation.navigate('Cart')}
           >
-            <Text style={styles.bottomButtonText}>Comprar ingresso</Text>
-            <MaterialCommunityIcons name="arrow-right" size={20} color="#fff" />
+            <MaterialCommunityIcons name="cart" size={20} color="#fff" />
+            <Text style={styles.bottomButtonText}>Ver carrinho</Text>
           </TouchableOpacity>
         </Surface>
       )}
@@ -554,22 +545,22 @@ const styles = StyleSheet.create({
 
   // Content
   content: {
-    padding: spacing.md,
+    padding: spacing.sm,
     paddingBottom: 100,
   },
 
   // Quick Info
   quickInfoContainer: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
     marginTop: -40,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   quickInfoCard: {
     flex: 1,
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: spacing.md,
+    padding: spacing.sm,
     alignItems: 'center',
     elevation: 4,
     shadowColor: lumeraColors.roxoLumera,
@@ -601,8 +592,8 @@ const styles = StyleSheet.create({
   locationCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
     elevation: 2,
   },
   locationHeader: {
@@ -630,8 +621,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
@@ -643,13 +634,13 @@ const styles = StyleSheet.create({
 
   // Section
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   sectionTitle: {
     fontSize: 18,
@@ -668,8 +659,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
     elevation: 2,
   },
   organizerAvatar: {
@@ -696,21 +687,21 @@ const styles = StyleSheet.create({
 
   // Tickets
   ticketsSection: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   noTickets: {
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
+    paddingVertical: spacing.lg,
   },
   noTicketsText: {
     fontSize: 16,
     color: '#999',
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
   },
   ticketCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     elevation: 2,
     overflow: 'hidden',
   },
@@ -719,7 +710,7 @@ const styles = StyleSheet.create({
   },
   ticketContent: {
     flexDirection: 'row',
-    padding: spacing.md,
+    padding: spacing.sm,
   },
   ticketMain: {
     flex: 1,
@@ -778,7 +769,7 @@ const styles = StyleSheet.create({
   },
   featuresContainer: {
     backgroundColor: '#FAFAFA',
-    padding: spacing.md,
+    padding: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
@@ -809,15 +800,13 @@ const styles = StyleSheet.create({
     borderTopColor: '#eee',
     elevation: 8,
   },
-  bottomPricing: {},
-  bottomLabel: {
-    fontSize: 12,
-    color: '#999',
+  bottomPricing: {
+    flex: 1,
   },
-  bottomPrice: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: lumeraColors.roxoLumera,
+  bottomLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.onSurface,
   },
   bottomButton: {
     flexDirection: 'row',

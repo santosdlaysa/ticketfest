@@ -294,7 +294,7 @@ export default function CartScreen() {
           </ScrollView>
 
           {/* Summary Footer */}
-          <Surface style={[styles.summaryContainer, { paddingBottom: insets.bottom + spacing.md, backgroundColor: colors.surface }]}>
+          <Surface style={[styles.summaryContainer, { paddingBottom: insets.bottom + spacing.sm, backgroundColor: colors.surface }]}>
             {/* Summary Details */}
             <View style={[styles.summaryDetails, { borderBottomColor: colors.divider }]}>
               <View style={styles.summaryRow}>
@@ -531,10 +531,10 @@ const styles = StyleSheet.create({
 
   // Summary
   summaryContainer: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
@@ -542,43 +542,43 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   summaryDetails: {
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.sm,
     borderBottomWidth: 1,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 6,
   },
   summaryLabel: {
-    fontSize: 14,
+    fontSize: 13,
   },
   summaryValue: {
-    fontSize: 14,
+    fontSize: 13,
   },
   totalContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
   },
   totalLabel: {
-    fontSize: 12,
+    fontSize: 11,
   },
   totalValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
   },
   checkoutButton: {
     borderRadius: 12,
-    minWidth: 140,
+    minWidth: 130,
   },
   checkoutButtonContent: {
-    paddingVertical: spacing.sm,
+    paddingVertical: 6,
   },
   checkoutButtonLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
 });
