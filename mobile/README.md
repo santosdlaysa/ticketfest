@@ -1,6 +1,6 @@
-# TicketFest Mobile App
+# Lumera Mobile App
 
-Aplicativo mobile React Native para o sistema TicketFest de venda de ingressos.
+Aplicativo mobile React Native para o sistema Lumera de venda de ingressos.
 
 ## 🚀 Tecnologias
 
@@ -50,7 +50,7 @@ mobile/
 - Node.js 18+
 - npm ou yarn
 - Expo CLI (`npm install -g expo-cli`)
-- Backend TicketFest rodando (porta 4000)
+- Backend Lumera rodando (porta 4000)
 
 ### Instalação
 
@@ -112,7 +112,7 @@ Edite o arquivo `src/services/api.ts` para configurar a URL do backend:
 const API_URL = __DEV__
   ? 'http://10.0.2.2:4000/api'  // Android Emulator
   // ? 'http://192.168.1.100:4000/api'  // Device real (use IP da máquina)
-  : 'https://api.ticketfest.com/api'; // Produção
+  : 'https://api.Lumera.com/api'; // Produção
 ```
 
 ## 🧪 Testando o Login
@@ -190,4 +190,4 @@ npm run web        # Roda no navegador
 
 ## 📄 Licença
 
-Este projeto faz parte do sistema TicketFest.
+Este projeto faz parte do sistema Lumera.

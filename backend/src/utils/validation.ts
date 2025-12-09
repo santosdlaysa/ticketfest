@@ -78,6 +78,50 @@ export const createCouponSchema = z.object({
   minPurchase: z.number().min(0).optional(),
 });
 
+// Split Payment validation schemas
+export const createSplitRuleSchema = z
+  .object({
+    eventId: z.string().uuid(),
+    platformPercentage: z.number().min(0).max(100),
+    organizerPercentage: z.number().min(0).max(100),
+    platformFixedFee: z.number().min(0).default(0),
+  })
+  .refine(
+    (data) => Math.abs(data.platformPercentage + data.organizerPercentage - 100) < 0.01,
+    { message: 'Platform and organizer percentages must sum to 100%' }
+  );
+
+export const updateSplitRuleSchema = z
+  .object({
+    platformPercentage: z.number().min(0).max(100),
+    organizerPercentage: z.number().min(0).max(100),
+    platformFixedFee: z.number().min(0).optional(),
+  })
+  .refine(
+    (data) => Math.abs(data.platformPercentage + data.organizerPercentage - 100) < 0.01,
+    { message: 'Platform and organizer percentages must sum to 100%' }
+  );
+
+export const updateBankDetailsSchema = z.object({
+  bankCode: z.string().min(3).max(5),
+  bankName: z.string().min(2).max(100),
+  accountType: z.enum(['CHECKING', 'SAVINGS']),
+  accountNumber: z.string().min(1).max(20),
+  accountDigit: z.string().min(1).max(2),
+  agencyNumber: z.string().min(1).max(10),
+  agencyDigit: z.string().max(2).optional(),
+  holderName: z.string().min(2).max(150),
+  holderDocument: z
+    .string()
+    .regex(/^(\d{11}|\d{14})$/, 'Document must be CPF (11 digits) or CNPJ (14 digits)'),
+  holderType: z.enum(['INDIVIDUAL', 'COMPANY']),
+});
+
+export const createPayoutSchema = z.object({
+  amount: z.number().positive('Amount must be positive'),
+  payoutMethod: z.enum(['BANK_TRANSFER', 'PIX']),
+});
+
 // Helper function to validate request body
 export const validate = <T>(schema: z.ZodSchema<T>) => {
   return (data: unknown): T => {

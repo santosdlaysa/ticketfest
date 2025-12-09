@@ -1,4 +1,4 @@
-# TicketFest - Frontend Web
+# Lumera - Frontend Web
 
 Aplicação web frontend construída com Next.js, TypeScript e Tailwind CSS.
 
@@ -35,7 +35,7 @@ Crie um arquivo `.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
-NEXT_PUBLIC_SITE_NAME=TicketFest
+NEXT_PUBLIC_SITE_NAME=Lumera
 NEXT_PUBLIC_SITE_URL=http://localhost:3001
 ```
 
@@ -187,4 +187,4 @@ npm start
 
 **Status**: 🟢 Funcional e Operacional
 
-Desenvolvido com ❤️ pela equipe TicketFest
+Desenvolvido com ❤️ pela equipe Lumera

@@ -1,8 +1,8 @@
-# 💳 TicketFest - Checkout Setup Guide
+# 💳 Lumera - Checkout Setup Guide
 
 ## 📋 Overview
 
-O sistema de checkout do TicketFest agora está 100% funcional com suporte para múltiplos métodos de pagamento:
+O sistema de checkout do Lumera agora está 100% funcional com suporte para múltiplos métodos de pagamento:
 - 💳 **Cartão de Crédito** (via Stripe)
 - 📱 **PIX** (com QR Code)
 - 📄 **Boleto Bancário**
@@ -228,7 +228,7 @@ interface CheckoutForm {
 **Solução:**
 - O checkout requer autenticação
 - Faça login ou crie uma conta primeiro
-- Usuário de teste: `user@ticketfest.com` / `password123`
+- Usuário de teste: `user@Lumera.com` / `password123`
 
 ### Cartão de crédito não aparece
 

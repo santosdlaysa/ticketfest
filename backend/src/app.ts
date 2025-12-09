@@ -47,7 +47,7 @@ app.use('/api', routes);
 // Root route
 app.get('/', (req, res) => {
   res.json({
-    name: 'TicketFest API',
+    name: 'Lumera API',
     version: '1.0.0',
     status: 'running',
     documentation: '/api/health',

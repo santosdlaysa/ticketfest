@@ -6,18 +6,19 @@ import {
   Platform,
   ScrollView,
   Alert,
+  StatusBar,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   TextInput,
   Button,
   Text,
-  Card,
   HelperText,
 } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { useAuthStore } from '../../stores/authStore';
-import { theme, spacing, fontSize } from '../../theme';
+import { spacing, fontSize, lumeraColors } from '../../theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -97,34 +98,56 @@ export default function RegisterScreen({ navigation }: Props) {
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.content}>
-          <Text style={styles.title}>Criar Conta</Text>
-          <Text style={styles.subtitle}>Preencha os dados para começar</Text>
+  const inputTheme = {
+    colors: {
+      primary: lumeraColors.roxoLumera,
+      onSurfaceVariant: '#aaa',
+      surfaceVariant: 'rgba(255,255,255,0.08)',
+    },
+  };
 
-          <Card style={styles.card}>
-            <Card.Content>
+  return (
+    <LinearGradient
+      colors={[lumeraColors.pretoObsidian, '#1A1A2E', lumeraColors.roxoLumera + '40']}
+      style={styles.gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            {/* Header */}
+            <View style={styles.headerContainer}>
+              <Text style={styles.title}>Criar Conta</Text>
+              <Text style={styles.subtitle}>Preencha os dados para começar</Text>
+            </View>
+
+            {/* Formulário */}
+            <View style={styles.formContainer}>
               <TextInput
                 label="Nome Completo"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
                 autoComplete="name"
-                mode="outlined"
+                mode="flat"
                 error={!!errors.name}
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={inputTheme}
+                left={<TextInput.Icon icon="account" iconColor="#aaa" />}
               />
               {errors.name ? (
-                <HelperText type="error" visible={!!errors.name}>
+                <HelperText type="error" visible={!!errors.name} style={styles.errorText}>
                   {errors.name}
                 </HelperText>
               ) : null}
@@ -136,13 +159,16 @@ export default function RegisterScreen({ navigation }: Props) {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
-                mode="outlined"
+                mode="flat"
                 error={!!errors.email}
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={inputTheme}
+                left={<TextInput.Icon icon="email" iconColor="#aaa" />}
               />
               {errors.email ? (
-                <HelperText type="error" visible={!!errors.email}>
+                <HelperText type="error" visible={!!errors.email} style={styles.errorText}>
                   {errors.email}
                 </HelperText>
               ) : null}
@@ -153,9 +179,12 @@ export default function RegisterScreen({ navigation }: Props) {
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
                 autoComplete="tel"
-                mode="outlined"
+                mode="flat"
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={inputTheme}
+                left={<TextInput.Icon icon="phone" iconColor="#aaa" />}
               />
 
               <TextInput
@@ -163,9 +192,12 @@ export default function RegisterScreen({ navigation }: Props) {
                 value={cpf}
                 onChangeText={setCpf}
                 keyboardType="numeric"
-                mode="outlined"
+                mode="flat"
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={inputTheme}
+                left={<TextInput.Icon icon="card-account-details" iconColor="#aaa" />}
               />
 
               <TextInput
@@ -175,19 +207,23 @@ export default function RegisterScreen({ navigation }: Props) {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoComplete="password-new"
-                mode="outlined"
+                mode="flat"
                 error={!!errors.password}
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={inputTheme}
+                left={<TextInput.Icon icon="lock" iconColor="#aaa" />}
                 right={
                   <TextInput.Icon
                     icon={showPassword ? 'eye-off' : 'eye'}
+                    iconColor="#aaa"
                     onPress={() => setShowPassword(!showPassword)}
                   />
                 }
               />
               {errors.password ? (
-                <HelperText type="error" visible={!!errors.password}>
+                <HelperText type="error" visible={!!errors.password} style={styles.errorText}>
                   {errors.password}
                 </HelperText>
               ) : null}
@@ -198,19 +234,23 @@ export default function RegisterScreen({ navigation }: Props) {
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
-                mode="outlined"
+                mode="flat"
                 error={!!errors.confirmPassword}
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={inputTheme}
+                left={<TextInput.Icon icon="lock-check" iconColor="#aaa" />}
                 right={
                   <TextInput.Icon
                     icon={showConfirmPassword ? 'eye-off' : 'eye'}
+                    iconColor="#aaa"
                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   />
                 }
               />
               {errors.confirmPassword ? (
-                <HelperText type="error" visible={!!errors.confirmPassword}>
+                <HelperText type="error" visible={!!errors.confirmPassword} style={styles.errorText}>
                   {errors.confirmPassword}
                 </HelperText>
               ) : null}
@@ -222,6 +262,8 @@ export default function RegisterScreen({ navigation }: Props) {
                 disabled={isLoading}
                 style={styles.button}
                 contentStyle={styles.buttonContent}
+                buttonColor={lumeraColors.roxoLumera}
+                textColor="#fff"
               >
                 Cadastrar
               </Button>
@@ -231,21 +273,24 @@ export default function RegisterScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('Login')}
                 disabled={isLoading}
                 style={styles.loginButton}
+                textColor={lumeraColors.brancoLuminoso}
               >
                 Já tem conta? Faça login
               </Button>
-            </Card.Content>
-          </Card>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -253,36 +298,55 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    padding: spacing.md,
-    paddingTop: spacing.xl,
+    padding: spacing.lg,
+    paddingTop: spacing.xxl + 20,
     paddingBottom: spacing.xl,
   },
-  title: {
-    fontSize: fontSize.xxxl,
-    fontWeight: 'bold',
-    color: theme.colors.primary,
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: fontSize.lg,
-    color: theme.colors.onBackground,
-    textAlign: 'center',
+  headerContainer: {
+    alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  card: {
-    elevation: 4,
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: lumeraColors.brancoLuminoso,
+    textAlign: 'center',
+    letterSpacing: 2,
+  },
+  subtitle: {
+    fontSize: fontSize.md,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    marginTop: spacing.sm,
+  },
+  formContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(123, 46, 255, 0.2)',
   },
   input: {
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+  },
+  errorText: {
+    color: '#FF6B6B',
   },
   button: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
+    borderRadius: 12,
+    elevation: 8,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
   buttonContent: {
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
   },
   loginButton: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
 });

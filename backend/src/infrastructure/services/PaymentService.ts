@@ -68,7 +68,7 @@ export class PaymentService {
 
     const mockPixCode = `00020126580014br.gov.bcb.pix0136${orderId}520400005303986540${amount.toFixed(
       2
-    )}5802BR5925TICKETFEST LTDA6014SAO PAULO62070503***6304`;
+    )}5802BR5925Lumera LTDA6014SAO PAULO62070503***6304`;
 
     return {
       qrCode: mockPixCode,
@@ -96,7 +96,7 @@ export class PaymentService {
     dueDate.setDate(dueDate.getDate() + 3); // 3 days to pay
 
     return {
-      boletoUrl: `https://ticketfest.com/boleto/${orderId}`,
+      boletoUrl: `https://Lumera.com/boleto/${orderId}`,
       barcode: `23793381286000000${Math.floor(amount * 100)}00000000${orderId.slice(0, 10)}`,
       dueDate,
     };

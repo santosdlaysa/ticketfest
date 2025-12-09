@@ -1,4 +1,4 @@
-# ⚡ TODO URGENTE - TicketFest
+# ⚡ TODO URGENTE - Lumera
 
 **Status Atual:** Sistema 90% pronto - Precisa configuração + 2 páginas
 
@@ -21,10 +21,10 @@ Get-Service -Name postgresql*
 
 # Criar banco
 # Abrir pgAdmin ou psql
-CREATE DATABASE ticketfest;
+CREATE DATABASE Lumera;
 
 # Atualizar backend/.env linha 7:
-DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/ticketfest?schema=public"
+DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/Lumera?schema=public"
 
 # Rodar migrations
 cd backend
@@ -126,7 +126,7 @@ Backend já existe, só falta interface.
 
 ### Configuração (30-40 min)
 - [ ] Instalar/Verificar PostgreSQL
-- [ ] Criar banco `ticketfest`
+- [ ] Criar banco `Lumera`
 - [ ] Atualizar senha em `backend/.env`
 - [ ] Rodar `npm run prisma:migrate`
 - [ ] Rodar `npm run prisma:seed`
@@ -137,7 +137,7 @@ Backend já existe, só falta interface.
 - [ ] Iniciar backend: `cd backend && npm run dev`
 - [ ] Iniciar frontend: `cd web && npm run dev`
 - [ ] Abrir http://localhost:3001
-- [ ] Login: user@ticketfest.com / password123
+- [ ] Login: user@Lumera.com / password123
 - [ ] Adicionar item ao carrinho
 - [ ] Fazer checkout
 - [ ] Testar pagamento (cartão: 4242 4242 4242 4242)
@@ -218,7 +218,7 @@ http://localhost:3001
 ```
 
 **Login de Teste:**
-- Email: `user@ticketfest.com`
+- Email: `user@Lumera.com`
 - Senha: `password123`
 
 **Cartão de Teste:**

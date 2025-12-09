@@ -14,13 +14,13 @@ Certifique-se de ter instalado:
 Abra o pgAdmin ou psql e execute:
 
 ```sql
-CREATE DATABASE ticketfest;
+CREATE DATABASE Lumera;
 ```
 
 Ou via linha de comando:
 ```bash
 psql -U postgres
-CREATE DATABASE ticketfest;
+CREATE DATABASE Lumera;
 \q
 ```
 
@@ -64,7 +64,7 @@ curl http://localhost:3000/api/health
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"user@ticketfest.com\",\"password\":\"password123\"}"
+  -d "{\"email\":\"user@Lumera.com\",\"password\":\"password123\"}"
 ```
 
 ### 3. Listar Eventos
@@ -92,9 +92,9 @@ Após o seed, você tem estes usuários:
 
 | Email | Senha | Role |
 |-------|-------|------|
-| admin@ticketfest.com | password123 | ADMIN |
-| organizer@ticketfest.com | password123 | ORGANIZER |
-| user@ticketfest.com | password123 | USER |
+| admin@Lumera.com | password123 | ADMIN |
+| organizer@Lumera.com | password123 | ORGANIZER |
+| user@Lumera.com | password123 | USER |
 
 ## 🛠️ Comandos Úteis
 
@@ -122,7 +122,7 @@ npm run format           # Formata código
 ### Erro: "Cannot connect to database"
 - Verifique se o PostgreSQL está rodando
 - Confirme que o DATABASE_URL no .env está correto
-- Teste a conexão com: `psql -U postgres -d ticketfest`
+- Teste a conexão com: `psql -U postgres -d Lumera`
 
 ### Erro: "Port 3000 already in use"
 - Altere a variável PORT no .env para outra porta (ex: 3001)

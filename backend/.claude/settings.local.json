@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(tree:*)",
+      "Bash(dir \"C:\\Users\\ldsantos\\Documents\\Lumera\")",
+      "Bash(copy:*)"
+    ]
+  }
+}

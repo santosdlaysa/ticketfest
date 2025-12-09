@@ -1,25 +1,108 @@
-import { MD3LightTheme as DefaultTheme } from 'react-native-paper';
+import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 
-// Custom theme based on React Native Paper
-export const theme = {
-  ...DefaultTheme,
+// ========================================
+// LUMERA - Identidade Visual
+// "Uma nova era de brilho"
+// ========================================
+
+// Paleta Principal Lumera
+export const lumeraColors = {
+  // Cores Principais
+  roxoLumera: '#7B2EFF',      // Primária - moderno, premium, noturno
+  azulGlow: '#4A6CFF',        // Secundária - brilho, tecnologia
+  pretoObsidian: '#0E0E0F',   // Elegância, contraste
+  brancoLuminoso: '#F8F8FF',  // Leveza, minimalismo
+
+  // Cores Secundárias
+  lilasNeon: '#C084FF',       // Destaque, elementos vibrantes
+  douradoSuave: '#E0C87A',    // Premium, VIP
+  cinzaFumaca: '#2A2A2E',     // Base para UI
+
+  // Gradientes (para uso programático)
+  gradientStart: '#7B2EFF',
+  gradientEnd: '#4A6CFF',
+};
+
+// Light theme colors (Lumera)
+export const lightColors = {
+  primary: lumeraColors.roxoLumera,
+  secondary: lumeraColors.azulGlow,
+  tertiary: lumeraColors.lilasNeon,
+  error: '#E53935',
+  background: lumeraColors.brancoLuminoso,
+  surface: '#ffffff',
+  surfaceVariant: '#F5F3FF',
+  onPrimary: '#ffffff',
+  onSecondary: '#ffffff',
+  onBackground: lumeraColors.pretoObsidian,
+  onSurface: lumeraColors.pretoObsidian,
+  onSurfaceVariant: '#666666',
+  onError: '#ffffff',
+  accent: lumeraColors.lilasNeon,
+  border: '#E0D4FF',
+  card: '#ffffff',
+  text: lumeraColors.pretoObsidian,
+  textSecondary: '#666666',
+  textMuted: '#999999',
+  divider: '#F0EAFF',
+  statusBar: 'dark' as const,
+  // Cores especiais Lumera
+  vip: lumeraColors.douradoSuave,
+  highlight: lumeraColors.lilasNeon,
+  glow: lumeraColors.azulGlow,
+};
+
+// Dark theme colors (Lumera Premium)
+export const darkColors = {
+  primary: lumeraColors.roxoLumera,
+  secondary: lumeraColors.azulGlow,
+  tertiary: lumeraColors.lilasNeon,
+  error: '#FF6B6B',
+  background: lumeraColors.pretoObsidian,
+  surface: lumeraColors.cinzaFumaca,
+  surfaceVariant: '#3A3A40',
+  onPrimary: '#ffffff',
+  onSecondary: '#ffffff',
+  onBackground: lumeraColors.brancoLuminoso,
+  onSurface: lumeraColors.brancoLuminoso,
+  onSurfaceVariant: '#b0b0b0',
+  onError: '#000000',
+  accent: lumeraColors.lilasNeon,
+  border: '#4A4A50',
+  card: lumeraColors.cinzaFumaca,
+  text: lumeraColors.brancoLuminoso,
+  textSecondary: '#b0b0b0',
+  textMuted: '#666666',
+  divider: '#3A3A40',
+  statusBar: 'light' as const,
+  // Cores especiais Lumera
+  vip: lumeraColors.douradoSuave,
+  highlight: lumeraColors.lilasNeon,
+  glow: lumeraColors.azulGlow,
+};
+
+// Light theme (default)
+export const lightTheme = {
+  ...MD3LightTheme,
   colors: {
-    ...DefaultTheme.colors,
-    primary: '#6200ee',
-    secondary: '#03dac6',
-    tertiary: '#018786',
-    error: '#b00020',
-    background: '#f5f5f5',
-    surface: '#ffffff',
-    onPrimary: '#ffffff',
-    onSecondary: '#000000',
-    onBackground: '#000000',
-    onSurface: '#000000',
-    onError: '#ffffff',
-    accent: '#6200ee',
+    ...MD3LightTheme.colors,
+    ...lightColors,
   },
   roundness: 8,
 };
+
+// Dark theme
+export const darkTheme = {
+  ...MD3DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    ...darkColors,
+  },
+  roundness: 8,
+};
+
+// Default export (light theme for backwards compatibility)
+export const theme = lightTheme;
 
 // Common spacing values
 export const spacing = {
@@ -42,33 +125,43 @@ export const fontSize = {
   xxxl: 32,
 };
 
-// Common styles
-export const commonStyles = {
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    backgroundColor: theme.colors.background,
-  },
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.roundness,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    elevation: 2,
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+// Get theme based on mode
+export const getTheme = (isDark: boolean) => isDark ? darkTheme : lightTheme;
+
+// Common styles generator based on theme
+export const getCommonStyles = (isDark: boolean) => {
+  const colors = isDark ? darkColors : lightColors;
+
+  return {
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      backgroundColor: colors.background,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      elevation: 2,
+    },
+    shadow: {
+      shadowColor: isDark ? '#000' : '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: isDark ? 0.5 : 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+  };
 };
+
+// Backward compatible commonStyles
+export const commonStyles = getCommonStyles(false);

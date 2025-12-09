@@ -1,4 +1,4 @@
-# 🔧 TicketFest - Problemas e Soluções
+# 🔧 Lumera - Problemas e Soluções
 
 **Data:** 20 de Outubro de 2025
 **Versão:** 1.1.0
@@ -49,7 +49,7 @@ O banco de dados PostgreSQL não está:
 **Opção C: Senha Incorreta**
 1. Editar `backend/.env` linha 7:
    ```env
-   DATABASE_URL="postgresql://postgres:SUA_SENHA_AQUI@localhost:5432/ticketfest?schema=public"
+   DATABASE_URL="postgresql://postgres:SUA_SENHA_AQUI@localhost:5432/Lumera?schema=public"
    ```
 2. Substituir `SUA_SENHA_AQUI` pela senha real
 
@@ -57,7 +57,7 @@ O banco de dados PostgreSQL não está:
 1. Abrir pgAdmin ou psql
 2. Executar:
    ```sql
-   CREATE DATABASE ticketfest;
+   CREATE DATABASE Lumera;
    ```
 
 #### Verificação
@@ -395,13 +395,13 @@ Se não estiver instalado:
 **1.2. Criar Banco**
 ```sql
 -- Abrir pgAdmin ou psql
-CREATE DATABASE ticketfest;
+CREATE DATABASE Lumera;
 ```
 
 **1.3. Atualizar Senha**
 Editar `backend/.env`:
 ```env
-DATABASE_URL="postgresql://postgres:SENHA_REAL@localhost:5432/ticketfest?schema=public"
+DATABASE_URL="postgresql://postgres:SENHA_REAL@localhost:5432/Lumera?schema=public"
 ```
 
 **1.4. Executar Migrations**
@@ -470,7 +470,7 @@ Local: http://localhost:3001
 1. Acessar http://localhost:3001
 2. Clicar em um evento
 3. Adicionar ingressos ao carrinho
-4. Fazer login: `user@ticketfest.com` / `password123`
+4. Fazer login: `user@Lumera.com` / `password123`
 5. Ir para checkout
 6. Testar PIX, Boleto ou Cartão
 
@@ -551,7 +551,7 @@ Local: http://localhost:3001
 
 ### Configuração Inicial
 - [ ] PostgreSQL instalado e rodando
-- [ ] Banco `ticketfest` criado
+- [ ] Banco `Lumera` criado
 - [ ] Senha atualizada em `backend/.env`
 - [ ] Migrations executadas com sucesso
 - [ ] Seeds carregados (3 eventos, 3 usuários)

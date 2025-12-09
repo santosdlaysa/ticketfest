@@ -1,4 +1,4 @@
-# TicketFest API
+# Lumera API
 
 Sistema completo de venda de ingressos - Backend API REST
 
@@ -413,9 +413,9 @@ Configure as variáveis de ambiente SMTP para habilitar o envio de emails.
 
 Após executar `npm run prisma:seed`, você terá:
 
-- **Admin**: `admin@ticketfest.com` / `password123`
-- **Organizer**: `organizer@ticketfest.com` / `password123`
-- **User**: `user@ticketfest.com` / `password123`
+- **Admin**: `admin@Lumera.com` / `password123`
+- **Organizer**: `organizer@Lumera.com` / `password123`
+- **User**: `user@Lumera.com` / `password123`
 
 ## 📦 Estrutura do Projeto
 
@@ -457,4 +457,4 @@ MIT
 
 ## 👨‍💻 Autor
 
-TicketFest Team
+Lumera Team

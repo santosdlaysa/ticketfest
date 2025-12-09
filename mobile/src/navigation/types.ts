@@ -11,14 +11,55 @@ export type AuthStackParamList = {
 
 export type MainStackParamList = {
   HomeTabs: undefined;
-  EventDetails: { eventId: string };
-  Cart: undefined;
-  Checkout: undefined;
 };
 
 export type HomeTabsParamList = {
   Home: undefined;
   MyTickets: undefined;
-  Orders: undefined;
+  Lists: undefined;
   Profile: undefined;
+};
+
+// Stack dentro da tab Home
+export type HomeStackParamList = {
+  HomeMain: undefined;
+  EventDetails: { eventId: string };
+  Cart: undefined;
+  Checkout: undefined;
+  Payment: undefined;
+};
+
+// Stack dentro da tab Ingressos
+export type TicketsStackParamList = {
+  MyTicketsMain: undefined;
+  TicketDetails: {
+    ticket: {
+      id: string;
+      ticketName: string;
+      eventName: string;
+      eventDate: string;
+      eventLocation: string;
+      qrCode: string;
+      qrCodeData: string;
+      checkedIn: boolean;
+      checkedInAt?: string;
+      orderId: string;
+      orderDate: string;
+      orderTotal: number;
+      paymentStatus: string;
+      paymentMethod: string;
+      ticketPrice: number;
+    };
+  };
+};
+
+// Stack dentro da tab Listas
+export type ListsStackParamList = {
+  ListsMain: undefined;
+  PromoterList: { listId: string };
+};
+
+// Stack dentro da tab Perfil
+export type ProfileStackParamList = {
+  ProfileMain: undefined;
 };

@@ -6,18 +6,19 @@ import {
   Platform,
   ScrollView,
   Alert,
+  StatusBar,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   TextInput,
   Button,
   Text,
-  Card,
   HelperText,
 } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { useAuthStore } from '../../stores/authStore';
-import { theme, spacing, fontSize } from '../../theme';
+import { theme, spacing, fontSize, lumeraColors } from '../../theme';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -27,7 +28,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
 
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, setAuth } = useAuthStore();
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,21 +69,51 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.content}>
-          <Text style={styles.title}>TicketFest</Text>
-          <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
+  // Login rápido sem autenticação (modo demo)
+  const handleQuickAccess = async () => {
+    // Criar usuário de demonstração
+    const demoUser = {
+      user: {
+        id: 'demo-user-id',
+        email: 'demo@Lumera.com',
+        name: 'Usuário Demo',
+        role: 'USER' as const,
+        createdAt: new Date().toISOString(),
+      },
+      accessToken: 'demo-token',
+      refreshToken: 'demo-refresh-token',
+    };
 
-          <Card style={styles.card}>
-            <Card.Content>
+    await setAuth(demoUser);
+  };
+
+  return (
+    <LinearGradient
+      colors={[lumeraColors.pretoObsidian, '#1A1A2E', lumeraColors.roxoLumera + '40']}
+      style={styles.gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            {/* Logo e Marca */}
+            <View style={styles.logoContainer}>
+              <Text style={styles.title}>LUMERA</Text>
+              <Text style={styles.tagline}>Uma nova era de brilho</Text>
+            </View>
+
+            <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
+
+            {/* Formulário */}
+            <View style={styles.formContainer}>
               <TextInput
                 label="Email"
                 value={email}
@@ -90,13 +121,21 @@ export default function LoginScreen({ navigation }: Props) {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
-                mode="outlined"
+                mode="flat"
                 error={!!errors.email}
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={{
+                  colors: {
+                    primary: lumeraColors.roxoLumera,
+                    onSurfaceVariant: '#aaa',
+                    surfaceVariant: 'rgba(255,255,255,0.08)',
+                  },
+                }}
               />
               {errors.email ? (
-                <HelperText type="error" visible={!!errors.email}>
+                <HelperText type="error" visible={!!errors.email} style={styles.errorText}>
                   {errors.email}
                 </HelperText>
               ) : null}
@@ -108,19 +147,28 @@ export default function LoginScreen({ navigation }: Props) {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoComplete="password"
-                mode="outlined"
+                mode="flat"
                 error={!!errors.password}
                 style={styles.input}
                 disabled={isLoading}
+                textColor="#fff"
+                theme={{
+                  colors: {
+                    primary: lumeraColors.roxoLumera,
+                    onSurfaceVariant: '#aaa',
+                    surfaceVariant: 'rgba(255,255,255,0.08)',
+                  },
+                }}
                 right={
                   <TextInput.Icon
                     icon={showPassword ? 'eye-off' : 'eye'}
+                    iconColor="#aaa"
                     onPress={() => setShowPassword(!showPassword)}
                   />
                 }
               />
               {errors.password ? (
-                <HelperText type="error" visible={!!errors.password}>
+                <HelperText type="error" visible={!!errors.password} style={styles.errorText}>
                   {errors.password}
                 </HelperText>
               ) : null}
@@ -132,8 +180,28 @@ export default function LoginScreen({ navigation }: Props) {
                 disabled={isLoading}
                 style={styles.button}
                 contentStyle={styles.buttonContent}
+                buttonColor={lumeraColors.roxoLumera}
+                textColor="#fff"
               >
                 Entrar
+              </Button>
+
+              <View style={styles.dividerContainer}>
+                <View style={styles.divider} />
+                <Text style={styles.dividerText}>ou</Text>
+                <View style={styles.divider} />
+              </View>
+
+              <Button
+                mode="outlined"
+                onPress={handleQuickAccess}
+                disabled={isLoading}
+                style={styles.quickAccessButton}
+                contentStyle={styles.buttonContent}
+                icon="account-arrow-right"
+                textColor={lumeraColors.lilasNeon}
+              >
+                Entrar sem senha
               </Button>
 
               <Button
@@ -141,21 +209,24 @@ export default function LoginScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('Register')}
                 disabled={isLoading}
                 style={styles.registerButton}
+                textColor={lumeraColors.brancoLuminoso}
               >
                 Não tem conta? Cadastre-se
               </Button>
-            </Card.Content>
-          </Card>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -163,34 +234,86 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    padding: spacing.md,
+    padding: spacing.lg,
+    paddingTop: spacing.xxl,
   },
-  title: {
-    fontSize: fontSize.xxxl,
-    fontWeight: 'bold',
-    color: theme.colors.primary,
-    textAlign: 'center',
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: fontSize.lg,
-    color: theme.colors.onBackground,
-    textAlign: 'center',
+  logoContainer: {
+    alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  card: {
-    elevation: 4,
+  title: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: lumeraColors.brancoLuminoso,
+    textAlign: 'center',
+    letterSpacing: 8,
+    textShadowColor: lumeraColors.roxoLumera,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
+  },
+  tagline: {
+    fontSize: fontSize.sm,
+    color: lumeraColors.lilasNeon,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  subtitle: {
+    fontSize: fontSize.xl,
+    color: lumeraColors.brancoLuminoso,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+    fontWeight: '300',
+  },
+  formContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 20,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(123, 46, 255, 0.2)',
   },
   input: {
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+  },
+  errorText: {
+    color: '#FF6B6B',
   },
   button: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
+    borderRadius: 12,
+    elevation: 8,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
   },
   buttonContent: {
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  dividerText: {
+    marginHorizontal: spacing.md,
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: fontSize.sm,
+  },
+  quickAccessButton: {
+    borderColor: lumeraColors.lilasNeon,
+    borderRadius: 12,
+    borderWidth: 1.5,
   },
   registerButton: {
-    marginTop: spacing.sm,
+    marginTop: spacing.lg,
   },
 });

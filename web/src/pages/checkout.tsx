@@ -192,7 +192,7 @@ export default function Checkout() {
   return (
     <>
       <Head>
-        <title>Finalizar Compra - TicketFest</title>
+        <title>Finalizar Compra - Lumera</title>
       </Head>
 
       <div className="container-custom py-8">

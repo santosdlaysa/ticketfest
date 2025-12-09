@@ -27,7 +27,7 @@ export const Header: React.FC = () => {
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">T</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">TicketFest</span>
+            <span className="text-xl font-bold text-gray-900">Lumera</span>
           </Link>
 
           {/* Desktop Navigation */}

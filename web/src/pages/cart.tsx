@@ -33,7 +33,7 @@ export default function Cart() {
   if (!cart || cart.items.length === 0) {
     return (
       <>
-        <Head><title>Carrinho - TicketFest</title></Head>
+        <Head><title>Carrinho - Lumera</title></Head>
         <div className="container-custom py-16 text-center">
           <div className="max-w-md mx-auto">
             <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@ export default function Cart() {
 
   return (
     <>
-      <Head><title>Carrinho ({cart.itemCount}) - TicketFest</title></Head>
+      <Head><title>Carrinho ({cart.itemCount}) - Lumera</title></Head>
       <div className="container-custom py-8">
         <h1 className="text-3xl font-bold mb-8">Meu Carrinho</h1>
 

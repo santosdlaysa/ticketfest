@@ -1,4 +1,4 @@
-# 📊 TicketFest - Status do Projeto
+# 📊 Lumera - Status do Projeto
 
 **Última Atualização:** Outubro 2025
 **Versão:** 1.0.0
@@ -19,7 +19,7 @@
 
 ## 🎯 Visão Geral
 
-O **TicketFest** é um sistema completo de venda de ingressos para eventos, composto por:
+O **Lumera** é um sistema completo de venda de ingressos para eventos, composto por:
 
 - ✅ **Backend API** (Node.js + Express + PostgreSQL) - **100% Implementado**
 - ✅ **Frontend Web** (Next.js + TypeScript + Tailwind) - **80% Implementado**
@@ -767,7 +767,7 @@ web/
 
 **Última atualização:** Outubro 2025
 **Versão do documento:** 1.0.0
-**Autor:** Equipe TicketFest
+**Autor:** Equipe Lumera
 
 ---
 

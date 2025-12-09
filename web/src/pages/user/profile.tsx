@@ -84,7 +84,7 @@ export default function Profile() {
   if (authLoading || loading) {
     return (
       <>
-        <Head><title>Meu Perfil - TicketFest</title></Head>
+        <Head><title>Meu Perfil - Lumera</title></Head>
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
@@ -101,7 +101,7 @@ export default function Profile() {
 
   return (
     <>
-      <Head><title>Meu Perfil - TicketFest</title></Head>
+      <Head><title>Meu Perfil - Lumera</title></Head>
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Header */}

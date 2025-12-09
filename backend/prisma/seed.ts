@@ -25,7 +25,7 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@ticketfest.com',
+      email: 'admin@Lumera.com',
       passwordHash,
       name: 'Admin User',
       cpf: '12345678901',
@@ -36,7 +36,7 @@ async function main() {
 
   const organizer = await prisma.user.create({
     data: {
-      email: 'organizer@ticketfest.com',
+      email: 'organizer@Lumera.com',
       passwordHash,
       name: 'Event Organizer',
       cpf: '98765432101',
@@ -47,7 +47,7 @@ async function main() {
 
   const user = await prisma.user.create({
     data: {
-      email: 'user@ticketfest.com',
+      email: 'user@Lumera.com',
       passwordHash,
       name: 'Regular User',
       cpf: '11122233344',
@@ -244,9 +244,9 @@ async function main() {
 
   console.log('\n🎉 Database seeded successfully!\n');
   console.log('👤 Test users:');
-  console.log('   Admin: admin@ticketfest.com / password123');
-  console.log('   Organizer: organizer@ticketfest.com / password123');
-  console.log('   User: user@ticketfest.com / password123\n');
+  console.log('   Admin: admin@Lumera.com / password123');
+  console.log('   Organizer: organizer@Lumera.com / password123');
+  console.log('   User: user@Lumera.com / password123\n');
 }
 
 main()

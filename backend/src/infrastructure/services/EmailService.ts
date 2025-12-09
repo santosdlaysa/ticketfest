@@ -43,7 +43,7 @@ export class EmailService {
 
     try {
       await this.transporter.sendMail({
-        from: env.EMAIL_FROM || 'noreply@ticketfest.com',
+        from: env.EMAIL_FROM || 'noreply@Lumera.com',
         to: options.to,
         subject: options.subject,
         html: options.html,
@@ -112,7 +112,7 @@ export class EmailService {
               <p>Apresente o QR Code na entrada do evento.</p>
             </div>
             <div class="footer">
-              <p>TicketFest - Seus eventos favoritos em um só lugar</p>
+              <p>Lumera - Seus eventos favoritos em um só lugar</p>
             </div>
           </div>
         </body>
@@ -168,7 +168,7 @@ export class EmailService {
 
     await this.sendEmail({
       to: email,
-      subject: 'Seus Ingressos - TicketFest',
+      subject: 'Seus Ingressos - Lumera',
       html,
     });
   }

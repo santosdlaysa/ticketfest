@@ -86,7 +86,7 @@ export default function CreateEvent() {
   if (authLoading) {
     return (
       <>
-        <Head><title>Criar Evento - TicketFest</title></Head>
+        <Head><title>Criar Evento - Lumera</title></Head>
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
@@ -103,7 +103,7 @@ export default function CreateEvent() {
 
   return (
     <>
-      <Head><title>Criar Evento - TicketFest</title></Head>
+      <Head><title>Criar Evento - Lumera</title></Head>
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">

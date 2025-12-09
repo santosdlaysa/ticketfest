@@ -45,7 +45,7 @@ export default function Register() {
 
   return (
     <>
-      <Head><title>Criar Conta - TicketFest</title></Head>
+      <Head><title>Criar Conta - Lumera</title></Head>
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">

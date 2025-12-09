@@ -1,8 +1,9 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainStackParamList } from './types';
+import { theme } from '../theme';
 
-// Import navigators and screens
+// Import navigators
 import HomeTabs from './HomeTabs';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
@@ -12,10 +13,10 @@ export default function MainStack() {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        contentStyle: { backgroundColor: theme.colors.background },
       }}
     >
       <Stack.Screen name="HomeTabs" component={HomeTabs} />
-      {/* Other screens will be added as modals */}
     </Stack.Navigator>
   );
 }

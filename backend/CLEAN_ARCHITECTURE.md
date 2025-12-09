@@ -1,4 +1,4 @@
-# Clean Architecture - Backend TicketFest
+# Clean Architecture - Backend Lumera
 
 ## Estrutura do Projeto
 

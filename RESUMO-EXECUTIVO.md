@@ -1,4 +1,4 @@
-# 📋 TicketFest - Resumo Executivo
+# 📋 Lumera - Resumo Executivo
 
 > **Última atualização:** 20 de Outubro de 2025
 
@@ -6,12 +6,12 @@
 
 ## 🎯 Visão Geral do Projeto
 
-O **TicketFest** é uma plataforma completa de venda de ingressos online, desenvolvida para oferecer uma experiência moderna e intuitiva tanto para compradores quanto organizadores de eventos.
+O **Lumera** é uma plataforma completa de venda de ingressos online, desenvolvida para oferecer uma experiência moderna e intuitiva tanto para compradores quanto organizadores de eventos.
 
 ### Status Atual
 ```
 ┌─────────────────────────────────────────────┐
-│ Projeto: TicketFest v1.0.0                  │
+│ Projeto: Lumera v1.0.0                  │
 │ Status: MVP Funcional (80% completo)        │
 │ Início: Outubro 2025                        │
 │ Tecnologia: Node.js + Next.js + PostgreSQL  │
@@ -134,7 +134,7 @@ O **TicketFest** é uma plataforma completa de venda de ingressos online, desenv
 ## 📂 Estrutura do Projeto
 
 ```
-ticketfest/
+Lumera/
 ├── backend/           ✅ 100% - API REST completa
 │   ├── src/
 │   │   ├── controllers/    (6 arquivos)
@@ -192,10 +192,10 @@ npm run dev
 
 ### Usuários de Teste
 ```
-Email: user@ticketfest.com
+Email: user@Lumera.com
 Senha: password123
 
-Email: admin@ticketfest.com
+Email: admin@Lumera.com
 Senha: password123
 ```
 
@@ -370,7 +370,7 @@ Duração: 1 semana | Status: **Planejado**
 
 ## 📞 Informações de Contato
 
-**Projeto:** TicketFest
+**Projeto:** Lumera
 **Versão:** 1.0.0
 **Data:** Outubro 2025
 **Status:** MVP Funcional (80%)
@@ -385,7 +385,7 @@ Duração: 1 semana | Status: **Planejado**
 
 ## 🎯 Conclusão
 
-O **TicketFest** está **90% completo** e possui uma **base sólida e funcional**.
+O **Lumera** está **90% completo** e possui uma **base sólida e funcional**.
 
 ### ✅ Pronto para:
 - Demonstrações

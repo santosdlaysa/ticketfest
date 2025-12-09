@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>TicketFest - Seus eventos favoritos em um só lugar</title>
+        <title>Lumera - Seus eventos favoritos em um só lugar</title>
         <meta
           name="description"
           content="Compre ingressos para os melhores eventos: shows, festivais, conferências e muito mais."
@@ -131,7 +131,7 @@ export default function Home() {
       <section className="py-16 bg-gray-50">
         <div className="container-custom">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Por que escolher o TicketFest?
+            Por que escolher o Lumera?
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

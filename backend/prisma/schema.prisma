@@ -1,4 +1,4 @@
-// Prisma Schema for TicketFest
+// Prisma Schema for Lumera
 // Database: PostgreSQL
 
 generator client {
@@ -30,6 +30,7 @@ model User {
   orders       Order[]
   events       Event[]  @relation("EventOrganizer")
   refreshTokens RefreshToken[]
+  organizerAccount OrganizerAccount?
 
   @@map("users")
 }
@@ -89,6 +90,7 @@ model Event {
   organizer   User        @relation("EventOrganizer", fields: [organizerId], references: [id])
   tickets     Ticket[]
   orders      Order[]
+  splitRule   SplitRule?
 
   @@index([slug])
   @@index([category])
@@ -171,6 +173,7 @@ model Order {
   user          User          @relation(fields: [userId], references: [id])
   event         Event         @relation(fields: [eventId], references: [id])
   items         OrderItem[]
+  splitTransactions SplitTransaction[]
 
   @@index([userId])
   @@index([eventId])
@@ -306,4 +309,214 @@ model Coupon {
 enum DiscountType {
   PERCENTAGE
   FIXED
+}
+
+// ============================================
+// SPLIT PAYMENT - Pagamento Dividido
+// ============================================
+
+// Conta do Organizador para receber pagamentos
+model OrganizerAccount {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+
+  // Status de verificação
+  verified        Boolean  @default(false)
+  verifiedAt      DateTime? @map("verified_at")
+
+  // Dados bancários
+  bankCode        String?  @map("bank_code")
+  bankName        String?  @map("bank_name")
+  accountType     AccountType? @map("account_type")
+  accountNumber   String?  @map("account_number")
+  accountDigit    String?  @map("account_digit")
+  agencyNumber    String?  @map("agency_number")
+  agencyDigit     String?  @map("agency_digit")
+
+  // Dados do titular
+  holderName      String?  @map("holder_name")
+  holderDocument  String?  @map("holder_document") // CPF ou CNPJ
+  holderType      HolderType? @map("holder_type")
+
+  // IDs externos de gateways de pagamento
+  stripeAccountId     String? @unique @map("stripe_account_id")
+  pagarmeRecipientId  String? @unique @map("pagarme_recipient_id")
+  mercadoPagoUserId   String? @unique @map("mercadopago_user_id")
+  asaasWalletId       String? @unique @map("asaas_wallet_id")
+
+  // Saldo disponível (calculado)
+  availableBalance    Float   @default(0) @map("available_balance")
+  pendingBalance      Float   @default(0) @map("pending_balance")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  splitRules      SplitRule[]
+  payouts         Payout[]
+  transactions    SplitTransaction[]
+
+  @@map("organizer_accounts")
+}
+
+enum AccountType {
+  CHECKING    // Conta corrente
+  SAVINGS     // Poupança
+}
+
+enum HolderType {
+  INDIVIDUAL  // Pessoa física
+  COMPANY     // Pessoa jurídica
+}
+
+// Regras de divisão para cada evento
+model SplitRule {
+  id              String   @id @default(uuid())
+  eventId         String   @unique @map("event_id")
+  organizerAccountId String @map("organizer_account_id")
+
+  // Porcentagens (devem somar 100%)
+  platformPercentage   Float @map("platform_percentage") // Ex: 10%
+  organizerPercentage  Float @map("organizer_percentage") // Ex: 90%
+
+  // Valor fixo adicional da plataforma (opcional)
+  platformFixedFee     Float @default(0) @map("platform_fixed_fee")
+
+  // Status
+  active          Boolean  @default(true)
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  organizerAccount OrganizerAccount @relation(fields: [organizerAccountId], references: [id])
+  transactions    SplitTransaction[]
+
+  @@map("split_rules")
+}
+
+// Transações de divisão (registro de cada split)
+model SplitTransaction {
+  id              String   @id @default(uuid())
+  orderId         String   @map("order_id")
+  splitRuleId     String   @map("split_rule_id")
+  organizerAccountId String @map("organizer_account_id")
+
+  // Valores
+  totalAmount     Float    @map("total_amount")
+  platformAmount  Float    @map("platform_amount")
+  organizerAmount Float    @map("organizer_amount")
+  platformFee     Float    @default(0) @map("platform_fee")
+
+  // Status
+  status          SplitStatus @default(PENDING)
+
+  // Referências externas
+  externalId      String?  @map("external_id") // ID no gateway de pagamento
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  processedAt     DateTime? @map("processed_at")
+
+  // Relations
+  order           Order    @relation(fields: [orderId], references: [id])
+  splitRule       SplitRule @relation(fields: [splitRuleId], references: [id])
+  organizerAccount OrganizerAccount @relation(fields: [organizerAccountId], references: [id])
+
+  @@index([orderId])
+  @@index([organizerAccountId])
+  @@index([status])
+  @@map("split_transactions")
+}
+
+enum SplitStatus {
+  PENDING     // Aguardando pagamento ser confirmado
+  PROCESSING  // Processando divisão
+  COMPLETED   // Divisão concluída
+  FAILED      // Falha na divisão
+  REFUNDED    // Estornado
+}
+
+// Saques dos organizadores
+model Payout {
+  id              String   @id @default(uuid())
+  organizerAccountId String @map("organizer_account_id")
+
+  // Valores
+  amount          Float
+  fee             Float    @default(0) // Taxa de saque se houver
+  netAmount       Float    @map("net_amount") // Valor líquido
+
+  // Status
+  status          PayoutStatus @default(PENDING)
+
+  // Método de saque
+  payoutMethod    PayoutMethod @map("payout_method")
+
+  // Dados bancários no momento do saque (snapshot)
+  bankCode        String?  @map("bank_code")
+  accountNumber   String?  @map("account_number")
+  agencyNumber    String?  @map("agency_number")
+
+  // Referências externas
+  externalId      String?  @map("external_id")
+
+  // Datas
+  requestedAt     DateTime @default(now()) @map("requested_at")
+  processedAt     DateTime? @map("processed_at")
+  completedAt     DateTime? @map("completed_at")
+  failedAt        DateTime? @map("failed_at")
+  failureReason   String?  @map("failure_reason")
+
+  // Relations
+  organizerAccount OrganizerAccount @relation(fields: [organizerAccountId], references: [id])
+
+  @@index([organizerAccountId])
+  @@index([status])
+  @@map("payouts")
+}
+
+enum PayoutStatus {
+  PENDING     // Solicitado, aguardando processamento
+  PROCESSING  // Em processamento
+  COMPLETED   // Concluído
+  FAILED      // Falhou
+  CANCELLED   // Cancelado
+}
+
+enum PayoutMethod {
+  BANK_TRANSFER   // Transferência bancária (TED/DOC)
+  PIX             // PIX
+}
+
+// Log de auditoria para operações financeiras
+model AuditLog {
+  id              String   @id @default(uuid())
+
+  // Entidade afetada
+  entityType      String   @map("entity_type") // 'order', 'payout', 'split_transaction', etc.
+  entityId        String   @map("entity_id")
+
+  // Ação
+  action          String   // 'create', 'update', 'delete', 'process', etc.
+
+  // Usuário que realizou a ação
+  userId          String?  @map("user_id")
+
+  // Dados
+  previousData    Json?    @map("previous_data")
+  newData         Json?    @map("new_data")
+  metadata        Json?    // Informações adicionais
+
+  // IP e User Agent
+  ipAddress       String?  @map("ip_address")
+  userAgent       String?  @map("user_agent")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

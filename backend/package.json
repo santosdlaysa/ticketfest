@@ -1,7 +1,7 @@
 {
-  "name": "ticketfest-api",
+  "name": "Lumera-api",
   "version": "1.0.0",
-  "description": "TicketFest - API REST para sistema de venda de ingressos",
+  "description": "Lumera - API REST para sistema de venda de ingressos",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -18,7 +18,7 @@
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
-  "keywords": ["ticketfest", "api", "express", "typescript", "prisma", "postgresql"],
+  "keywords": ["Lumera", "api", "express", "typescript", "prisma", "postgresql"],
   "author": "",
   "license": "MIT",
   "dependencies": {

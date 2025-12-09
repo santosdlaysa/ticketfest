@@ -75,7 +75,7 @@ export default function MyTickets() {
   if (authLoading || loading) {
     return (
       <>
-        <Head><title>Meus Ingressos - TicketFest</title></Head>
+        <Head><title>Meus Ingressos - Lumera</title></Head>
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
@@ -88,7 +88,7 @@ export default function MyTickets() {
 
   return (
     <>
-      <Head><title>Meus Ingressos - TicketFest</title></Head>
+      <Head><title>Meus Ingressos - Lumera</title></Head>
       <div className="container mx-auto px-4 py-12">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Meus Ingressos</h1>

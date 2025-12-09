@@ -42,7 +42,7 @@ export default function Login() {
 
   return (
     <>
-      <Head><title>Login - TicketFest</title></Head>
+      <Head><title>Login - Lumera</title></Head>
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">

@@ -77,7 +77,7 @@ export default function AdminEvents() {
   if (authLoading || loading) {
     return (
       <>
-        <Head><title>Meus Eventos - TicketFest</title></Head>
+        <Head><title>Meus Eventos - Lumera</title></Head>
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
@@ -94,7 +94,7 @@ export default function AdminEvents() {
 
   return (
     <>
-      <Head><title>Meus Eventos - TicketFest</title></Head>
+      <Head><title>Meus Eventos - Lumera</title></Head>
       <div className="container mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <div>

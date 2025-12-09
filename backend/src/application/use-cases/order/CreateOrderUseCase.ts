@@ -2,6 +2,10 @@ import { Order, PaymentMethod } from '../../../domain/entities/Order.js';
 import { IOrderRepository } from '../../../domain/repositories/IOrderRepository.js';
 import { ITicketRepository } from '../../../domain/repositories/ITicketRepository.js';
 import { ICouponRepository } from '../../../domain/repositories/ICouponRepository.js';
+import { ISplitRuleRepository } from '../../../domain/repositories/ISplitRuleRepository.js';
+import { ISplitTransactionRepository } from '../../../domain/repositories/ISplitTransactionRepository.js';
+import { IOrganizerAccountRepository } from '../../../domain/repositories/IOrganizerAccountRepository.js';
+import { SplitTransaction } from '../../../domain/entities/SplitTransaction.js';
 import { CreateOrderDTO } from '../../dtos/OrderDTO.js';
 
 export interface IQRCodeService {
@@ -19,13 +23,26 @@ export interface IEmailService {
   sendTickets(email: string, tickets: any[]): Promise<void>;
 }
 
+export interface ISplitPaymentService {
+  processSplitPayment(
+    amount: number,
+    splitCalculation: any,
+    organizerExternalAccountId: string,
+    metadata?: Record<string, string>
+  ): Promise<any>;
+}
+
 export class CreateOrderUseCase {
   constructor(
     private orderRepository: IOrderRepository,
     private ticketRepository: ITicketRepository,
     private couponRepository: ICouponRepository,
     private qrCodeService: IQRCodeService,
-    private paymentService: IPaymentService
+    private paymentService: IPaymentService,
+    // Split Payment dependencies (optional for backward compatibility)
+    private splitRuleRepository?: ISplitRuleRepository,
+    private splitTransactionRepository?: ISplitTransactionRepository,
+    private organizerAccountRepository?: IOrganizerAccountRepository
   ) {}
 
   async execute(data: CreateOrderDTO, userId: string): Promise<any> {
@@ -146,6 +163,59 @@ export class CreateOrderUseCase {
       paymentData = { boleto: boletoData };
     }
 
+    // ============================================
+    // SPLIT PAYMENT PROCESSING
+    // ============================================
+    let splitData: any = null;
+
+    if (this.splitRuleRepository && this.splitTransactionRepository && this.organizerAccountRepository) {
+      try {
+        // Check if event has split rules
+        const splitRule = await this.splitRuleRepository.findByEventId(eventId);
+
+        if (splitRule && splitRule.isActive()) {
+          // Verify organizer account
+          const organizerAccount = await this.organizerAccountRepository.findById(
+            splitRule.organizerAccountId
+          );
+
+          if (organizerAccount && organizerAccount.isVerified()) {
+            // Calculate split
+            const splitCalculation = splitRule.calculateSplit(total);
+
+            // Create split transaction (status: PENDING)
+            const splitTransaction = SplitTransaction.create({
+              orderId: createdOrder.id,
+              splitRuleId: splitRule.id,
+              organizerAccountId: organizerAccount.id,
+              totalAmount: splitCalculation.totalAmount,
+              platformAmount: splitCalculation.platformAmount,
+              organizerAmount: splitCalculation.organizerAmount,
+              platformFee: splitCalculation.platformFee,
+            });
+
+            await this.splitTransactionRepository.create(splitTransaction);
+
+            // Add organizer amount to pending balance
+            organizerAccount.addPendingBalance(splitCalculation.organizerAmount);
+            await this.organizerAccountRepository.update(organizerAccount);
+
+            splitData = {
+              splitTransactionId: splitTransaction.id,
+              platformAmount: splitCalculation.platformAmount,
+              organizerAmount: splitCalculation.organizerAmount,
+              platformFee: splitCalculation.platformFee,
+              status: 'PENDING',
+            };
+          }
+        }
+      } catch (error) {
+        // Log error but don't fail the order
+        console.error('Split payment processing error:', error);
+        // Split payment is optional, order can proceed without it
+      }
+    }
+
     // Get full order with relations
     const fullOrder = await this.orderRepository.findOrderWithDetails(
       createdOrder.id
@@ -154,6 +224,7 @@ export class CreateOrderUseCase {
     return {
       order: fullOrder,
       payment: paymentData,
+      split: splitData,
     };
   }
 }

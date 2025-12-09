@@ -74,7 +74,7 @@ export default function EventDetail() {
   return (
     <>
       <Head>
-        <title>{event.name} - TicketFest</title>
+        <title>{event.name} - Lumera</title>
       </Head>
 
       <div className="container-custom py-8">

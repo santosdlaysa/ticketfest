@@ -5,6 +5,7 @@ import ticketRoutes from './ticket.routes.js';
 import cartRoutes from './cart.routes.js';
 import orderRoutes from './order.routes.js';
 import checkinRoutes from './checkin.routes.js';
+import splitPaymentRoutes from './split-payment.routes.js';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/tickets', ticketRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/checkin', checkinRoutes);
+router.use('/split', splitPaymentRoutes);
 
 export default router;

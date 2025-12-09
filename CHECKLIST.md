@@ -1,4 +1,4 @@
-# ✓ TicketFest - Checklist de Desenvolvimento
+# ✓ Lumera - Checklist de Desenvolvimento
 
 ## 📊 Progresso Geral
 

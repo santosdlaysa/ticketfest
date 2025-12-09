@@ -1,6 +1,6 @@
-# 📋 Guia do Organizador - TicketFest
+# 📋 Guia do Organizador - Lumera
 
-Este guia explica como criar e gerenciar eventos na plataforma TicketFest.
+Este guia explica como criar e gerenciar eventos na plataforma Lumera.
 
 ## 📝 Índice
 
@@ -354,7 +354,7 @@ Para produção:
 ```env
 # Frontend (.env)
 NEXT_PUBLIC_MOCK_AUTH='false'         # Login real com API
-NEXT_PUBLIC_API_URL='https://api.ticketfest.com/api'
+NEXT_PUBLIC_API_URL='https://api.Lumera.com/api'
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY='pk_live_...'
 ```
 
@@ -373,9 +373,9 @@ FRONTEND_URL='http://localhost:3000'
 ## 📞 Suporte
 
 Para dúvidas ou problemas:
-- 📧 Email: suporte@ticketfest.com
+- 📧 Email: suporte@Lumera.com
 - 💬 Chat: Disponível na plataforma
-- 📚 Documentação: https://docs.ticketfest.com
+- 📚 Documentação: https://docs.Lumera.com
 
 ---
 

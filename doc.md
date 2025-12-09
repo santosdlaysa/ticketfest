@@ -1,4 +1,4 @@
-# Documentação - Sistema de Venda de Ingressos TicketFest
+# Documentação - Sistema de Venda de Ingressos Lumera
 
 ## Índice
 1. [Visão Geral](#visão-geral)
@@ -16,7 +16,7 @@
 
 ## Visão Geral
 
-O **TicketFest** é uma plataforma completa de venda de ingressos para eventos e festas, oferecendo experiência fluida tanto na versão web quanto mobile.
+O **Lumera** é uma plataforma completa de venda de ingressos para eventos e festas, oferecendo experiência fluida tanto na versão web quanto mobile.
 
 ### Funcionalidades Principais
 - Listagem de eventos disponíveis
@@ -478,7 +478,7 @@ const tickets = await AsyncStorage.getItem('tickets');
 ```typescript
 // Linking configuration
 const linking = {
-  prefixes: ['ticketfest://', 'https://ticketfest.com'],
+  prefixes: ['Lumera://', 'https://Lumera.com'],
   config: {
     screens: {
       EventDetail: 'event/:id',
@@ -829,8 +829,8 @@ Destinatário → Recebe notificação
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/ticketfest-web.git
-cd ticketfest-web
+git clone https://github.com/seu-usuario/Lumera-web.git
+cd Lumera-web
 
 # Instale as dependências
 npm install
@@ -856,8 +856,8 @@ npm start
 **React Native**:
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/ticketfest-mobile.git
-cd ticketfest-mobile
+git clone https://github.com/seu-usuario/Lumera-mobile.git
+cd Lumera-mobile
 
 # Instale as dependências
 npm install
@@ -875,8 +875,8 @@ npx react-native run-android
 **Flutter**:
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/ticketfest-flutter.git
-cd ticketfest-flutter
+git clone https://github.com/seu-usuario/Lumera-flutter.git
+cd Lumera-flutter
 
 # Instale as dependências
 flutter pub get
@@ -889,8 +889,8 @@ flutter run
 
 ```bash
 # Clone o repositório
-git clone https://github.com/seu-usuario/ticketfest-api.git
-cd ticketfest-api
+git clone https://github.com/seu-usuario/Lumera-api.git
+cd Lumera-api
 
 # Instale as dependências
 npm install
@@ -938,8 +938,8 @@ netlify deploy --prod
 
 ```bash
 # Docker
-docker build -t ticketfest-api .
-docker run -p 3000:3000 ticketfest-api
+docker build -t Lumera-api .
+docker run -p 3000:3000 Lumera-api
 
 # Docker Compose
 docker-compose up -d
@@ -968,7 +968,7 @@ docker-compose up -d
 ## Suporte e Manutenção
 
 ### Contato
-- Email: suporte@ticketfest.com
+- Email: suporte@Lumera.com
 - Telefone: +55 (11) 1234-5678
 - Chat: Em horário comercial
 
@@ -981,4 +981,4 @@ docker-compose up -d
 
 **Versão**: 1.0.0  
 **Última atualização**: Outubro 2025  
-**Autor**: Equipe TicketFest
+**Autor**: Equipe Lumera

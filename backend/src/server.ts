@@ -7,7 +7,7 @@ const PORT = parseInt(env.PORT) || 4000;
 // Start server
 const server = app.listen(PORT, () => {
   console.log('');
-  console.log('🎉 TicketFest API Server Started');
+  console.log('🎉 Lumera API Server Started');
   console.log('================================');
   console.log(`📡 Port: ${PORT}`);
   console.log(`🌍 Environment: ${env.NODE_ENV}`);

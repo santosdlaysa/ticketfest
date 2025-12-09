@@ -31,7 +31,7 @@ export default function CheckoutSuccess() {
       if (method === 'pix') {
         const mockPixCode = `00020126580014br.gov.bcb.pix0136${id}520400005303986540${orderData.total.toFixed(
           2
-        )}5802BR5925TICKETFEST TECNOLOGIA6009SAO PAULO62070503***6304`;
+        )}5802BR5925Lumera TECNOLOGIA6009SAO PAULO62070503***6304`;
         setPixCode(mockPixCode);
       }
     } catch (error: any) {
@@ -75,7 +75,7 @@ export default function CheckoutSuccess() {
   return (
     <>
       <Head>
-        <title>Pedido Confirmado - TicketFest</title>
+        <title>Pedido Confirmado - Lumera</title>
       </Head>
 
       <div className="container-custom py-8">

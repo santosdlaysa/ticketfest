@@ -1,4 +1,4 @@
-# 📡 API Status & Frontend Implementation - TicketFest
+# 📡 API Status & Frontend Implementation - Lumera
 
 Documentação técnica completa dos endpoints da API e status de implementação no frontend.
 

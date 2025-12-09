@@ -1,4 +1,4 @@
-# 🎫 TicketFest - Sistema Completo de Venda de Ingressos
+# 🎫 Lumera - Sistema Completo de Venda de Ingressos
 
 Sistema completo de venda de ingressos para eventos e festas com frontend web, aplicativo mobile e backend API.
 
@@ -21,7 +21,7 @@ Sistema completo de venda de ingressos para eventos e festas com frontend web, a
 ## 📁 Estrutura do Projeto
 
 ```
-ticketfest/
+Lumera/
 ├── backend/              # API REST (Node.js + Express + PostgreSQL)
 │   ├── src/
 │   │   ├── controllers/
@@ -151,7 +151,7 @@ ticketfest/
 1. **Instalar PostgreSQL**
    ```bash
    # Criar banco de dados
-   createdb ticketfest
+   createdb Lumera
    ```
 
 2. **Configurar Backend**
@@ -208,9 +208,9 @@ Após rodar `npm run prisma:seed`:
 
 | Email | Senha | Perfil |
 |-------|-------|--------|
-| admin@ticketfest.com | password123 | Admin |
-| organizer@ticketfest.com | password123 | Organizador |
-| user@ticketfest.com | password123 | Usuário |
+| admin@Lumera.com | password123 | Admin |
+| organizer@Lumera.com | password123 | Organizador |
+| user@Lumera.com | password123 | Usuário |
 
 ## 🔐 Segurança
 
@@ -271,13 +271,13 @@ MIT
 
 ## 💬 Suporte
 
-- 📧 Email: suporte@ticketfest.com
+- 📧 Email: suporte@Lumera.com
 - 📖 Docs: Ver arquivos README em cada pasta
 - 🐛 Issues: GitHub Issues
 
 ## 🏆 Créditos
 
-Desenvolvido por TicketFest Team
+Desenvolvido por Lumera Team
 
 ---
 
@@ -302,7 +302,7 @@ npm run dev
 
 # 4. Acessar
 # http://localhost:3001
-# Login: user@ticketfest.com / password123
+# Login: user@Lumera.com / password123
 ```
 
 ---

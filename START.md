@@ -1,4 +1,4 @@
-# 🎫 TicketFest - Guia Completo de Execução
+# 🎫 Lumera - Guia Completo de Execução
 
 ## 📋 Pré-requisitos
 
@@ -15,13 +15,13 @@ Antes de começar, certifique-se de ter instalado:
 Abra o PostgreSQL (pgAdmin ou linha de comando) e crie o banco:
 
 ```sql
-CREATE DATABASE ticketfest;
+CREATE DATABASE Lumera;
 ```
 
 Ou via terminal:
 ```bash
 psql -U postgres
-CREATE DATABASE ticketfest;
+CREATE DATABASE Lumera;
 \q
 ```
 
@@ -86,9 +86,9 @@ Após rodar o seed, você tem estes usuários pré-cadastrados:
 
 | Email | Senha | Perfil |
 |-------|-------|--------|
-| **admin@ticketfest.com** | password123 | Administrador |
-| **organizer@ticketfest.com** | password123 | Organizador de Eventos |
-| **user@ticketfest.com** | password123 | Usuário Regular |
+| **admin@Lumera.com** | password123 | Administrador |
+| **organizer@Lumera.com** | password123 | Organizador de Eventos |
+| **user@Lumera.com** | password123 | Usuário Regular |
 
 ## 🧪 Testando o Sistema
 
@@ -134,13 +134,13 @@ curl http://localhost:3000/api/events
 # Login
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@ticketfest.com","password":"password123"}'
+  -d '{"email":"user@Lumera.com","password":"password123"}'
 ```
 
 ## 📁 Estrutura do Projeto
 
 ```
-ticketfest/
+Lumera/
 ├── backend/              # API REST
 │   ├── src/
 │   ├── prisma/
@@ -175,7 +175,7 @@ lsof -ti:3000 | xargs kill
 1. Verifique se o PostgreSQL está rodando
 2. Confira as credenciais em `backend/.env`:
    ```env
-   DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/ticketfest?schema=public"
+   DATABASE_URL="postgresql://postgres:SUA_SENHA@localhost:5432/Lumera?schema=public"
    ```
 
 ### Problema: "Module not found" no Frontend
@@ -286,6 +286,6 @@ Após testar, você pode:
 
 ---
 
-**Divirta-se explorando o TicketFest!** 🎉
+**Divirta-se explorando o Lumera!** 🎉
 
 Se tiver dúvidas, consulte a documentação ou abra uma issue no GitHub.

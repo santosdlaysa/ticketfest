@@ -8,7 +8,7 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">TicketFest</h3>
+            <h3 className="text-white font-bold text-lg mb-4">Lumera</h3>
             <p className="text-sm">
               Seus eventos favoritos em um só lugar. Compre ingressos de forma rápida e segura.
             </p>
@@ -92,7 +92,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
-          <p>&copy; {new Date().getFullYear()} TicketFest. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} Lumera. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

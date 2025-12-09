@@ -20,7 +20,7 @@ O arquivo `.env.local` já está criado com as configurações padrão:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000/api
-NEXT_PUBLIC_SITE_NAME=TicketFest
+NEXT_PUBLIC_SITE_NAME=Lumera
 NEXT_PUBLIC_SITE_URL=http://localhost:3001
 ```
 
@@ -66,9 +66,9 @@ Se você rodou o seed do backend (`npm run prisma:seed`):
 
 | Email | Senha | Tipo |
 |-------|-------|------|
-| user@ticketfest.com | password123 | Usuário |
-| organizer@ticketfest.com | password123 | Organizador |
-| admin@ticketfest.com | password123 | Admin |
+| user@Lumera.com | password123 | Usuário |
+| organizer@Lumera.com | password123 | Organizador |
+| admin@Lumera.com | password123 | Admin |
 
 ## 📦 Scripts Disponíveis
 

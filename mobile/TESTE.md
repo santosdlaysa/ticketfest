@@ -1,4 +1,4 @@
-# 🧪 Guia de Testes - TicketFest Mobile
+# 🧪 Guia de Testes - Lumera Mobile
 
 ## ✅ Correções Aplicadas
 
@@ -48,7 +48,7 @@ Edite `mobile/src/services/api.ts`:
 ```typescript
 const API_URL = __DEV__
   ? 'http://SEU_IP_LOCAL:4000/api'  // Ex: 'http://192.168.1.100:4000/api'
-  : 'https://api.ticketfest.com/api';
+  : 'https://api.Lumera.com/api';
 ```
 
 Para descobrir seu IP:
@@ -73,7 +73,7 @@ Use `10.0.2.2` para acessar localhost do host:
 ```typescript
 const API_URL = __DEV__
   ? 'http://10.0.2.2:4000/api'
-  : 'https://api.ticketfest.com/api';
+  : 'https://api.Lumera.com/api';
 ```
 
 #### Passo 2: Inicie o Expo
@@ -246,7 +246,7 @@ npx expo start --dev-client
 ## 📱 Screenshots Esperados
 
 ### Tela de Login
-- Logo "TicketFest"
+- Logo "Lumera"
 - Campos de Email e Senha
 - Botão "Entrar"
 - Link "Não tem conta? Cadastre-se"

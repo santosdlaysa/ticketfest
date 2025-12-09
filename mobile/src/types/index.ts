@@ -5,7 +5,7 @@ export interface User {
   name: string;
   cpf?: string;
   phone?: string;
-  role: 'USER' | 'ADMIN' | 'ORGANIZER';
+  role: 'USER' | 'ADMIN' | 'ORGANIZER' | 'PROMOTER';
   createdAt: string;
 }
 
@@ -141,4 +141,66 @@ export interface PaginatedResponse<T> {
   total: number;
   limit: number;
   offset: number;
+}
+
+// Promoter List types
+export type ListType = 'vip' | 'desconto' | 'divulgador';
+
+export interface PromoterList {
+  id: string;
+  eventId: string;
+  promoterId: string;
+  type: ListType;
+  name: string;
+  maxItems: number;
+  currentItems: number;
+  expiresAt: string;
+  createdAt: string;
+  event?: {
+    id: string;
+    name: string;
+    date: string;
+    location: string;
+    images: string[];
+  };
+  promoter?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface ListItem {
+  id: string;
+  listId: string;
+  name: string;
+  phone: string;
+  cpf?: string;
+  checkedIn: boolean;
+  checkedInAt?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface PromoterStats {
+  totalSales: number;
+  totalRevenue: number;
+  totalListItems: number;
+  activeLists: number;
+  events: {
+    eventId: string;
+    eventName: string;
+    sales: number;
+    revenue: number;
+    listItems: number;
+  }[];
+}
+
+export interface ListActionLog {
+  id: string;
+  listId: string;
+  promoterId: string;
+  action: 'add' | 'remove' | 'checkin' | 'uncheckin';
+  itemName: string;
+  timestamp: string;
+  ip?: string;
 }
