@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   dateDay: {
     fontSize: 20,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: lumeraColors.roxoLumera,
   },
   dateMonth: {
     fontSize: 11,
@@ -611,6 +611,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: 'center',
     elevation: 4,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
   quickInfoLabel: {
     fontSize: 11,
@@ -628,7 +632,7 @@ const styles = StyleSheet.create({
   quickInfoSubvalue: {
     fontSize: 18,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: lumeraColors.roxoLumera,
     marginTop: 2,
   },
 
@@ -791,11 +795,11 @@ const styles = StyleSheet.create({
   ticketPrice: {
     fontSize: 20,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: lumeraColors.roxoLumera,
     marginBottom: spacing.sm,
   },
   selectButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: lumeraColors.roxoLumera,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -852,16 +856,21 @@ const styles = StyleSheet.create({
   bottomPrice: {
     fontSize: 20,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: lumeraColors.roxoLumera,
   },
   bottomButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
+    backgroundColor: lumeraColors.roxoLumera,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 28,
     gap: 8,
+    elevation: 6,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   bottomButtonText: {
     color: '#fff',
@@ -952,16 +961,21 @@ const styles = StyleSheet.create({
   modalTotalValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: lumeraColors.roxoLumera,
   },
   addToCartButton: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
+    backgroundColor: lumeraColors.roxoLumera,
     paddingVertical: 16,
     borderRadius: 28,
     gap: 8,
+    elevation: 6,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   addToCartText: {
     color: '#fff',

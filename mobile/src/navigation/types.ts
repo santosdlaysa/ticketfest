@@ -1,3 +1,5 @@
+import type { ValidationResult } from '../stores/validationStore';
+
 // Navigation types
 export type RootStackParamList = {
   Auth: undefined;
@@ -16,8 +18,17 @@ export type MainStackParamList = {
 export type HomeTabsParamList = {
   Home: undefined;
   MyTickets: undefined;
+  Validation: undefined;
   Lists: undefined;
   Profile: undefined;
+};
+
+// Stack de Validacao
+export type ValidationStackParamList = {
+  TicketScanner: undefined;
+  ValidationResult: { result: ValidationResult };
+  ManualValidation: undefined;
+  ValidationHistory: undefined;
 };
 
 // Stack dentro da tab Home

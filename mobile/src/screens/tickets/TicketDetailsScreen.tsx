@@ -7,6 +7,8 @@ import {
   StatusBar,
   TouchableOpacity,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   IconButton,
@@ -19,7 +21,8 @@ import { ptBR } from 'date-fns/locale';
 import QRCode from 'react-native-qrcode-svg';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { theme, spacing, fontSize } from '../../theme';
+import { lightColors, darkColors, spacing, fontSize, lumeraColors } from '../../theme';
+import { useThemeStore } from '../../stores/themeStore';
 import type { TicketsStackParamList } from '../../navigation/types';
 
 const { width } = Dimensions.get('window');
@@ -32,7 +35,10 @@ type TabType = 'qrcode' | 'details';
 export default function TicketDetailsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<TicketDetailsRouteProp>();
+  const insets = useSafeAreaInsets();
   const { ticket } = route.params;
+  const { isDark } = useThemeStore();
+  const colors = isDark ? darkColors : lightColors;
 
   const [activeTab, setActiveTab] = useState<TabType>('qrcode');
 
@@ -88,12 +94,12 @@ export default function TicketDetailsScreen() {
       contentContainerStyle={styles.tabContent}
       showsVerticalScrollIndicator={false}
     >
-      <Surface style={styles.qrCard}>
-        <Text style={styles.eventName}>{ticket.eventName}</Text>
-        <Text style={styles.ticketType}>{ticket.ticketName}</Text>
+      <Surface style={[styles.qrCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.eventName, { color: colors.text }]}>{ticket.eventName}</Text>
+        <Text style={[styles.ticketType, { color: colors.primary }]}>{ticket.ticketName}</Text>
 
         <View style={styles.qrWrapper}>
-          <View style={[styles.qrContainer, ticket.checkedIn && styles.qrContainerUsed]}>
+          <View style={[styles.qrContainer, { borderColor: colors.primary }, ticket.checkedIn && styles.qrContainerUsed]}>
             <QRCode
               value={ticket.qrCodeData || ticket.id}
               size={width * 0.6}
@@ -111,26 +117,26 @@ export default function TicketDetailsScreen() {
         </View>
 
         <View style={styles.validationCodeContainer}>
-          <Text style={styles.validationLabel}>Código de Validação</Text>
-          <Text style={styles.validationCode}>
+          <Text style={[styles.validationLabel, { color: colors.textMuted }]}>Código de Validação</Text>
+          <Text style={[styles.validationCode, { color: colors.text }]}>
             {ticket.id.slice(-12).toUpperCase()}
           </Text>
         </View>
 
         {ticket.checkedIn && ticket.checkedInAt ? (
-          <View style={styles.checkedInBanner}>
+          <View style={[styles.checkedInBanner, { backgroundColor: isDark ? '#1b4332' : '#e8f5e9' }]}>
             <IconButton icon="check-decagram" size={24} iconColor="#4caf50" />
             <View>
               <Text style={styles.checkedInText}>Check-in realizado</Text>
-              <Text style={styles.checkedInDate}>
+              <Text style={[styles.checkedInDate, { color: colors.textSecondary }]}>
                 {formatFullDate(ticket.checkedInAt)}
               </Text>
             </View>
           </View>
         ) : !isPast ? (
-          <View style={styles.instructionBanner}>
-            <IconButton icon="information" size={24} iconColor={theme.colors.primary} />
-            <Text style={styles.instructionText}>
+          <View style={[styles.instructionBanner, { backgroundColor: colors.primary + '10' }]}>
+            <IconButton icon="information" size={24} iconColor={colors.primary} />
+            <Text style={[styles.instructionText, { color: colors.primary }]}>
               Apresente este QR Code na entrada do evento
             </Text>
           </View>
@@ -138,8 +144,8 @@ export default function TicketDetailsScreen() {
       </Surface>
 
       <View style={styles.securityNotice}>
-        <IconButton icon="shield-check" size={20} iconColor="#666" />
-        <Text style={styles.securityText}>
+        <IconButton icon="shield-check" size={20} iconColor={colors.textSecondary} />
+        <Text style={[styles.securityText, { color: colors.textSecondary }]}>
           Ingresso protegido por criptografia
         </Text>
       </View>
@@ -152,20 +158,20 @@ export default function TicketDetailsScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Event Info */}
-      <Surface style={styles.detailsCard}>
-        <Text style={styles.sectionTitle}>Evento</Text>
-        <Text style={styles.eventNameDetails}>{ticket.eventName}</Text>
+      <Surface style={[styles.detailsCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Evento</Text>
+        <Text style={[styles.eventNameDetails, { color: colors.primary }]}>{ticket.eventName}</Text>
 
         <View style={styles.detailRow}>
           <IconButton
             icon="calendar"
             size={20}
-            iconColor={theme.colors.primary}
+            iconColor={colors.primary}
             style={styles.detailIcon}
           />
           <View style={styles.detailTextContainer}>
-            <Text style={styles.detailLabel}>Data</Text>
-            <Text style={styles.detailValue}>
+            <Text style={[styles.detailLabel, { color: colors.textMuted }]}>Data</Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>
               {formatEventDate(ticket.eventDate)}
             </Text>
           </View>
@@ -175,12 +181,12 @@ export default function TicketDetailsScreen() {
           <IconButton
             icon="clock-outline"
             size={20}
-            iconColor={theme.colors.primary}
+            iconColor={colors.primary}
             style={styles.detailIcon}
           />
           <View style={styles.detailTextContainer}>
-            <Text style={styles.detailLabel}>Horário</Text>
-            <Text style={styles.detailValue}>
+            <Text style={[styles.detailLabel, { color: colors.textMuted }]}>Horário</Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>
               {formatEventTime(ticket.eventDate)}
             </Text>
           </View>
@@ -190,42 +196,42 @@ export default function TicketDetailsScreen() {
           <IconButton
             icon="map-marker"
             size={20}
-            iconColor={theme.colors.primary}
+            iconColor={colors.primary}
             style={styles.detailIcon}
           />
           <View style={styles.detailTextContainer}>
-            <Text style={styles.detailLabel}>Local</Text>
-            <Text style={styles.detailValue}>{ticket.eventLocation}</Text>
+            <Text style={[styles.detailLabel, { color: colors.textMuted }]}>Local</Text>
+            <Text style={[styles.detailValue, { color: colors.text }]}>{ticket.eventLocation}</Text>
           </View>
         </View>
       </Surface>
 
       {/* Ticket Info */}
-      <Surface style={styles.detailsCard}>
-        <Text style={styles.sectionTitle}>Ingresso</Text>
+      <Surface style={[styles.detailsCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Ingresso</Text>
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Tipo</Text>
-          <Text style={styles.infoValue}>{ticket.ticketName}</Text>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Tipo</Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>{ticket.ticketName}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Código</Text>
-          <Text style={styles.infoValueMono}>#{ticket.id.slice(-8).toUpperCase()}</Text>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Código</Text>
+          <Text style={[styles.infoValueMono, { color: colors.text }]}>#{ticket.id.slice(-8).toUpperCase()}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Status</Text>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Status</Text>
           {ticket.checkedIn ? (
-            <Chip icon="check-circle" style={styles.usedChip} textStyle={styles.chipText}>
+            <Chip icon="check-circle" style={[styles.usedChip, { backgroundColor: isDark ? '#1a3a5c' : '#e3f2fd' }]} textStyle={[styles.chipText, { color: isDark ? '#90caf9' : '#1976d2' }]}>
               Utilizado
             </Chip>
           ) : isPast ? (
-            <Chip icon="clock-outline" style={styles.expiredChip} textStyle={styles.chipText}>
+            <Chip icon="clock-outline" style={[styles.expiredChip, { backgroundColor: colors.surfaceVariant }]} textStyle={[styles.chipText, { color: colors.textSecondary }]}>
               Encerrado
             </Chip>
           ) : (
-            <Chip icon="ticket-confirmation" style={styles.validChip} textStyle={styles.chipText}>
+            <Chip icon="ticket-confirmation" style={[styles.validChip, { backgroundColor: isDark ? '#1b4332' : '#e8f5e9' }]} textStyle={[styles.chipText, { color: isDark ? '#81c784' : '#388e3c' }]}>
               Válido
             </Chip>
           )}
@@ -233,86 +239,95 @@ export default function TicketDetailsScreen() {
       </Surface>
 
       {/* Order Info */}
-      <Surface style={styles.detailsCard}>
-        <Text style={styles.sectionTitle}>Dados da Compra</Text>
+      <Surface style={[styles.detailsCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Dados da Compra</Text>
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Pedido</Text>
-          <Text style={styles.infoValueMono}>#{ticket.orderId.slice(0, 8)}</Text>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Pedido</Text>
+          <Text style={[styles.infoValueMono, { color: colors.text }]}>#{ticket.orderId.slice(0, 8)}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Data da compra</Text>
-          <Text style={styles.infoValue}>{formatFullDate(ticket.orderDate)}</Text>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Data da compra</Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>{formatFullDate(ticket.orderDate)}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Pagamento</Text>
-          <Text style={styles.infoValue}>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Pagamento</Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>
             {getPaymentMethodLabel(ticket.paymentMethod)}
           </Text>
         </View>
 
-        <Divider style={styles.divider} />
+        <Divider style={[styles.divider, { backgroundColor: colors.divider }]} />
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Valor do ingresso</Text>
-          <Text style={styles.infoValue}>{formatPrice(ticket.ticketPrice)}</Text>
+          <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Valor do ingresso</Text>
+          <Text style={[styles.infoValue, { color: colors.text }]}>{formatPrice(ticket.ticketPrice)}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.totalLabel}>Total do pedido</Text>
-          <Text style={styles.totalValue}>{formatPrice(ticket.orderTotal)}</Text>
+          <Text style={[styles.totalLabel, { color: colors.text }]}>Total do pedido</Text>
+          <Text style={[styles.totalValue, { color: colors.primary }]}>{formatPrice(ticket.orderTotal)}</Text>
         </View>
       </Surface>
     </ScrollView>
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Header com gradiente Lumera */}
+      <LinearGradient
+        colors={isDark
+          ? [lumeraColors.pretoObsidian, lumeraColors.cinzaFumaca]
+          : [lumeraColors.roxoLumera, lumeraColors.azulGlow]
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[styles.header, { paddingTop: insets.top + spacing.sm }]}
+      >
         <IconButton
           icon="arrow-left"
           size={24}
           onPress={() => navigation.goBack()}
+          iconColor="#fff"
         />
         <Text style={styles.headerTitle}>Ingresso</Text>
         <View style={{ width: 48 }} />
-      </View>
+      </LinearGradient>
 
       {/* Tabs */}
-      <View style={styles.tabsContainer}>
+      <View style={[styles.tabsContainer, { backgroundColor: colors.surface, borderBottomColor: colors.divider }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'qrcode' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'qrcode' && [styles.tabActive, { borderBottomColor: colors.primary }]]}
           onPress={() => setActiveTab('qrcode')}
           activeOpacity={0.7}
         >
           <IconButton
             icon="qrcode"
             size={20}
-            iconColor={activeTab === 'qrcode' ? theme.colors.primary : '#666'}
+            iconColor={activeTab === 'qrcode' ? colors.primary : colors.textSecondary}
             style={styles.tabIcon}
           />
-          <Text style={[styles.tabText, activeTab === 'qrcode' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'qrcode' && [styles.tabTextActive, { color: colors.primary }]]}>
             QR Code
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'details' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'details' && [styles.tabActive, { borderBottomColor: colors.primary }]]}
           onPress={() => setActiveTab('details')}
           activeOpacity={0.7}
         >
           <IconButton
             icon="file-document-outline"
             size={20}
-            iconColor={activeTab === 'details' ? theme.colors.primary : '#666'}
+            iconColor={activeTab === 'details' ? colors.primary : colors.textSecondary}
             style={styles.tabIcon}
           />
-          <Text style={[styles.tabText, activeTab === 'details' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: colors.textSecondary }, activeTab === 'details' && [styles.tabTextActive, { color: colors.primary }]]}>
             Detalhes
           </Text>
         </TouchableOpacity>
@@ -327,28 +342,29 @@ export default function TicketDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.xs,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-    backgroundColor: '#fff',
+    paddingBottom: spacing.md,
+    elevation: 8,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   headerTitle: {
     fontSize: fontSize.lg,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   tab: {
     flex: 1,
@@ -360,7 +376,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: theme.colors.primary,
+    borderBottomWidth: 2,
   },
   tabIcon: {
     margin: 0,
@@ -368,11 +384,9 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: fontSize.md,
-    color: '#666',
     fontWeight: '500',
   },
   tabTextActive: {
-    color: theme.colors.primary,
     fontWeight: '600',
   },
   tabContent: {
@@ -380,8 +394,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   qrCard: {
-    borderRadius: theme.roundness * 2,
-    backgroundColor: '#fff',
+    borderRadius: 16,
     padding: spacing.lg,
     alignItems: 'center',
     elevation: 3,
@@ -389,12 +402,10 @@ const styles = StyleSheet.create({
   eventName: {
     fontSize: fontSize.xl,
     fontWeight: 'bold',
-    color: theme.colors.onSurface,
     textAlign: 'center',
   },
   ticketType: {
     fontSize: fontSize.md,
-    color: theme.colors.primary,
     fontWeight: '600',
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
@@ -405,9 +416,8 @@ const styles = StyleSheet.create({
   qrContainer: {
     padding: spacing.lg,
     backgroundColor: '#fff',
-    borderRadius: theme.roundness,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
   },
   qrContainerUsed: {
     borderColor: '#ccc',
@@ -422,7 +432,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: theme.roundness,
+    borderRadius: 8,
   },
   checkedInOverlayText: {
     fontSize: fontSize.lg,
@@ -436,22 +446,19 @@ const styles = StyleSheet.create({
   },
   validationLabel: {
     fontSize: fontSize.xs,
-    color: '#999',
     marginBottom: spacing.xs,
   },
   validationCode: {
     fontSize: fontSize.md,
     fontWeight: 'bold',
-    color: theme.colors.onSurface,
     letterSpacing: 2,
     fontFamily: 'monospace',
   },
   checkedInBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e8f5e9',
     padding: spacing.md,
-    borderRadius: theme.roundness,
+    borderRadius: 8,
     marginTop: spacing.lg,
     width: '100%',
   },
@@ -462,20 +469,17 @@ const styles = StyleSheet.create({
   },
   checkedInDate: {
     fontSize: fontSize.sm,
-    color: '#666',
   },
   instructionBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.primary + '10',
     padding: spacing.md,
-    borderRadius: theme.roundness,
+    borderRadius: 8,
     marginTop: spacing.lg,
     width: '100%',
   },
   instructionText: {
     fontSize: fontSize.sm,
-    color: theme.colors.primary,
     flex: 1,
   },
   securityNotice: {
@@ -486,11 +490,9 @@ const styles = StyleSheet.create({
   },
   securityText: {
     fontSize: fontSize.xs,
-    color: '#666',
   },
   detailsCard: {
-    borderRadius: theme.roundness,
-    backgroundColor: '#fff',
+    borderRadius: 8,
     padding: spacing.md,
     marginBottom: spacing.md,
     elevation: 2,
@@ -498,13 +500,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize.md,
     fontWeight: 'bold',
-    color: theme.colors.onSurface,
     marginBottom: spacing.md,
   },
   eventNameDetails: {
     fontSize: fontSize.lg,
     fontWeight: '600',
-    color: theme.colors.primary,
     marginBottom: spacing.md,
   },
   detailRow: {
@@ -521,11 +521,9 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: fontSize.xs,
-    color: '#999',
   },
   detailValue: {
     fontSize: fontSize.md,
-    color: theme.colors.onSurface,
   },
   infoRow: {
     flexDirection: 'row',
@@ -535,16 +533,13 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: fontSize.sm,
-    color: '#666',
   },
   infoValue: {
     fontSize: fontSize.sm,
-    color: theme.colors.onSurface,
     fontWeight: '500',
   },
   infoValueMono: {
     fontSize: fontSize.sm,
-    color: theme.colors.onSurface,
     fontWeight: '500',
     fontFamily: 'monospace',
   },
@@ -554,23 +549,18 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: fontSize.md,
     fontWeight: 'bold',
-    color: theme.colors.onSurface,
   },
   totalValue: {
     fontSize: fontSize.lg,
     fontWeight: 'bold',
-    color: theme.colors.primary,
   },
   validChip: {
-    backgroundColor: '#e8f5e9',
     height: 28,
   },
   usedChip: {
-    backgroundColor: '#e3f2fd',
     height: 28,
   },
   expiredChip: {
-    backgroundColor: '#fafafa',
     height: 28,
   },
   chipText: {

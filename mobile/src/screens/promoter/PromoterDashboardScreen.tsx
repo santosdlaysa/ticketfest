@@ -6,29 +6,36 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
+  StatusBar,
 } from 'react-native';
 import { Text, ActivityIndicator, Surface } from 'react-native-paper';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePromoterStore } from '../../stores/promoterStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { ListsStackParamList } from '../../navigation/types';
-import { theme, spacing } from '../../theme';
+import { lightColors, darkColors, spacing } from '../../theme';
 import type { PromoterList, ListType } from '../../types';
 
 type NavigationProp = NativeStackNavigationProp<ListsStackParamList>;
 
-const listTypeConfig: Record<ListType, { label: string; color: string; bgColor: string; icon: string }> = {
-  vip: { label: 'VIP', color: '#B8860B', bgColor: '#FFF8DC', icon: 'star' },
-  desconto: { label: 'Desconto', color: '#2E7D32', bgColor: '#E8F5E9', icon: 'percent' },
-  divulgador: { label: 'Divulgador', color: '#1565C0', bgColor: '#E3F2FD', icon: 'bullhorn' },
-};
+const getListTypeConfig = (isDark: boolean): Record<ListType, { label: string; color: string; bgColor: string; icon: string }> => ({
+  vip: { label: 'VIP', color: '#B8860B', bgColor: isDark ? '#3d3520' : '#FFF8DC', icon: 'star' },
+  desconto: { label: 'Desconto', color: '#2E7D32', bgColor: isDark ? '#1b4332' : '#E8F5E9', icon: 'percent' },
+  divulgador: { label: 'Divulgador', color: '#1565C0', bgColor: isDark ? '#1a3a5c' : '#E3F2FD', icon: 'bullhorn' },
+});
 
 export default function PromoterDashboardScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
   const { lists, stats, loading, error, fetchMyLists, fetchStats, clearError } = usePromoterStore();
+  const { isDark } = useThemeStore();
+  const colors = isDark ? darkColors : lightColors;
+  const listTypeConfig = getListTypeConfig(isDark);
 
   useFocusEffect(
     useCallback(() => {
@@ -56,22 +63,22 @@ export default function PromoterDashboardScreen() {
 
     return (
       <View style={styles.statsSection}>
-        <Text style={styles.sectionTitle}>Resumo</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Resumo</Text>
         <View style={styles.statsContainer}>
-          <Surface style={styles.statCard}>
-            <View style={[styles.statIconContainer, { backgroundColor: theme.colors.primary + '15' }]}>
-              <MaterialCommunityIcons name="clipboard-list" size={24} color={theme.colors.primary} />
+          <Surface style={[styles.statCard, { backgroundColor: colors.surface }]}>
+            <View style={[styles.statIconContainer, { backgroundColor: colors.primary + '15' }]}>
+              <MaterialCommunityIcons name="clipboard-list" size={24} color={colors.primary} />
             </View>
-            <Text style={styles.statNumber}>{stats.activeLists}</Text>
-            <Text style={styles.statLabel}>Listas Ativas</Text>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>{stats.activeLists}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Listas Ativas</Text>
           </Surface>
 
-          <Surface style={styles.statCard}>
+          <Surface style={[styles.statCard, { backgroundColor: colors.surface }]}>
             <View style={[styles.statIconContainer, { backgroundColor: '#4CAF50' + '15' }]}>
               <MaterialCommunityIcons name="account-group" size={24} color="#4CAF50" />
             </View>
             <Text style={[styles.statNumber, { color: '#4CAF50' }]}>{stats.totalListItems}</Text>
-            <Text style={styles.statLabel}>Total de Nomes</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total de Nomes</Text>
           </Surface>
         </View>
       </View>
@@ -83,8 +90,8 @@ export default function PromoterDashboardScreen() {
     <View>
       <StatsSection />
       <View style={styles.listSectionHeader}>
-        <Text style={styles.sectionTitle}>Suas Listas</Text>
-        <Text style={styles.listCount}>{lists.length} {lists.length === 1 ? 'lista' : 'listas'}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Suas Listas</Text>
+        <Text style={[styles.listCount, { color: colors.textSecondary }]}>{lists.length} {lists.length === 1 ? 'lista' : 'listas'}</Text>
       </View>
     </View>
   );
@@ -100,11 +107,11 @@ export default function PromoterDashboardScreen() {
         onPress={() => handleListPress(item)}
         activeOpacity={0.7}
       >
-        <Surface style={[styles.listCard, expired && styles.listCardExpired]}>
+        <Surface style={[styles.listCard, { backgroundColor: colors.surface }, expired && styles.listCardExpired]}>
           {/* Header */}
           <View style={styles.cardHeader}>
             <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle} numberOfLines={1}>
+              <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
                 {item.name}
               </Text>
               <View style={[styles.typeBadge, { backgroundColor: typeConfig.bgColor }]}>
@@ -129,12 +136,12 @@ export default function PromoterDashboardScreen() {
                   />
                 )}
                 <View style={styles.eventInfo}>
-                  <Text style={styles.eventName} numberOfLines={1}>
+                  <Text style={[styles.eventName, { color: colors.text }]} numberOfLines={1}>
                     {item.event.name}
                   </Text>
                   <View style={styles.eventDateRow}>
-                    <MaterialCommunityIcons name="calendar" size={14} color="#666" />
-                    <Text style={styles.eventDate}>
+                    <MaterialCommunityIcons name="calendar" size={14} color={colors.textSecondary} />
+                    <Text style={[styles.eventDate, { color: colors.textSecondary }]}>
                       {format(new Date(item.event.date), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })}
                     </Text>
                   </View>
@@ -147,30 +154,30 @@ export default function PromoterDashboardScreen() {
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
               <View style={styles.progressStats}>
-                <MaterialCommunityIcons name="account-multiple" size={16} color="#666" />
-                <Text style={styles.progressText}>
+                <MaterialCommunityIcons name="account-multiple" size={16} color={colors.textSecondary} />
+                <Text style={[styles.progressText, { color: colors.text }]}>
                   {item.currentItems} / {item.maxItems}
                 </Text>
               </View>
               {expired ? (
-                <View style={styles.expiredBadge}>
-                  <MaterialCommunityIcons name="alert-circle" size={14} color="#D32F2F" />
-                  <Text style={styles.expiredText}>Expirada</Text>
+                <View style={[styles.expiredBadge, { backgroundColor: isDark ? '#3d1a1a' : '#FFEBEE' }]}>
+                  <MaterialCommunityIcons name="alert-circle" size={14} color={colors.error} />
+                  <Text style={[styles.expiredText, { color: colors.error }]}>Expirada</Text>
                 </View>
               ) : (
                 <View style={styles.expiresInfo}>
-                  <MaterialCommunityIcons name="clock-outline" size={14} color="#666" />
-                  <Text style={styles.expiresText}>
+                  <MaterialCommunityIcons name="clock-outline" size={14} color={colors.textSecondary} />
+                  <Text style={[styles.expiresText, { color: colors.textSecondary }]}>
                     {format(new Date(item.expiresAt), "dd/MM HH:mm", { locale: ptBR })}
                   </Text>
                 </View>
               )}
             </View>
-            <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBarContainer, { backgroundColor: colors.divider }]}>
               <View
                 style={[
                   styles.progressBarFill,
-                  { width: `${Math.min(progress, 100)}%` },
+                  { width: `${Math.min(progress, 100)}%`, backgroundColor: colors.primary },
                   progress >= 100 && styles.progressBarFull
                 ]}
               />
@@ -178,9 +185,9 @@ export default function PromoterDashboardScreen() {
           </View>
 
           {/* Footer */}
-          <View style={styles.cardFooter}>
-            <Text style={styles.tapHint}>Toque para gerenciar</Text>
-            <MaterialCommunityIcons name="chevron-right" size={20} color="#999" />
+          <View style={[styles.cardFooter, { backgroundColor: colors.surfaceVariant, borderTopColor: colors.divider }]}>
+            <Text style={[styles.tapHint, { color: colors.textMuted }]}>Toque para gerenciar</Text>
+            <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textMuted} />
           </View>
         </Surface>
       </TouchableOpacity>
@@ -190,11 +197,11 @@ export default function PromoterDashboardScreen() {
   // Empty State
   const EmptyState = () => (
     <View style={styles.emptyState}>
-      <View style={styles.emptyIconContainer}>
-        <MaterialCommunityIcons name="clipboard-text-off-outline" size={48} color="#ccc" />
+      <View style={[styles.emptyIconContainer, { backgroundColor: colors.surfaceVariant }]}>
+        <MaterialCommunityIcons name="clipboard-text-off-outline" size={48} color={colors.textMuted} />
       </View>
-      <Text style={styles.emptyTitle}>Nenhuma lista encontrada</Text>
-      <Text style={styles.emptySubtitle}>
+      <Text style={[styles.emptyTitle, { color: colors.text }]}>Nenhuma lista encontrada</Text>
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
         Você ainda não possui listas de convidados.{'\n'}
         Entre em contato com o organizador do evento para solicitar acesso.
       </Text>
@@ -204,28 +211,31 @@ export default function PromoterDashboardScreen() {
   // Loading State
   if (loading && lists.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Carregando suas listas...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Carregando suas listas...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Minhas Listas</Text>
-        <Text style={styles.headerSubtitle}>Gerencie suas listas de convidados</Text>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md, backgroundColor: colors.surface, borderBottomColor: colors.divider }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Minhas Listas</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Gerencie suas listas de convidados</Text>
       </View>
 
       {/* Error Banner */}
       {error && (
-        <View style={styles.errorBanner}>
-          <MaterialCommunityIcons name="alert-circle" size={18} color="#D32F2F" />
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={[styles.errorBanner, { backgroundColor: isDark ? '#3d1a1a' : '#FFEBEE' }]}>
+          <MaterialCommunityIcons name="alert-circle" size={18} color={colors.error} />
+          <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
           <TouchableOpacity onPress={clearError}>
-            <MaterialCommunityIcons name="close" size={18} color="#D32F2F" />
+            <MaterialCommunityIcons name="close" size={18} color={colors.error} />
           </TouchableOpacity>
         </View>
       )}
@@ -243,7 +253,8 @@ export default function PromoterDashboardScreen() {
           <RefreshControl
             refreshing={loading}
             onRefresh={handleRefresh}
-            colors={[theme.colors.primary]}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       />
@@ -254,37 +265,29 @@ export default function PromoterDashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   loadingText: {
     marginTop: spacing.md,
-    color: '#666',
     fontSize: 14,
   },
 
   // Header
   header: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl + spacing.lg,
     paddingBottom: spacing.lg,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: theme.colors.onSurface,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
 
@@ -292,7 +295,6 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFEBEE',
     padding: spacing.sm,
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
@@ -301,7 +303,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     flex: 1,
-    color: '#D32F2F',
     fontSize: 13,
   },
 
@@ -318,7 +319,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.onSurface,
     marginBottom: spacing.sm,
   },
   statsContainer: {
@@ -327,7 +327,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: spacing.md,
     alignItems: 'center',
@@ -344,11 +343,9 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 28,
     fontWeight: '700',
-    color: theme.colors.primary,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
     marginTop: 2,
   },
 
@@ -361,12 +358,10 @@ const styles = StyleSheet.create({
   },
   listCount: {
     fontSize: 13,
-    color: '#666',
   },
 
   // List Card
   listCard: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     marginBottom: spacing.md,
     elevation: 2,
@@ -390,7 +385,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: theme.colors.onSurface,
     flex: 1,
     marginRight: spacing.sm,
   },
@@ -424,7 +418,6 @@ const styles = StyleSheet.create({
   eventName: {
     fontSize: 14,
     fontWeight: '500',
-    color: theme.colors.onSurface,
     marginBottom: 2,
   },
   eventDateRow: {
@@ -434,7 +427,6 @@ const styles = StyleSheet.create({
   },
   eventDate: {
     fontSize: 12,
-    color: '#666',
   },
 
   // Progress Section
@@ -456,7 +448,6 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 13,
     fontWeight: '500',
-    color: theme.colors.onSurface,
   },
   expiresInfo: {
     flexDirection: 'row',
@@ -465,31 +456,26 @@ const styles = StyleSheet.create({
   },
   expiresText: {
     fontSize: 12,
-    color: '#666',
   },
   expiredBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#FFEBEE',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
   expiredText: {
     fontSize: 11,
-    color: '#D32F2F',
     fontWeight: '500',
   },
   progressBarContainer: {
     height: 6,
-    backgroundColor: '#E0E0E0',
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: theme.colors.primary,
     borderRadius: 3,
   },
   progressBarFull: {
@@ -503,13 +489,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: '#FAFAFA',
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
   },
   tapHint: {
     fontSize: 12,
-    color: '#999',
   },
 
   // Empty State
@@ -522,7 +505,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
@@ -530,12 +512,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: theme.colors.onSurface,
     marginBottom: spacing.xs,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 20,
   },

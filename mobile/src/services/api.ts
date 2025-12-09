@@ -407,6 +407,236 @@ export const ordersApi = {
 };
 
 // Promoter API
+// Validation API (para validar ingressos)
+// Endpoints do backend: POST /api/checkin/validate, GET /api/checkin/event/:eventId/stats, GET /api/checkin/event/:eventId/history
+export const validationApi = {
+  validateTicket: async (
+    qrCodeData: string,
+    eventId?: string
+  ): Promise<{
+    status: 'valid' | 'already_used' | 'invalid';
+    message: string;
+    ticket?: {
+      id: string;
+      code: string;
+      ticketName: string;
+      eventId: string;
+      eventName: string;
+      eventDate?: string;
+      eventLocation?: string;
+      holderName?: string;
+      holderEmail?: string;
+      checkedIn: boolean;
+      checkedInAt?: string;
+    };
+    validatedAt: string;
+  }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(800);
+
+      // Simula diferentes cenarios baseado no codigo
+      const code = qrCodeData.toUpperCase();
+
+      // Codigo invalido
+      if (code.length < 5 || code.includes('INVALID')) {
+        return {
+          status: 'invalid',
+          message: 'QR Code nao reconhecido ou ingresso invalido',
+          validatedAt: new Date().toISOString(),
+        };
+      }
+
+      // Codigo ja usado
+      if (code.includes('USED') || code.startsWith('OLD')) {
+        return {
+          status: 'already_used',
+          message: 'Este ingresso ja foi utilizado',
+          ticket: {
+            id: `ticket-${code}`,
+            code: code,
+            ticketName: 'Pista Premium',
+            eventId: 'event-1',
+            eventName: 'Lumera Festival 2024',
+            eventDate: new Date(Date.now() + 86400000).toISOString(),
+            eventLocation: 'Espaco das Americas, Sao Paulo',
+            holderName: 'Maria Silva',
+            holderEmail: 'maria@email.com',
+            checkedIn: true,
+            checkedInAt: new Date(Date.now() - 3600000).toISOString(), // 1h atras
+          },
+          validatedAt: new Date().toISOString(),
+        };
+      }
+
+      // Codigo valido - faz check-in
+      return {
+        status: 'valid',
+        message: 'Check-in realizado com sucesso',
+        ticket: {
+          id: `ticket-${code}`,
+          code: code,
+          ticketName: 'VIP Experience',
+          eventId: 'event-1',
+          eventName: 'Lumera Festival 2024',
+          eventDate: new Date(Date.now() + 86400000).toISOString(),
+          eventLocation: 'Espaco das Americas, Sao Paulo',
+          holderName: 'Joao Santos',
+          holderEmail: 'joao@email.com',
+          checkedIn: true,
+          checkedInAt: new Date().toISOString(),
+        },
+        validatedAt: new Date().toISOString(),
+      };
+    }
+
+    // POST /api/checkin/validate
+    // Body: { qrCodeData: string, eventId?: string }
+    // Response do backend:
+    // - valid: boolean
+    // - alreadyCheckedIn: boolean
+    // - checkedInAt: string
+    // - message: string
+    // - ticket: { eventName, ticketName, holderName, holderEmail }
+    try {
+      const response = await api.post('/checkin/validate', {
+        qrCodeData,
+        eventId,
+      });
+
+      const data = response.data;
+
+      // Mapeia a resposta do backend para o formato esperado pelo mobile
+      if (data.valid && !data.alreadyCheckedIn) {
+        return {
+          status: 'valid',
+          message: data.message || 'Check-in realizado com sucesso',
+          ticket: {
+            id: data.ticket?.id || '',
+            code: qrCodeData.substring(0, 12), // Primeiros 12 chars como codigo visual
+            ticketName: data.ticket?.ticketName || '',
+            eventId: eventId || '',
+            eventName: data.ticket?.eventName || '',
+            holderName: data.ticket?.holderName,
+            holderEmail: data.ticket?.holderEmail,
+            checkedIn: true,
+            checkedInAt: data.checkedInAt,
+          },
+          validatedAt: new Date().toISOString(),
+        };
+      } else if (data.alreadyCheckedIn) {
+        return {
+          status: 'already_used',
+          message: data.message || 'Este ingresso ja foi utilizado',
+          ticket: {
+            id: data.ticket?.id || '',
+            code: qrCodeData.substring(0, 12),
+            ticketName: data.ticket?.ticketName || '',
+            eventId: eventId || '',
+            eventName: data.ticket?.eventName || '',
+            holderName: data.ticket?.holderName,
+            holderEmail: data.ticket?.holderEmail,
+            checkedIn: true,
+            checkedInAt: data.checkedInAt,
+          },
+          validatedAt: new Date().toISOString(),
+        };
+      } else {
+        return {
+          status: 'invalid',
+          message: data.message || 'Ingresso invalido',
+          validatedAt: new Date().toISOString(),
+        };
+      }
+    } catch (error: any) {
+      // Trata erros da API (400, 404, etc)
+      const errorMessage = error.response?.data?.error || error.message || 'Erro ao validar ingresso';
+      return {
+        status: 'invalid',
+        message: errorMessage,
+        validatedAt: new Date().toISOString(),
+      };
+    }
+  },
+
+  // Buscar estatisticas de validacao do evento
+  // GET /api/checkin/event/:eventId/stats
+  getEventValidationStats: async (eventId: string): Promise<{
+    totalTickets: number;
+    checkedIn: number;
+    pending: number;
+    percentage: number;
+    ticketBreakdown?: Array<{
+      name: string;
+      sold: number;
+      checkedIn: number;
+      pending: number;
+    }>;
+  }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return {
+        totalTickets: 500,
+        checkedIn: 127,
+        pending: 373,
+        percentage: 25.4,
+        ticketBreakdown: [
+          { name: 'VIP', sold: 100, checkedIn: 45, pending: 55 },
+          { name: 'Pista', sold: 400, checkedIn: 82, pending: 318 },
+        ],
+      };
+    }
+    const response = await api.get(`/checkin/event/${eventId}/stats`);
+    return {
+      totalTickets: response.data.totalTickets,
+      checkedIn: response.data.checkedIn,
+      pending: response.data.pending,
+      percentage: response.data.checkInRate,
+      ticketBreakdown: response.data.ticketBreakdown,
+    };
+  },
+
+  // Buscar historico de check-ins do evento
+  // GET /api/checkin/event/:eventId/history
+  getEventCheckIns: async (eventId: string, params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<{
+    checkIns: Array<{
+      ticketType: string;
+      holderName: string;
+      holderEmail: string;
+      checkedInAt: string;
+    }>;
+    total: number;
+  }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return {
+        checkIns: [
+          {
+            ticketType: 'VIP',
+            holderName: 'Ana Costa',
+            holderEmail: 'ana@email.com',
+            checkedInAt: new Date(Date.now() - 300000).toISOString(),
+          },
+          {
+            ticketType: 'Pista',
+            holderName: 'Carlos Lima',
+            holderEmail: 'carlos@email.com',
+            checkedInAt: new Date(Date.now() - 600000).toISOString(),
+          },
+        ],
+        total: 127,
+      };
+    }
+    const response = await api.get(`/checkin/event/${eventId}/history`);
+    return {
+      checkIns: response.data,
+      total: response.data.length,
+    };
+  },
+};
+
 export const promoterApi = {
   getMyLists: async (): Promise<PromoterList[]> => {
     if (USE_MOCK_DATA) {

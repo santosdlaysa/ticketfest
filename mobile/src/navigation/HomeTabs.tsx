@@ -14,6 +14,9 @@ import CheckoutScreen from '../screens/checkout/CheckoutScreen';
 import PaymentScreen from '../screens/checkout/PaymentScreen';
 import MyTicketsScreen from '../screens/tickets/MyTicketsScreen';
 import TicketDetailsScreen from '../screens/tickets/TicketDetailsScreen';
+import TicketScannerScreen from '../screens/validation/TicketScannerScreen';
+import ValidationResultScreen from '../screens/validation/ValidationResultScreen';
+import ManualValidationScreen from '../screens/validation/ManualValidationScreen';
 import PromoterDashboardScreen from '../screens/promoter/PromoterDashboardScreen';
 import PromoterListScreen from '../screens/promoter/PromoterListScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
@@ -40,6 +43,18 @@ function TicketsStackScreen() {
       <TicketsStack.Screen name="MyTicketsMain" component={MyTicketsScreen} />
       <TicketsStack.Screen name="TicketDetails" component={TicketDetailsScreen} />
     </TicketsStack.Navigator>
+  );
+}
+
+// Stack para aba Validacao
+const ValidationStack = createNativeStackNavigator();
+function ValidationStackScreen() {
+  return (
+    <ValidationStack.Navigator screenOptions={{ headerShown: false }}>
+      <ValidationStack.Screen name="TicketScanner" component={TicketScannerScreen} />
+      <ValidationStack.Screen name="ValidationResult" component={ValidationResultScreen} />
+      <ValidationStack.Screen name="ManualValidation" component={ManualValidationScreen} />
+    </ValidationStack.Navigator>
   );
 }
 
@@ -116,6 +131,16 @@ export default function HomeTabs() {
           title: 'Ingressos',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="ticket" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Validation"
+        component={ValidationStackScreen}
+        options={{
+          title: 'Validar',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="qrcode-scan" size={size} color={color} />
           ),
         }}
       />
