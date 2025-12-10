@@ -1,45 +1,73 @@
 import app from './app.js';
-import { env } from './config/env.js';
+import { env, dbConfig } from './config/env.js';
 import DatabaseService from './config/database.js';
 
 const PORT = parseInt(env.PORT) || 4000;
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log('');
-  console.log('🎉 Lumera API Server Started');
-  console.log('================================');
-  console.log(`📡 Port: ${PORT}`);
-  console.log(`🌍 Environment: ${env.NODE_ENV}`);
-  console.log(`🔗 API URL: ${env.API_URL}`);
-  console.log('');
-  console.log('📚 API Endpoints:');
-  console.log(`   Health: ${env.API_URL}/api/health`);
-  console.log(`   Auth: ${env.API_URL}/api/auth/*`);
-  console.log(`   Events: ${env.API_URL}/api/events`);
-  console.log(`   Tickets: ${env.API_URL}/api/tickets`);
-  console.log(`   Cart: ${env.API_URL}/api/cart`);
-  console.log(`   Orders: ${env.API_URL}/api/orders`);
-  console.log(`   Check-in: ${env.API_URL}/api/checkin`);
-  console.log('');
+// Função para iniciar o servidor
+const startServer = async () => {
+  try {
+    // Conectar ao banco de dados
+    await DatabaseService.connect();
+
+    // Start server
+    const server = app.listen(PORT, () => {
+      console.log('');
+      console.log('🎉 Lumera API Server Started');
+      console.log('================================');
+      console.log(`📡 Port: ${PORT}`);
+      console.log(`🌍 Environment: ${env.NODE_ENV}`);
+      console.log(`🔗 API URL: ${env.API_URL}`);
+      console.log(`📦 Database: ${dbConfig.database}@${dbConfig.host}:${dbConfig.port}`);
+      console.log('');
+      console.log('📚 API Endpoints:');
+      console.log(`   Health: ${env.API_URL}/api/health`);
+      console.log(`   Auth: ${env.API_URL}/api/auth/*`);
+      console.log(`   Events: ${env.API_URL}/api/events`);
+      console.log(`   Tickets: ${env.API_URL}/api/tickets`);
+      console.log(`   Cart: ${env.API_URL}/api/cart`);
+      console.log(`   Orders: ${env.API_URL}/api/orders`);
+      console.log(`   Check-in: ${env.API_URL}/api/checkin`);
+      console.log('');
+    });
+
+    return server;
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+// Iniciar servidor e configurar handlers
+const serverPromise = startServer();
+
+// Variável para armazenar a referência do servidor
+let server: ReturnType<typeof app.listen> | null = null;
+serverPromise.then((s) => {
+  server = s;
 });
 
 // Graceful shutdown
 const shutdown = async () => {
   console.log('\n🛑 Shutting down server...');
 
-  server.close(async () => {
-    console.log('✅ HTTP server closed');
+  if (server) {
+    server.close(async () => {
+      console.log('✅ HTTP server closed');
 
-    try {
-      await DatabaseService.disconnect();
-      console.log('✅ Database connection closed');
-      process.exit(0);
-    } catch (error) {
-      console.error('❌ Error during shutdown:', error);
-      process.exit(1);
-    }
-  });
+      try {
+        await DatabaseService.disconnect();
+        console.log('✅ Database connection closed');
+        process.exit(0);
+      } catch (error) {
+        console.error('❌ Error during shutdown:', error);
+        process.exit(1);
+      }
+    });
+  } else {
+    await DatabaseService.disconnect();
+    process.exit(0);
+  }
 
   // Force shutdown after 10 seconds
   setTimeout(() => {

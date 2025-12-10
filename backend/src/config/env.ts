@@ -3,13 +3,41 @@ import { z } from 'zod';
 
 dotenv.config();
 
+// Função para construir a DATABASE_URL a partir das variáveis individuais
+const buildDatabaseUrl = (): string | undefined => {
+  const host = process.env.DB_HOST;
+  const port = process.env.DB_PORT;
+  const user = process.env.DB_USER;
+  const password = process.env.DB_PASSWORD;
+  const database = process.env.DB_NAME;
+
+  // Se DATABASE_URL já estiver definida, usa ela
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+
+  // Se todas as variáveis individuais estiverem definidas, constrói a URL
+  if (host && port && user && password && database) {
+    return `postgresql://${user}:${password}@${host}:${port}/${database}?schema=public`;
+  }
+
+  return undefined;
+};
+
 const envSchema = z.object({
   // Server
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
   API_URL: z.string().url().default('http://localhost:3000'),
 
-  // Database
+  // Database - Variáveis individuais
+  DB_HOST: z.string().default('localhost'),
+  DB_PORT: z.string().default('5432'),
+  DB_USER: z.string().optional(),
+  DB_PASSWORD: z.string().optional(),
+  DB_NAME: z.string().default('ticketfest'),
+
+  // Database URL (construída automaticamente ou definida diretamente)
   DATABASE_URL: z.string().optional(),
 
   // Supabase
@@ -51,7 +79,15 @@ const envSchema = z.object({
 
 const parseEnv = () => {
   try {
-    return envSchema.parse(process.env);
+    const parsed = envSchema.parse(process.env);
+
+    // Constrói a DATABASE_URL se não estiver definida
+    const databaseUrl = buildDatabaseUrl();
+
+    return {
+      ...parsed,
+      DATABASE_URL: databaseUrl || parsed.DATABASE_URL,
+    };
   } catch (error) {
     console.error('❌ Invalid environment variables:');
     if (error instanceof z.ZodError) {
@@ -64,3 +100,13 @@ const parseEnv = () => {
 };
 
 export const env = parseEnv();
+
+// Configuração do banco de dados exportada separadamente para fácil acesso
+export const dbConfig = {
+  host: env.DB_HOST,
+  port: parseInt(env.DB_PORT, 10),
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  database: env.DB_NAME,
+  url: env.DATABASE_URL,
+};

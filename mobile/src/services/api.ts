@@ -434,7 +434,55 @@ export const validationApi = {
     if (USE_MOCK_DATA) {
       await simulateDelay(800);
 
-      // Simula diferentes cenarios baseado no codigo
+      // Primeiro, tenta encontrar o ingresso nos pedidos reais do usuário
+      const checkInResult = mockOrderOperations.checkInTicketInstance(qrCodeData);
+
+      if (checkInResult.ticketInstance) {
+        // Encontrou o ingresso nos pedidos
+        const order = checkInResult.order;
+        const item = checkInResult.orderItem;
+        const instance = checkInResult.ticketInstance;
+
+        if (checkInResult.alreadyCheckedIn) {
+          // Ingresso já foi utilizado
+          return {
+            status: 'already_used',
+            message: 'Este ingresso já foi utilizado',
+            ticket: {
+              id: instance.id,
+              code: instance.qrCode,
+              ticketName: item?.ticket?.name || 'Ingresso',
+              eventId: order?.eventId || '',
+              eventName: order?.event?.name || 'Evento',
+              eventDate: order?.event?.date,
+              eventLocation: order?.event?.location,
+              checkedIn: true,
+              checkedInAt: instance.checkedInAt,
+            },
+            validatedAt: new Date().toISOString(),
+          };
+        }
+
+        // Check-in realizado com sucesso
+        return {
+          status: 'valid',
+          message: 'Check-in realizado com sucesso',
+          ticket: {
+            id: instance.id,
+            code: instance.qrCode,
+            ticketName: item?.ticket?.name || 'Ingresso',
+            eventId: order?.eventId || '',
+            eventName: order?.event?.name || 'Evento',
+            eventDate: order?.event?.date,
+            eventLocation: order?.event?.location,
+            checkedIn: true,
+            checkedInAt: instance.checkedInAt,
+          },
+          validatedAt: new Date().toISOString(),
+        };
+      }
+
+      // Fallback: Simula diferentes cenarios baseado no codigo (para testes sem pedidos reais)
       const code = qrCodeData.toUpperCase();
 
       // Codigo invalido
@@ -468,7 +516,7 @@ export const validationApi = {
         };
       }
 
-      // Codigo valido - faz check-in
+      // Codigo valido - faz check-in (para QR codes de teste)
       return {
         status: 'valid',
         message: 'Check-in realizado com sucesso',

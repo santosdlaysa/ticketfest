@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   StyleSheet,
-  FlatList,
+  SectionList,
   RefreshControl,
   TouchableOpacity,
   StatusBar,
@@ -11,7 +11,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
-  ActivityIndicator,
   Surface,
   Chip,
   IconButton,
@@ -19,7 +18,7 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import QRCode from 'react-native-qrcode-svg';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { lightColors, darkColors, spacing, fontSize, lumeraColors } from '../../theme';
 import { useThemeStore } from '../../stores/themeStore';
@@ -45,6 +44,12 @@ interface TicketItem {
   paymentStatus: string;
   paymentMethod: string;
   ticketPrice: number;
+}
+
+interface TicketSection {
+  title: string;
+  icon: string;
+  data: TicketItem[];
 }
 
 export default function MyTicketsScreen() {
@@ -89,13 +94,6 @@ export default function MyTicketsScreen() {
           });
         });
 
-      // Sort by event date (upcoming first)
-      allTickets.sort((a, b) => {
-        const dateA = new Date(a.eventDate).getTime();
-        const dateB = new Date(b.eventDate).getTime();
-        return dateA - dateB;
-      });
-
       setTickets(allTickets);
     } catch (error) {
       console.error('Erro ao carregar ingressos:', error);
@@ -105,19 +103,81 @@ export default function MyTicketsScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    loadTickets();
-  }, [loadTickets]);
+  // Recarregar quando a tela ganhar foco (para atualizar após validação)
+  useFocusEffect(
+    useCallback(() => {
+      loadTickets();
+    }, [loadTickets])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadTickets();
   }, [loadTickets]);
 
+  // Separar ingressos em seções
+  const sections = useMemo((): TicketSection[] => {
+    const now = new Date();
+
+    const activeTickets: TicketItem[] = [];
+    const historyTickets: TicketItem[] = [];
+
+    tickets.forEach((ticket) => {
+      const eventDate = new Date(ticket.eventDate);
+      const isPast = eventDate < now;
+
+      if (ticket.checkedIn || isPast) {
+        historyTickets.push(ticket);
+      } else {
+        activeTickets.push(ticket);
+      }
+    });
+
+    // Ordenar ativos por data do evento (próximos primeiro)
+    activeTickets.sort((a, b) => {
+      const dateA = new Date(a.eventDate).getTime();
+      const dateB = new Date(b.eventDate).getTime();
+      return dateA - dateB;
+    });
+
+    // Ordenar histórico por data de uso ou data do evento (mais recentes primeiro)
+    historyTickets.sort((a, b) => {
+      const dateA = a.checkedInAt ? new Date(a.checkedInAt).getTime() : new Date(a.eventDate).getTime();
+      const dateB = b.checkedInAt ? new Date(b.checkedInAt).getTime() : new Date(b.eventDate).getTime();
+      return dateB - dateA;
+    });
+
+    const result: TicketSection[] = [];
+
+    if (activeTickets.length > 0) {
+      result.push({
+        title: 'Ingressos Ativos',
+        icon: 'ticket-confirmation',
+        data: activeTickets,
+      });
+    }
+
+    if (historyTickets.length > 0) {
+      result.push({
+        title: 'Histórico',
+        icon: 'history',
+        data: historyTickets,
+      });
+    }
+
+    return result;
+  }, [tickets]);
+
   const formatEventDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return format(date, "EEE, dd 'de' MMM 'às' HH:mm", { locale: ptBR });
+  };
+
+  const formatCheckedInDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   };
 
   const isEventPast = (dateString: string) => {
@@ -128,6 +188,23 @@ export default function MyTicketsScreen() {
   const handleTicketPress = (ticket: TicketItem) => {
     navigation.navigate('TicketDetails', { ticket });
   };
+
+  const renderSectionHeader = ({ section }: { section: TicketSection }) => (
+    <View style={styles.sectionHeader}>
+      <IconButton
+        icon={section.icon}
+        size={20}
+        iconColor={colors.primary}
+        style={styles.sectionIcon}
+      />
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
+        {section.title}
+      </Text>
+      <Text style={[styles.sectionCount, { color: colors.textSecondary }]}>
+        ({section.data.length})
+      </Text>
+    </View>
+  );
 
   const renderTicketCard = ({ item }: { item: TicketItem }) => {
     const isPast = isEventPast(item.eventDate);
@@ -170,13 +247,20 @@ export default function MyTicketsScreen() {
 
             <View style={styles.ticketStatus}>
               {item.checkedIn ? (
-                <Chip
-                  icon="check-circle"
-                  style={[styles.usedChip, { backgroundColor: isDark ? '#1a3a5c' : '#e3f2fd' }]}
-                  textStyle={[styles.chipText, { color: isDark ? '#90caf9' : '#1976d2' }]}
-                >
-                  Utilizado
-                </Chip>
+                <View>
+                  <Chip
+                    icon="check-circle"
+                    style={[styles.usedChip, { backgroundColor: isDark ? '#1a3a5c' : '#e3f2fd' }]}
+                    textStyle={[styles.chipText, { color: isDark ? '#90caf9' : '#1976d2' }]}
+                  >
+                    Utilizado
+                  </Chip>
+                  {item.checkedInAt && (
+                    <Text style={[styles.checkedInDate, { color: colors.textMuted }]}>
+                      {formatCheckedInDate(item.checkedInAt)}
+                    </Text>
+                  )}
+                </View>
               ) : isPast ? (
                 <Chip
                   icon="clock-outline"
@@ -247,15 +331,17 @@ export default function MyTicketsScreen() {
         style={[styles.header, { paddingTop: insets.top + spacing.md }]}
       >
         <Text style={styles.headerTitle}>Meus Ingressos</Text>
-        <Text style={styles.headerSubtitle}>Seus ingressos comprados</Text>
+        <Text style={styles.headerSubtitle}>Histórico de ingressos comprados</Text>
       </LinearGradient>
-      <FlatList
-        data={tickets}
+      <SectionList
+        sections={sections}
         renderItem={renderTicketCard}
+        renderSectionHeader={renderSectionHeader}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={renderEmptyList}
+        stickySectionHeadersEnabled={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -381,6 +467,28 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: fontSize.xs,
+  },
+  checkedInDate: {
+    fontSize: fontSize.xs,
+    marginTop: spacing.xs,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  sectionIcon: {
+    margin: 0,
+    marginRight: -spacing.xs,
+  },
+  sectionTitle: {
+    fontSize: fontSize.md,
+    fontWeight: '600',
+  },
+  sectionCount: {
+    fontSize: fontSize.sm,
+    marginLeft: spacing.xs,
   },
   emptyContainer: {
     flex: 1,

@@ -591,6 +591,101 @@ export const mockOrderOperations = {
       order.paymentStatus = 'REFUNDED';
     }
   },
+
+  // Marcar instância de ingresso como check-in realizado
+  checkInTicketInstance: (qrCodeData: string): {
+    success: boolean;
+    alreadyCheckedIn: boolean;
+    ticketInstance?: any;
+    orderItem?: any;
+    order?: Order;
+  } => {
+    // Buscar em todos os pedidos
+    for (const order of mockOrders) {
+      if (!order.items) continue;
+
+      for (const item of order.items) {
+        if (!item.ticketInstances) continue;
+
+        for (const instance of item.ticketInstances) {
+          // Verificar se o qrCodeData corresponde (pode ser o JSON completo ou o ID)
+          const isMatch =
+            instance.qrCodeData === qrCodeData ||
+            instance.id === qrCodeData ||
+            instance.qrCode === qrCodeData ||
+            (instance.qrCodeData && instance.qrCodeData.includes(qrCodeData));
+
+          if (isMatch) {
+            // Verificar se já foi usado
+            if (instance.checkedIn) {
+              return {
+                success: false,
+                alreadyCheckedIn: true,
+                ticketInstance: instance,
+                orderItem: item,
+                order,
+              };
+            }
+
+            // Marcar como check-in realizado
+            instance.checkedIn = true;
+            instance.checkedInAt = new Date().toISOString();
+
+            return {
+              success: true,
+              alreadyCheckedIn: false,
+              ticketInstance: instance,
+              orderItem: item,
+              order,
+            };
+          }
+        }
+      }
+    }
+
+    // Não encontrou o ingresso
+    return {
+      success: false,
+      alreadyCheckedIn: false,
+    };
+  },
+
+  // Buscar informações de um ingresso pelo QR Code
+  getTicketInstanceByQrCode: (qrCodeData: string): {
+    found: boolean;
+    ticketInstance?: any;
+    orderItem?: any;
+    order?: Order;
+    event?: any;
+  } => {
+    for (const order of mockOrders) {
+      if (!order.items) continue;
+
+      for (const item of order.items) {
+        if (!item.ticketInstances) continue;
+
+        for (const instance of item.ticketInstances) {
+          const isMatch =
+            instance.qrCodeData === qrCodeData ||
+            instance.id === qrCodeData ||
+            instance.qrCode === qrCodeData ||
+            (instance.qrCodeData && instance.qrCodeData.includes(qrCodeData));
+
+          if (isMatch) {
+            return {
+              found: true,
+              ticketInstance: instance,
+              orderItem: item,
+              order,
+              event: order.event,
+            };
+          }
+        }
+      }
+    }
+
+    return { found: false };
+  },
 };
 
 // Featured events (first 3)

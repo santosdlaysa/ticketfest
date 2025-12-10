@@ -20,11 +20,17 @@ Documentação técnica completa do aplicativo mobile React Native para venda de
    - [4.8 MyTicketsScreen](#48-myticketsscreen)
    - [4.9 TicketDetailsScreen](#49-ticketdetailsscreen)
    - [4.10 ProfileScreen](#410-profilescreen)
+   - [4.11 TicketScannerScreen](#411-ticketscannerscreen)
+   - [4.12 ManualValidationScreen](#412-manualvalidationscreen)
+   - [4.13 ValidationResultScreen](#413-validationresultscreen)
+   - [4.14 PromoterDashboardScreen](#414-promoterdashboardscreen)
+   - [4.15 PromoterListScreen](#415-promoterlistscreen)
 5. [Serviços e APIs](#5-serviços-e-apis)
 6. [Gerenciamento de Estado (Stores)](#6-gerenciamento-de-estado-stores)
 7. [Tipos TypeScript](#7-tipos-typescript)
-8. [Theme e Estilos](#8-theme-e-estilos)
+8. [Theme e Estilos (Identidade Visual Lumera)](#8-theme-e-estilos-identidade-visual-lumera)
 9. [Fluxos de Usuário](#9-fluxos-de-usuário)
+10. [Componentes Reutilizáveis](#10-componentes-reutilizáveis)
 
 ---
 
@@ -60,6 +66,9 @@ Documentação técnica completa do aplicativo mobile React Native para venda de
 
 ```
 src/
+├── components/           # Componentes reutilizáveis
+│   └── common/
+│       └── SkeletonLoader.tsx
 ├── navigation/           # Configuração de navegação
 │   ├── RootNavigator.tsx
 │   ├── AuthStack.tsx
@@ -81,6 +90,13 @@ src/
 │   ├── tickets/
 │   │   ├── MyTicketsScreen.tsx
 │   │   └── TicketDetailsScreen.tsx
+│   ├── validation/
+│   │   ├── TicketScannerScreen.tsx
+│   │   ├── ManualValidationScreen.tsx
+│   │   └── ValidationResultScreen.tsx
+│   ├── promoter/
+│   │   ├── PromoterDashboardScreen.tsx
+│   │   └── PromoterListScreen.tsx
 │   └── profile/
 │       └── ProfileScreen.tsx
 ├── services/             # Serviços e APIs
@@ -89,10 +105,13 @@ src/
 │   └── mockData.ts
 ├── stores/               # Estado global (Zustand)
 │   ├── authStore.ts
-│   └── cartStore.ts
+│   ├── cartStore.ts
+│   ├── themeStore.ts
+│   ├── validationStore.ts
+│   └── promoterStore.ts
 ├── types/                # Definições TypeScript
 │   └── index.ts
-└── theme/                # Tema e estilos
+└── theme/                # Tema e estilos (Identidade Visual Lumera)
     └── index.ts
 ```
 
@@ -114,13 +133,23 @@ RootNavigator
     ├── HomeTabs (Bottom Tab Navigator)
     │   ├── Home (Eventos)
     │   ├── MyTickets (Ingressos)
+    │   ├── Validation (Validação de Ingressos)
     │   └── Profile (Perfil)
     │
     ├── EventDetails ◄── Home
     ├── Cart ◄── EventDetails/Home
     ├── Checkout ◄── Cart
     ├── Payment ◄── Checkout
-    └── TicketDetails ◄── MyTickets
+    ├── TicketDetails ◄── MyTickets
+    │
+    ├── ValidationStack (Validação)
+    │   ├── TicketScanner ◄── Validation Tab
+    │   ├── ManualValidation ◄── TicketScanner
+    │   └── ValidationResult ◄── TicketScanner/ManualValidation
+    │
+    └── PromoterStack (Promoter)
+        ├── PromoterDashboard ◄── Profile
+        └── PromoterList ◄── PromoterDashboard
 ```
 
 ### Tipos de Navegação
@@ -146,13 +175,29 @@ type MainStackParamList = {
   Checkout: undefined;
   Payment: undefined;
   TicketDetails: { ticket: TicketItem };
+  PromoterDashboard: undefined;
+  PromoterList: { listId: string };
 };
 
 // HomeTabsParamList
 type HomeTabsParamList = {
   Home: undefined;
   MyTickets: undefined;
+  Validation: undefined;
   Profile: undefined;
+};
+
+// ValidationStackParamList
+type ValidationStackParamList = {
+  TicketScanner: undefined;
+  ManualValidation: undefined;
+  ValidationResult: { result: ValidationResult };
+};
+
+// TicketsStackParamList
+type TicketsStackParamList = {
+  MyTickets: undefined;
+  TicketDetails: { ticket: TicketItem };
 };
 ```
 
@@ -652,6 +697,213 @@ interface TicketItem {
 
 ---
 
+### 4.11 TicketScannerScreen
+
+**Arquivo:** `src/screens/validation/TicketScannerScreen.tsx`
+
+**Descrição:** Tela de escaneamento de QR Code para validação de ingressos em eventos.
+
+#### Funcionalidades
+- Scanner de QR Code com câmera
+- Controle de flash/lanterna
+- Animação de linha de scan
+- Área de escaneamento delimitada com cantos decorativos
+- Vibração ao detectar QR Code
+- Navegação para validação manual
+- Loading overlay durante validação
+
+#### Estados
+| Estado | Tipo | Descrição |
+|--------|------|-----------|
+| permission | CameraPermission | Permissão da câmera |
+| scanned | boolean | Se já escaneou um QR |
+| flashOn | boolean | Estado da lanterna |
+| scanLineAnim | Animated.Value | Animação da linha de scan |
+
+#### Integrações
+- `useCameraPermissions()` - Permissão de câmera (expo-camera)
+- `useValidationStore.validateTicket()` - Validar ingresso
+- `Vibration.vibrate()` - Feedback tátil
+
+#### Componentes Visuais
+- CameraView com barcode scanner
+- Overlay escuro com área de scan transparente
+- Cantos decorativos roxo Lumera
+- Linha de scan animada com gradiente
+- Botões de voltar e flash no header
+- Card de instrução
+- Loading overlay com spinner
+- Botão para validação manual
+
+---
+
+### 4.12 ManualValidationScreen
+
+**Arquivo:** `src/screens/validation/ManualValidationScreen.tsx`
+
+**Descrição:** Tela para validação manual de ingressos por código alfanumérico.
+
+#### Funcionalidades
+- Campo de entrada para código do ingresso
+- Formatação automática (maiúsculas, alfanumérico)
+- Instruções passo-a-passo
+- Exemplo visual de código
+- Link para voltar ao scanner
+
+#### Estados
+| Estado | Tipo | Descrição |
+|--------|------|-----------|
+| code | string | Código digitado (max 20 chars) |
+
+#### Validações
+- Remove caracteres não alfanuméricos
+- Converte para maiúsculas
+- Limita a 20 caracteres
+
+#### Integrações
+- `useValidationStore.validateTicket()` - Validar ingresso
+- `useValidationStore.clearLastValidation()` - Limpar resultado anterior
+
+#### Componentes Visuais
+- Header com gradiente Lumera
+- Campo TextInput com ícones
+- 3 instruções numeradas
+- Card com exemplo de código
+- Botão "Validar Ingresso"
+- Link "Voltar ao scanner"
+
+---
+
+### 4.13 ValidationResultScreen
+
+**Arquivo:** `src/screens/validation/ValidationResultScreen.tsx`
+
+**Descrição:** Tela de resultado da validação de ingresso.
+
+#### Parâmetros de Navegação
+```typescript
+{ result: ValidationResult }
+```
+
+#### Funcionalidades
+- Exibição de resultado com animação
+- Feedback visual por status (cores e ícones)
+- Vibração diferenciada por resultado
+- Detalhes completos do ingresso
+- Histórico de check-in anterior (se já usado)
+- Botão para escanear próximo
+
+#### Status Possíveis
+| Status | Cor | Ícone | Descrição |
+|--------|-----|-------|-----------|
+| valid | Verde (#4CAF50) | check-circle | Check-in realizado |
+| already_used | Laranja (#FF9800) | alert-circle | Já foi utilizado |
+| invalid | Vermelho (#F44336) | close-circle | Código inválido |
+
+#### Estados
+| Estado | Tipo | Descrição |
+|--------|------|-----------|
+| scaleAnim | Animated.Value | Animação de scale do ícone |
+| fadeAnim | Animated.Value | Animação de fade do conteúdo |
+
+#### Integrações
+- `Vibration.vibrate()` - Padrões diferentes por resultado
+- `format()` (date-fns) - Formatação de datas
+
+#### Componentes Visuais
+- Header com gradiente do status
+- Ícone animado grande (120x120)
+- Card de detalhes do ingresso
+- Informações: evento, tipo, titular, data, código
+- Warning box para ingressos já usados
+- Timestamp da validação
+- Botões de ação (Escanear próximo, Voltar)
+
+---
+
+### 4.14 PromoterDashboardScreen
+
+**Arquivo:** `src/screens/promoter/PromoterDashboardScreen.tsx`
+
+**Descrição:** Dashboard para promoters gerenciarem suas listas de convidados.
+
+#### Funcionalidades
+- Resumo de estatísticas (total de listas, convidados, check-ins)
+- Lista de listas ativas
+- Filtro por tipo de lista
+- Progresso de uso por lista
+- Indicador de expiração
+
+#### Estados
+| Estado | Tipo | Descrição |
+|--------|------|-----------|
+| lists | PromoterList[] | Listas do promoter |
+| stats | PromoterStats | Estatísticas gerais |
+| loading | boolean | Estado de carregamento |
+
+#### Tipos de Lista
+| Tipo | Descrição |
+|------|-----------|
+| VIP | Lista de convidados VIP |
+| DESCONTO | Lista com desconto |
+| DIVULGADOR | Lista de divulgadores |
+
+#### Integrações
+- `usePromoterStore.fetchMyLists()` - Buscar listas
+- `usePromoterStore.fetchStats()` - Buscar estatísticas
+
+#### Componentes Visuais
+- Header com gradiente
+- Cards de estatísticas
+- FlatList de listas
+- Chips de tipo de lista
+- Barra de progresso
+- Badge de expiração
+
+---
+
+### 4.15 PromoterListScreen
+
+**Arquivo:** `src/screens/promoter/PromoterListScreen.tsx`
+
+**Descrição:** Tela de gerenciamento de uma lista de convidados específica.
+
+#### Parâmetros de Navegação
+```typescript
+{ listId: string }
+```
+
+#### Funcionalidades
+- Detalhes da lista
+- Lista de convidados
+- Adicionar convidado
+- Remover convidado
+- Fazer check-in manual
+- Buscar convidado
+
+#### Estados
+| Estado | Tipo | Descrição |
+|--------|------|-----------|
+| list | PromoterList | Dados da lista |
+| searchQuery | string | Busca de convidados |
+| showAddModal | boolean | Modal de adicionar |
+
+#### Integrações
+- `usePromoterStore.getList()` - Buscar lista
+- `promoterApi.addItem()` - Adicionar convidado
+- `promoterApi.removeItem()` - Remover convidado
+- `promoterApi.checkInItem()` - Fazer check-in
+
+#### Componentes Visuais
+- Header com info da lista
+- Searchbar
+- FlatList de convidados
+- Swipe actions (check-in, remover)
+- FAB para adicionar
+- Modal de novo convidado
+
+---
+
 ## 5. Serviços e APIs
 
 ### Configuração Base
@@ -713,6 +965,47 @@ const API_URL = 'http://localhost:4000/api';
 | `confirmPayment` | POST `/orders/:id/confirm-payment` | Confirmar pgto | orderId, paymentId |
 | `cancel` | POST `/orders/:id/cancel` | Cancelar | orderId |
 
+### validationApi
+
+| Método | Endpoint | Descrição | Parâmetros |
+|--------|----------|-----------|------------|
+| `validateTicket` | POST `/checkin/validate` | Validar ingresso | qrCodeData, eventId? |
+| `getEventStats` | GET `/checkin/event/:eventId/stats` | Estatísticas do evento | eventId |
+| `getEventCheckIns` | GET `/checkin/event/:eventId/history` | Histórico de check-ins | eventId |
+
+**Resposta de validação:**
+```typescript
+{
+  status: 'valid' | 'already_used' | 'invalid';
+  message: string;
+  ticket?: {
+    id: string;
+    code: string;
+    ticketName: string;
+    eventName: string;
+    eventDate?: string;
+    holderName?: string;
+    checkedIn: boolean;
+    checkedInAt?: string;
+  };
+  validatedAt: string;
+}
+```
+
+### promoterApi
+
+| Método | Endpoint | Descrição | Parâmetros |
+|--------|----------|-----------|------------|
+| `getMyLists` | GET `/lists` | Listar minhas listas | - |
+| `getListById` | GET `/lists/:id` | Buscar lista | id |
+| `createList` | POST `/lists` | Criar lista | eventId, name, type, maxUses |
+| `updateList` | PUT `/lists/:id` | Atualizar lista | id, data |
+| `deleteList` | DELETE `/lists/:id` | Excluir lista | id |
+| `addItem` | POST `/lists/:id/items` | Adicionar convidado | listId, name, email?, phone? |
+| `removeItem` | DELETE `/lists/:id/items/:itemId` | Remover convidado | listId, itemId |
+| `checkInItem` | POST `/lists/:id/items/:itemId/checkin` | Check-in manual | listId, itemId |
+| `getStats` | GET `/promoter/stats` | Estatísticas gerais | - |
+
 ### paymentService
 
 **Arquivo:** `src/services/paymentService.ts`
@@ -771,6 +1064,86 @@ addToCart(ticketId, quantity): Promise<void>
 updateItemQuantity(itemId, quantity): Promise<void>
 removeItem(itemId): Promise<void>
 clearCart(): Promise<void>
+```
+
+### themeStore
+
+**Arquivo:** `src/stores/themeStore.ts`
+
+```typescript
+type ThemeMode = 'light' | 'dark' | 'system';
+
+interface ThemeState {
+  mode: ThemeMode;
+  isDark: boolean;
+  setMode: (mode: ThemeMode) => void;
+  toggleTheme: () => void;
+}
+```
+
+**Persistência:** AsyncStorage (chave: 'theme-storage')
+
+**Uso:**
+```typescript
+const { isDark, toggleTheme } = useThemeStore();
+const colors = isDark ? darkColors : lightColors;
+```
+
+### validationStore
+
+**Arquivo:** `src/stores/validationStore.ts`
+
+```typescript
+interface ValidationStats {
+  totalScanned: number;
+  validCount: number;
+  alreadyUsedCount: number;
+  invalidCount: number;
+  lastScanTime?: string;
+}
+
+interface ValidationState {
+  loading: boolean;
+  error: string | null;
+  lastValidation: ValidationResult | null;
+  validationHistory: ValidationResult[];  // Últimos 50
+  stats: ValidationStats;
+  selectedEventId: string | null;
+}
+
+// Ações
+validateTicket(qrCodeOrCode: string): Promise<ValidationResult | null>
+clearLastValidation(): void
+clearHistory(): void
+setSelectedEvent(eventId: string | null): void
+resetStats(): void
+clearError(): void
+```
+
+**Funcionalidades:**
+- Validar ingresso via API
+- Manter histórico das últimas 50 validações
+- Estatísticas em tempo real
+- Filtrar por evento específico
+
+### promoterStore
+
+**Arquivo:** `src/stores/promoterStore.ts`
+
+```typescript
+interface PromoterState {
+  lists: PromoterList[];
+  stats: PromoterStats | null;
+  loading: boolean;
+  error: string | null;
+}
+
+// Ações
+fetchMyLists(): Promise<void>
+fetchStats(): Promise<void>
+createList(data): Promise<PromoterList>
+updateList(id, data): Promise<void>
+deleteList(id): Promise<void>
 ```
 
 ---
@@ -889,23 +1262,137 @@ interface TicketInstance {
 }
 ```
 
+### PromoterList
+```typescript
+interface PromoterList {
+  id: string;
+  eventId: string;
+  name: string;
+  type: 'VIP' | 'DESCONTO' | 'DIVULGADOR';
+  maxUses: number;
+  usedCount: number;
+  discount?: number;
+  expiresAt?: string;
+  isActive: boolean;
+  createdAt: string;
+  items: ListItem[];
+}
+
+interface ListItem {
+  id: string;
+  listId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  checkedIn: boolean;
+  checkedInAt?: string;
+  addedAt: string;
+}
+
+interface PromoterStats {
+  totalLists: number;
+  totalGuests: number;
+  totalCheckIns: number;
+  activeEvents: number;
+}
+```
+
+### ValidationResult
+```typescript
+interface TicketValidationInfo {
+  id: string;
+  code: string;
+  ticketName: string;
+  eventId: string;
+  eventName: string;
+  eventDate?: string;
+  eventLocation?: string;
+  holderName?: string;
+  holderEmail?: string;
+  checkedIn: boolean;
+  checkedInAt?: string;
+}
+
+interface ValidationResult {
+  status: 'valid' | 'already_used' | 'invalid';
+  message: string;
+  ticket?: TicketValidationInfo;
+  validatedAt: string;
+}
+```
+
 ---
 
-## 8. Theme e Estilos
+## 8. Theme e Estilos (Identidade Visual Lumera)
 
 **Arquivo:** `src/theme/index.ts`
 
-### Cores
+> "Uma nova era de brilho"
 
-| Nome | Valor | Uso |
-|------|-------|-----|
-| primary | #6200ee | Cor principal (roxo) |
-| secondary | #03dac6 | Cor secundária (ciano) |
-| error | #b00020 | Erros (vermelho) |
-| background | #f5f5f5 | Fundo das telas |
+### Paleta de Cores Lumera
+
+#### Cores Principais
+| Nome | Hex | Uso |
+|------|-----|-----|
+| **roxoLumera** | #7B2EFF | Primária - moderno, premium, noturno |
+| **azulGlow** | #4A6CFF | Secundária - brilho, tecnologia |
+| **pretoObsidian** | #0E0E0F | Elegância, contraste |
+| **brancoLuminoso** | #F8F8FF | Leveza, minimalismo |
+
+#### Cores Secundárias
+| Nome | Hex | Uso |
+|------|-----|-----|
+| **lilasNeon** | #C084FF | Destaque, elementos vibrantes |
+| **douradoSuave** | #E0C87A | Premium, VIP |
+| **cinzaFumaca** | #2A2A2E | Base para UI dark |
+
+### Tema Claro (lightColors)
+
+| Propriedade | Valor | Descrição |
+|-------------|-------|-----------|
+| primary | #7B2EFF | Cor principal |
+| secondary | #4A6CFF | Cor secundária |
+| tertiary | #C084FF | Cor terciária |
+| background | #F8F8FF | Fundo das telas |
 | surface | #ffffff | Cards e superfícies |
-| onPrimary | #ffffff | Texto sobre primary |
-| onSurface | #000000 | Texto sobre surface |
+| text | #0E0E0F | Texto principal |
+| textSecondary | #666666 | Texto secundário |
+| vip | #E0C87A | Elementos VIP |
+
+### Tema Escuro (darkColors)
+
+| Propriedade | Valor | Descrição |
+|-------------|-------|-----------|
+| primary | #7B2EFF | Cor principal |
+| secondary | #4A6CFF | Cor secundária |
+| background | #0E0E0F | Fundo das telas |
+| surface | #2A2A2E | Cards e superfícies |
+| text | #F8F8FF | Texto principal |
+| textSecondary | #b0b0b0 | Texto secundário |
+
+### Gradientes
+
+```typescript
+// Gradiente padrão Lumera (light)
+colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+
+// Gradiente dark
+colors={[lumeraColors.pretoObsidian, lumeraColors.cinzaFumaca]}
+```
+
+### Uso do Tema
+
+```typescript
+import { useThemeStore } from '../stores/themeStore';
+import { lightColors, darkColors, getTheme } from '../theme';
+
+const { isDark, toggleTheme } = useThemeStore();
+const colors = isDark ? darkColors : lightColors;
+
+<View style={{ backgroundColor: colors.background }}>
+  <Text style={{ color: colors.text }}>Texto</Text>
+</View>
+```
 
 ### Espaçamento
 
@@ -964,11 +1451,11 @@ interface TicketInstance {
    └── Ver ingressos
 ```
 
-### Fluxo de Validação de Ingresso
+### Fluxo de Apresentação de Ingresso (Usuário)
 
 ```
 1. MyTickets
-   └── Ver lista de ingressos
+   └── Ver lista de ingressos (seções: Ativos e Histórico)
    └── Selecionar ingresso
 
 2. TicketDetails
@@ -976,6 +1463,28 @@ interface TicketInstance {
        └── Apresentar QR para validação
    └── Tab Detalhes
        └── Ver informações da compra
+       └── Ver status (Válido/Utilizado/Encerrado)
+```
+
+### Fluxo de Validação de Ingresso (Operador)
+
+```
+1. Tab Validação
+   └── Acessar scanner
+
+2. TicketScanner
+   └── Permitir acesso à câmera
+   └── Escanear QR Code
+   └── OU ir para validação manual
+
+3. ManualValidation (opcional)
+   └── Digitar código do ingresso
+   └── Validar
+
+4. ValidationResult
+   └── Ver resultado (Válido ✓ / Já usado ⚠ / Inválido ✗)
+   └── Ver detalhes do ingresso
+   └── Escanear próximo
 ```
 
 ### Fluxo de Autenticação
@@ -996,6 +1505,81 @@ interface TicketInstance {
    └── Retornar para Login
 ```
 
+### Fluxo do Promoter
+
+```
+1. Profile
+   └── Acessar "Minhas Listas"
+
+2. PromoterDashboard
+   └── Ver estatísticas
+   └── Ver listas ativas
+   └── Selecionar lista
+
+3. PromoterList
+   └── Ver convidados
+   └── Adicionar convidado
+   └── Fazer check-in manual
+   └── Remover convidado
+```
+
+---
+
+## 10. Componentes Reutilizáveis
+
+### SkeletonLoader
+
+**Arquivo:** `src/components/common/SkeletonLoader.tsx`
+
+Componentes de loading animados para melhorar a experiência do usuário durante carregamento de dados.
+
+#### Componente Base
+
+```typescript
+interface SkeletonProps {
+  width?: number | string;
+  height?: number;
+  borderRadius?: number;
+  style?: ViewStyle;
+}
+
+<Skeleton width={100} height={20} borderRadius={4} />
+```
+
+#### Variantes Disponíveis
+
+| Componente | Uso |
+|------------|-----|
+| `Skeleton` | Componente base com shimmer |
+| `EventCardSkeleton` | Card de evento na lista |
+| `FeaturedCardSkeleton` | Card de evento em destaque |
+| `EventDetailsSkeleton` | Tela de detalhes do evento |
+| `CartItemSkeleton` | Item no carrinho |
+| `TicketSkeleton` | Card de ingresso |
+| `HomeScreenSkeleton` | Tela Home completa |
+| `MyTicketsScreenSkeleton` | Tela Meus Ingressos |
+| `CartScreenSkeleton` | Tela do Carrinho |
+
+#### Exemplo de Uso
+
+```typescript
+import { HomeScreenSkeleton, EventDetailsSkeleton } from '../components/common/SkeletonLoader';
+
+// Em uma tela
+if (loading) {
+  return <HomeScreenSkeleton />;
+}
+
+return <FlatList data={events} ... />;
+```
+
+#### Características
+
+- Animação de shimmer (opacity pulsante)
+- Suporte a tema claro e escuro
+- Cores adaptativas via `useThemeStore`
+- Loop infinito de animação
+
 ---
 
 ## Changelog
@@ -1003,6 +1587,11 @@ interface TicketInstance {
 | Data | Versão | Alterações |
 |------|--------|------------|
 | 2024-12 | 1.0.0 | Versão inicial do app |
+| 2024-12 | 1.1.0 | Adicionado sistema de validação de ingressos |
+| 2024-12 | 1.2.0 | Adicionado dashboard de promoter |
+| 2024-12 | 1.3.0 | Identidade visual Lumera aplicada |
+| 2024-12 | 1.4.0 | Skeleton loaders para melhor UX |
+| 2024-12 | 1.5.0 | Histórico de ingressos com status de utilização |
 
 ---
 
