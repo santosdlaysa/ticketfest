@@ -16,16 +16,8 @@ export default function Profile() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadOrders();
-    }
-  }, [isAuthenticated]);
+    loadOrders();
+  }, []);
 
   const loadOrders = async () => {
     try {
@@ -81,7 +73,7 @@ export default function Profile() {
     return <span className={roleInfo.className}>{roleInfo.label}</span>;
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <>
         <Head><title>Meu Perfil - Lumera</title></Head>
@@ -95,10 +87,6 @@ export default function Profile() {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
   return (
     <>
       <Head><title>Meu Perfil - Lumera</title></Head>
@@ -108,21 +96,23 @@ export default function Profile() {
           <div className="card p-8 mb-6">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{user.name}</h1>
-                <p className="text-gray-600 mb-2">{user.email}</p>
+                <h1 className="text-3xl font-bold mb-2">{user?.name || 'Usuário'}</h1>
+                <p className="text-gray-600 mb-2">{user?.email || ''}</p>
                 <div className="flex items-center gap-2">
-                  {getRoleBadge(user.role)}
-                  <span className="text-sm text-gray-500">
-                    Membro desde {new Date(user.createdAt).toLocaleDateString('pt-BR', {
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </span>
+                  {user && getRoleBadge(user.role)}
+                  {user?.createdAt && (
+                    <span className="text-sm text-gray-500">
+                      Membro desde {new Date(user.createdAt).toLocaleDateString('pt-BR', {
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center">
                 <span className="text-3xl font-bold text-primary-600">
-                  {user.name.charAt(0).toUpperCase()}
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
             </div>

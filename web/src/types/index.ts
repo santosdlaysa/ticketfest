@@ -142,3 +142,65 @@ export interface PaginatedResponse<T> {
   limit: number;
   offset: number;
 }
+
+// Stats types
+export interface OrganizerStats {
+  totalEvents: number;
+  publishedEvents: number;
+  draftEvents: number;
+  cancelledEvents: number;
+  completedEvents: number;
+  totalTicketsSold: number;
+  totalRevenue: number;
+  todayCheckIns: number;
+  upcomingEvents: UpcomingEvent[];
+  draftEventsList: DraftEvent[];
+  salesByDay: SalesByDay[];
+}
+
+export interface UpcomingEvent {
+  id: string;
+  name: string;
+  slug: string;
+  date: string;
+  location: string;
+  status: string;
+  totalTickets: number;
+  soldTickets: number;
+  revenue: number;
+  ordersCount: number;
+}
+
+export interface DraftEvent {
+  id: string;
+  name: string;
+  slug: string;
+  date: string;
+  updatedAt: string;
+}
+
+export interface SalesByDay {
+  date: string;
+  amount: number;
+  tickets: number;
+}
+
+// Venue types
+export interface Venue {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode?: string;
+  latitude?: number;
+  longitude?: number;
+  capacity?: number;
+  description?: string;
+  images: string[];
+  phone?: string;
+  email?: string;
+  organizerId: string;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -16,7 +16,8 @@
       "Bash(xargs cat:*)",
       "Bash(git -C '/c/Users/ldsantos/Documents/Lumera' log --oneline -20)",
       "Bash(npx expo:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx prisma:*)"
     ],
     "deny": [],
     "ask": []

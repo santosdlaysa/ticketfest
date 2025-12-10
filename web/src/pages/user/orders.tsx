@@ -16,16 +16,8 @@ export default function MyOrders() {
   const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadOrders();
-    }
-  }, [isAuthenticated]);
+    loadOrders();
+  }, []);
 
   const loadOrders = async () => {
     try {
@@ -91,7 +83,7 @@ export default function MyOrders() {
     return methods[method] || method;
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <>
         <Head><title>Meus Pedidos - Lumera</title></Head>

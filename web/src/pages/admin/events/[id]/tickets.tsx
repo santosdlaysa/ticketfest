@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { useAuthStore } from '@/contexts/AuthContext';
 import { eventsApi, ticketsApi } from '@/services/api';
 import type { Event, Ticket } from '@/types';
 import { Button } from '@/components/common/Button';
@@ -23,7 +22,6 @@ interface TicketForm {
 export default function ManageTickets() {
   const router = useRouter();
   const { id } = router.query;
-  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const [event, setEvent] = useState<Event | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,18 +31,6 @@ export default function ManageTickets() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<TicketForm>();
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (!authLoading && user && user.role !== 'ORGANIZER' && user.role !== 'ADMIN') {
-      toast.error('Você não tem permissão para acessar esta página');
-      router.push('/');
-    }
-  }, [authLoading, isAuthenticated, user, router]);
 
   useEffect(() => {
     if (id && typeof id === 'string') {
@@ -146,7 +132,7 @@ export default function ManageTickets() {
     reset();
   };
 
-  if (authLoading || loading) {
+  if (loading || !event) {
     return (
       <>
         <Head><title>Gerenciar Ingressos - Lumera</title></Head>
@@ -158,10 +144,6 @@ export default function ManageTickets() {
         </div>
       </>
     );
-  }
-
-  if (!user || (user.role !== 'ORGANIZER' && user.role !== 'ADMIN') || !event) {
-    return null;
   }
 
   return (

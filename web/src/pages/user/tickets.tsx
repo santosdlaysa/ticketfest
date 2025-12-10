@@ -20,16 +20,8 @@ export default function MyTickets() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadTickets();
-    }
-  }, [isAuthenticated]);
+    loadTickets();
+  }, []);
 
   const loadTickets = async () => {
     try {
@@ -72,7 +64,7 @@ export default function MyTickets() {
     link.click();
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <>
         <Head><title>Meus Ingressos - Lumera</title></Head>

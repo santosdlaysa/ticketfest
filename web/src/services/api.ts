@@ -6,6 +6,8 @@ import type {
   Ticket,
   Cart,
   Order,
+  OrganizerStats,
+  Venue,
 } from '@/types';
 
 // Auth API
@@ -188,5 +190,58 @@ export const ordersApi = {
 
   cancel: async (orderId: string): Promise<void> => {
     await api.post(`/orders/${orderId}/cancel`);
+  },
+};
+
+// Stats API
+export const statsApi = {
+  getOrganizerStats: async (): Promise<OrganizerStats> => {
+    const response = await api.get('/stats/organizer');
+    return response.data;
+  },
+
+  getEventStats: async (eventId: string): Promise<any> => {
+    const response = await api.get(`/stats/event/${eventId}`);
+    return response.data;
+  },
+};
+
+// Venues API
+export const venuesApi = {
+  getAll: async (): Promise<Venue[]> => {
+    const response = await api.get('/venues');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<Venue> => {
+    const response = await api.get(`/venues/${id}`);
+    return response.data;
+  },
+
+  create: async (data: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode?: string;
+    latitude?: number;
+    longitude?: number;
+    capacity?: number;
+    description?: string;
+    images?: string[];
+    phone?: string;
+    email?: string;
+  }): Promise<Venue> => {
+    const response = await api.post('/venues', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<Venue>): Promise<Venue> => {
+    const response = await api.put(`/venues/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/venues/${id}`);
   },
 };

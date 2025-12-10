@@ -122,6 +122,24 @@ export const createPayoutSchema = z.object({
   payoutMethod: z.enum(['BANK_TRANSFER', 'PIX']),
 });
 
+// Venue validation schemas
+export const createVenueSchema = z.object({
+  name: z.string().min(2, 'Venue name must be at least 2 characters'),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
+  city: z.string().min(2, 'City must be at least 2 characters'),
+  state: z.string().min(2, 'State must be at least 2 characters'),
+  zipCode: z.string().optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
+  capacity: z.number().int().min(1).optional(),
+  description: z.string().optional(),
+  images: z.array(z.string().url()).default([]),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+});
+
+export const updateVenueSchema = createVenueSchema.partial();
+
 // Helper function to validate request body
 export const validate = <T>(schema: z.ZodSchema<T>) => {
   return (data: unknown): T => {

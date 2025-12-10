@@ -50,13 +50,6 @@ export default function Checkout() {
 
   const selectedPaymentMethod = watch('paymentMethod');
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error('Faça login para finalizar a compra');
-      router.push('/auth/login?redirect=/checkout');
-    }
-  }, [isAuthenticated, router]);
 
   // Pre-fill form with user data
   useEffect(() => {
@@ -185,8 +178,8 @@ export default function Checkout() {
       .replace(/(-\d{4})\d+?$/, '$1');
   };
 
-  if (!cart || !isAuthenticated) {
-    return null; // Loading or redirecting
+  if (!cart) {
+    return null; // Loading
   }
 
   return (

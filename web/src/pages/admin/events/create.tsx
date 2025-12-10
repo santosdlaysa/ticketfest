@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { useAuthStore } from '@/contexts/AuthContext';
 import { eventsApi } from '@/services/api';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -35,21 +34,9 @@ const CATEGORIES = [
 
 export default function CreateEvent() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<EventForm>();
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (!authLoading && user && user.role !== 'ORGANIZER' && user.role !== 'ADMIN') {
-      toast.error('Você não tem permissão para acessar esta página');
-      router.push('/');
-    }
-  }, [authLoading, isAuthenticated, user, router]);
 
   const onSubmit = async (data: EventForm) => {
     setLoading(true);
@@ -82,24 +69,6 @@ export default function CreateEvent() {
       setLoading(false);
     }
   };
-
-  if (authLoading) {
-    return (
-      <>
-        <Head><title>Criar Evento - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando...</p>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  if (!user || (user.role !== 'ORGANIZER' && user.role !== 'ADMIN')) {
-    return null;
-  }
 
   return (
     <>

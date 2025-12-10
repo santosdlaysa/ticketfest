@@ -29,6 +29,7 @@ model User {
   // Relations
   orders       Order[]
   events       Event[]  @relation("EventOrganizer")
+  venues       Venue[]  @relation("VenueOrganizer")
   refreshTokens RefreshToken[]
   organizerAccount OrganizerAccount?
 
@@ -54,6 +55,39 @@ enum Role {
 }
 
 // ============================================
+// VENUES
+// ============================================
+
+model Venue {
+  id          String   @id @default(uuid())
+  name        String
+  address     String
+  city        String
+  state       String
+  zipCode     String?  @map("zip_code")
+  latitude    Float?
+  longitude   Float?
+  capacity    Int?
+  description String?  @db.Text
+  images      String[] @default([])
+  phone       String?
+  email       String?
+
+  // Owner
+  organizerId String   @map("organizer_id")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organizer   User     @relation("VenueOrganizer", fields: [organizerId], references: [id])
+  events      Event[]
+
+  @@index([organizerId])
+  @@map("venues")
+}
+
+// ============================================
 // EVENTS
 // ============================================
 
@@ -65,11 +99,14 @@ model Event {
   date        DateTime
   endDate     DateTime?   @map("end_date")
 
-  // Location
+  // Location (legacy fields kept for compatibility)
   location    String
   address     String
   latitude    Float?
   longitude   Float?
+
+  // Venue relation (optional, new)
+  venueId     String?     @map("venue_id")
 
   // Media
   images      String[]    @default([])
@@ -88,6 +125,7 @@ model Event {
 
   // Relations
   organizer   User        @relation("EventOrganizer", fields: [organizerId], references: [id])
+  venue       Venue?      @relation(fields: [venueId], references: [id])
   tickets     Ticket[]
   orders      Order[]
   splitRule   SplitRule?
@@ -96,6 +134,7 @@ model Event {
   @@index([category])
   @@index([date])
   @@index([status])
+  @@index([venueId])
   @@map("events")
 }
 

@@ -42,7 +42,7 @@ const envSchema = z.object({
 
   // Supabase
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: z.string(),
 
   // JWT
   JWT_SECRET: z.string().min(32),
