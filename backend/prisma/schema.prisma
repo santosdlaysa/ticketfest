@@ -529,6 +529,33 @@ enum PayoutMethod {
   PIX             // PIX
 }
 
+// ============================================
+// EVENT REMINDERS
+// ============================================
+
+model EventReminder {
+  id          String   @id @default(uuid())
+  orderId     String   @map("order_id")
+  eventId     String   @map("event_id")
+  userId      String   @map("user_id")
+
+  // Reminder type
+  reminderType ReminderType @map("reminder_type")
+
+  // Status
+  sentAt      DateTime @default(now()) @map("sent_at")
+
+  @@unique([orderId, reminderType])
+  @@index([eventId])
+  @@index([userId])
+  @@map("event_reminders")
+}
+
+enum ReminderType {
+  HOURS_24   // 24 hours before
+  HOURS_2    // 2 hours before
+}
+
 // Log de auditoria para operações financeiras
 model AuditLog {
   id              String   @id @default(uuid())

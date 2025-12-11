@@ -101,6 +101,7 @@
 | TASK-012 | Exportar lista de participantes (CSV) | 2024-12-11 | Concluido |
 | TASK-003 | Pagina Meus Ingressos com QR Code | 2024-12-11 | Concluido |
 | TASK-002 | Email lembrete 24h e 2h antes do evento | 2024-12-11 | Concluido |
+| TASK-013 | Dashboard de vendas em tempo real | 2024-12-11 | Concluido |
 
 ---
 

@@ -117,75 +117,111 @@ export default function MyTickets() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {tickets.map((ticket) => (
-              <div key={ticket.id} className="card p-6">
-                <div className="mb-4">
+              <div key={ticket.id} className="card overflow-hidden">
+                {/* Header com imagem */}
+                <div className="relative h-32">
                   <img
-                    src={ticket.order.event.images[0] || '/placeholder-event.jpg'}
+                    src={ticket.order.event.images?.[0] || '/placeholder-event.jpg'}
                     alt={ticket.order.event.name}
-                    className="w-full h-32 object-cover rounded-lg"
+                    className="w-full h-full object-cover"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <h3 className="font-bold text-lg text-white line-clamp-1">
+                      {ticket.order.event.name}
+                    </h3>
+                  </div>
+
+                  {/* Badge de check-in */}
+                  {ticket.checkedIn && (
+                    <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      CHECK-IN OK
+                    </div>
+                  )}
                 </div>
 
-                <h3 className="font-bold text-lg mb-2">
-                  {ticket.order.event.name}
-                </h3>
+                {/* Corpo do ticket */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold px-2 py-1 rounded">
+                      {ticket.ticketName}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      #{ticket.id.slice(0, 8).toUpperCase()}
+                    </span>
+                  </div>
 
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
-                  <p>
-                    <strong>Tipo:</strong> {ticket.ticketName}
-                  </p>
-                  <p>
-                    <strong>Data:</strong>{' '}
-                    {new Date(ticket.order.event.date).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                  <p>
-                    <strong>Local:</strong> {ticket.order.event.location}
-                  </p>
-                </div>
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>
+                        {new Date(ticket.order.event.date).toLocaleDateString('pt-BR', {
+                          weekday: 'short',
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      </svg>
+                      <span className="line-clamp-1">{ticket.order.event.location}</span>
+                    </div>
+                  </div>
 
-                {/* QR Code */}
-                <div className="bg-white p-4 rounded-lg border-2 border-gray-200 mb-4">
-                  <img
-                    src={ticket.qrCode}
-                    alt="QR Code"
-                    className="w-full h-auto"
-                  />
-                </div>
+                  {/* Linha tracejada */}
+                  <div className="border-t-2 border-dashed border-gray-200 my-4 relative">
+                    <div className="absolute -left-6 -top-3 w-6 h-6 bg-gray-100 rounded-full" />
+                    <div className="absolute -right-6 -top-3 w-6 h-6 bg-gray-100 rounded-full" />
+                  </div>
 
-                {ticket.checkedIn && (
-                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-green-800 text-sm font-medium">
-                      ✓ Check-in realizado
-                    </p>
-                    {ticket.checkedInAt && (
+                  {/* QR Code */}
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-white p-3 rounded-lg border-2 border-gray-200">
+                      <img
+                        src={ticket.qrCode}
+                        alt="QR Code"
+                        className="w-40 h-40"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-center text-xs text-gray-500 mb-4">
+                    Apresente este QR Code na entrada
+                  </p>
+
+                  {ticket.checkedIn && ticket.checkedInAt && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
+                      <p className="text-green-800 text-sm font-medium">
+                        Check-in realizado
+                      </p>
                       <p className="text-green-600 text-xs mt-1">
                         {new Date(ticket.checkedInAt).toLocaleString('pt-BR')}
                       </p>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => downloadTicket(ticket)}
-                    variant="outline"
-                    className="flex-1 text-sm"
-                  >
-                    Download
-                  </Button>
-                  <Button
-                    onClick={() => router.push(`/user/orders`)}
-                    variant="outline"
-                    className="flex-1 text-sm"
-                  >
-                    Ver Pedido
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => downloadTicket(ticket)}
+                      variant="outline"
+                      className="flex-1 text-sm"
+                    >
+                      Salvar QR
+                    </Button>
+                    <Button
+                      onClick={() => router.push(`/user/orders`)}
+                      variant="outline"
+                      className="flex-1 text-sm"
+                    >
+                      Ver Pedido
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

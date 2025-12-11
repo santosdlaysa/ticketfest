@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { eventsApi } from '@/services/api';
+import { eventsApi, adminApi } from '@/services/api';
 import type { Event } from '@/types';
 import { Button } from '@/components/common/Button';
 
@@ -44,6 +44,7 @@ export default function AdminEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [exportingId, setExportingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -76,6 +77,18 @@ export default function AdminEvents() {
       toast.error(error.response?.data?.error || 'Erro ao deletar evento');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleExportAttendees = async (id: string) => {
+    try {
+      setExportingId(id);
+      await adminApi.exportEventAttendees(id);
+      toast.success('Lista de participantes exportada!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao exportar participantes');
+    } finally {
+      setExportingId(null);
     }
   };
 
@@ -234,7 +247,7 @@ export default function AdminEvents() {
                     <div className="flex flex-wrap gap-2">
                       <Link href={`/events/${event.slug}`}>
                         <Button variant="outline" size="sm">
-                          Ver Página
+                          Ver Pagina
                         </Button>
                       </Link>
                       <Link href={`/admin/events/${event.id}/edit`}>
@@ -247,6 +260,15 @@ export default function AdminEvents() {
                           Ingressos
                         </Button>
                       </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportAttendees(event.id)}
+                        isLoading={exportingId === event.id}
+                        className="text-green-600 border-green-600 hover:bg-green-50"
+                      >
+                        Exportar Participantes
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"

@@ -1,6 +1,7 @@
 import app from './app.js';
 import { env, dbConfig } from './config/env.js';
 import DatabaseService from './config/database.js';
+import { initializeScheduler } from './jobs/scheduler.js';
 
 const PORT = parseInt(env.PORT) || 4000;
 
@@ -29,6 +30,9 @@ const startServer = async () => {
       console.log(`   Orders: ${env.API_URL}/api/orders`);
       console.log(`   Check-in: ${env.API_URL}/api/checkin`);
       console.log('');
+
+      // Initialize scheduled jobs
+      initializeScheduler();
     });
 
     return server;
