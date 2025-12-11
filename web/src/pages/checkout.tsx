@@ -2,39 +2,31 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
-import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
 import { useCartStore } from '@/contexts/CartContext';
 import { useAuthStore } from '@/contexts/AuthContext';
 import { ordersApi } from '@/services/api';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import StripePaymentForm from '@/components/checkout/StripePaymentForm';
-
-// Initialize Stripe (replace with your publishable key)
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_demo_key'
-);
+import PagarmePaymentForm from '@/components/checkout/PagarmePaymentForm';
 
 interface CheckoutForm {
   name: string;
   email: string;
   cpf: string;
   phone: string;
-  paymentMethod: 'CREDIT_CARD' | 'PIX' | 'BOLETO';
+  paymentMethod: 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX';
   couponCode?: string;
 }
 
 export default function Checkout() {
   const router = useRouter();
   const { cart, clearCart, fetchCart } = useCartStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user } = useAuthStore();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showStripeForm, setShowStripeForm] = useState(false);
-  const [pendingOrderData, setPendingOrderData] = useState<any>(null);
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [pendingOrderData, setPendingOrderData] = useState<CheckoutForm | null>(null);
 
   const {
     register,
@@ -49,7 +41,6 @@ export default function Checkout() {
   });
 
   const selectedPaymentMethod = watch('paymentMethod');
-
 
   // Pre-fill form with user data
   useEffect(() => {
@@ -69,21 +60,21 @@ export default function Checkout() {
   // Redirect if cart is empty
   useEffect(() => {
     if (cart && cart.items.length === 0) {
-      toast.error('Seu carrinho está vazio');
+      toast.error('Seu carrinho esta vazio');
       router.push('/events');
     }
   }, [cart, router]);
 
   const onSubmit = async (data: CheckoutForm) => {
     if (!cart || cart.items.length === 0) {
-      toast.error('Seu carrinho está vazio');
+      toast.error('Seu carrinho esta vazio');
       return;
     }
 
-    // If credit card, show Stripe form instead of creating order immediately
-    if (data.paymentMethod === 'CREDIT_CARD') {
+    // If credit/debit card, show card form instead of creating order immediately
+    if (data.paymentMethod === 'CREDIT_CARD' || data.paymentMethod === 'DEBIT_CARD') {
       setPendingOrderData(data);
-      setShowStripeForm(true);
+      setShowCardForm(true);
       return;
     }
 
@@ -109,11 +100,18 @@ export default function Checkout() {
       // Clear cart after successful order
       await clearCart();
 
-      // Handle different payment methods
-      if (data.paymentMethod === 'PIX') {
+      // Handle PIX payment
+      if (data.paymentMethod === 'PIX' && payment?.pix) {
+        const pixParams = new URLSearchParams({
+          orderId: order.id,
+          method: 'pix',
+          pixCode: payment.pix.qrCode,
+          pixUrl: payment.pix.qrCodeUrl,
+          pixExpires: payment.pix.expiresAt,
+        });
+        router.push(`/checkout/success?${pixParams.toString()}`);
+      } else if (data.paymentMethod === 'PIX') {
         router.push(`/checkout/success?orderId=${order.id}&method=pix`);
-      } else if (data.paymentMethod === 'BOLETO') {
-        router.push(`/checkout/success?orderId=${order.id}&method=boleto`);
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
@@ -123,29 +121,34 @@ export default function Checkout() {
     }
   };
 
-  const handleStripePaymentSuccess = async (paymentMethodId: string) => {
+  const handleCardPaymentSuccess = async (cardToken: string, installments: number) => {
     if (!cart || !pendingOrderData) return;
 
     setIsProcessing(true);
 
     try {
-      // Create order with Stripe payment method
+      // Create order with card token
       const orderData = {
         items: cart.items.map((item) => ({
           ticketId: item.ticket.id,
           quantity: item.quantity,
         })),
-        paymentMethod: 'CREDIT_CARD' as const,
+        paymentMethod: pendingOrderData.paymentMethod,
         couponCode: pendingOrderData.couponCode || undefined,
+        cardToken,
+        installments,
       };
 
       const response = await ordersApi.create(orderData);
-      const { order } = response;
+      const { order, payment } = response;
 
-      // In a real implementation, you would confirm the payment with Stripe here
-      // await ordersApi.confirmPayment(order.id, paymentMethodId);
+      // Check if payment was immediately approved
+      if (payment?.card?.status === 'paid') {
+        toast.success('Pagamento aprovado!');
+      } else {
+        toast.success('Pedido criado com sucesso!');
+      }
 
-      toast.success('Pagamento processado com sucesso!');
       await clearCart();
       router.push(`/checkout/success?orderId=${order.id}&method=card`);
     } catch (error: any) {
@@ -156,9 +159,8 @@ export default function Checkout() {
     }
   };
 
-  const handleStripePaymentError = (error: string) => {
+  const handleCardPaymentError = (error: string) => {
     setIsProcessing(false);
-    // Error is already shown via toast in StripePaymentForm
   };
 
   const formatCPF = (value: string) => {
@@ -202,7 +204,7 @@ export default function Checkout() {
                   <div className="md:col-span-2">
                     <Input
                       label="Nome Completo"
-                      {...register('name', { required: 'Nome é obrigatório' })}
+                      {...register('name', { required: 'Nome e obrigatorio' })}
                       error={errors.name?.message}
                     />
                   </div>
@@ -210,10 +212,10 @@ export default function Checkout() {
                     label="Email"
                     type="email"
                     {...register('email', {
-                      required: 'Email é obrigatório',
+                      required: 'Email e obrigatorio',
                       pattern: {
                         value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: 'Email inválido',
+                        message: 'Email invalido',
                       },
                     })}
                     error={errors.email?.message}
@@ -221,8 +223,8 @@ export default function Checkout() {
                   <Input
                     label="CPF"
                     {...register('cpf', {
-                      required: 'CPF é obrigatório',
-                      minLength: { value: 11, message: 'CPF inválido' },
+                      required: 'CPF e obrigatorio',
+                      minLength: { value: 11, message: 'CPF invalido' },
                     })}
                     onChange={(e) => {
                       const formatted = formatCPF(e.target.value);
@@ -233,7 +235,7 @@ export default function Checkout() {
                   />
                   <Input
                     label="Telefone"
-                    {...register('phone', { required: 'Telefone é obrigatório' })}
+                    {...register('phone', { required: 'Telefone e obrigatorio' })}
                     onChange={(e) => {
                       const formatted = formatPhone(e.target.value);
                       setValue('phone', formatted);
@@ -261,32 +263,11 @@ export default function Checkout() {
                       <div className="flex items-center justify-between">
                         <span className="font-semibold">PIX</span>
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                          Aprovação imediata
+                          Aprovacao imediata
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">
                         Pague com QR Code ou Pix Copia e Cola
-                      </p>
-                    </div>
-                  </label>
-
-                  {/* Boleto */}
-                  <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:border-primary-500 transition">
-                    <input
-                      type="radio"
-                      value="BOLETO"
-                      {...register('paymentMethod')}
-                      className="mt-1 mr-3"
-                    />
-                    <div className="flex-grow">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold">Boleto Bancário</span>
-                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
-                          Até 3 dias úteis
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Vencimento em 3 dias úteis
                       </p>
                     </div>
                   </label>
@@ -301,13 +282,34 @@ export default function Checkout() {
                     />
                     <div className="flex-grow">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold">Cartão de Crédito</span>
+                        <span className="font-semibold">Cartao de Credito</span>
                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          Aprovação imediata
+                          Ate 12x sem juros
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">
-                        Visa, Mastercard, Elo, American Express
+                        Visa, Mastercard, Elo, American Express, Hipercard
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Debit Card */}
+                  <label className="flex items-start p-4 border-2 rounded-lg cursor-pointer hover:border-primary-500 transition">
+                    <input
+                      type="radio"
+                      value="DEBIT_CARD"
+                      {...register('paymentMethod')}
+                      className="mt-1 mr-3"
+                    />
+                    <div className="flex-grow">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">Cartao de Debito</span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          Aprovacao imediata
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Visa, Mastercard, Elo
                       </p>
                     </div>
                   </label>
@@ -320,7 +322,7 @@ export default function Checkout() {
                 <div className="flex gap-2">
                   <Input
                     {...register('couponCode')}
-                    placeholder="Digite o código do cupom"
+                    placeholder="Digite o codigo do cupom"
                     className="flex-grow"
                   />
                   <Button type="button" variant="outline">
@@ -329,27 +331,25 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Stripe Credit Card Form */}
-              {showStripeForm && selectedPaymentMethod === 'CREDIT_CARD' && (
+              {/* Pagar.me Card Form */}
+              {showCardForm && (selectedPaymentMethod === 'CREDIT_CARD' || selectedPaymentMethod === 'DEBIT_CARD') && (
                 <div className="card p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">Dados do Cartão</h2>
+                    <h2 className="text-xl font-bold">Dados do Cartao</h2>
                     <button
                       type="button"
-                      onClick={() => setShowStripeForm(false)}
+                      onClick={() => setShowCardForm(false)}
                       className="text-sm text-gray-600 hover:text-gray-800"
                     >
-                      ← Voltar
+                      Voltar
                     </button>
                   </div>
-                  <Elements stripe={stripePromise}>
-                    <StripePaymentForm
-                      amount={cart?.total || 0}
-                      onSuccess={handleStripePaymentSuccess}
-                      onError={handleStripePaymentError}
-                      isProcessing={isProcessing}
-                    />
-                  </Elements>
+                  <PagarmePaymentForm
+                    amount={cart?.total || 0}
+                    onSuccess={handleCardPaymentSuccess}
+                    onError={handleCardPaymentError}
+                    isProcessing={isProcessing}
+                  />
                 </div>
               )}
             </div>
@@ -395,7 +395,7 @@ export default function Checkout() {
                     <span>R$ {cart.subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
-                    <span>Taxa de serviço</span>
+                    <span>Taxa de servico</span>
                     <span>R$ 0,00</span>
                   </div>
                 </div>
@@ -409,8 +409,8 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                {/* Submit Button - Hidden when Stripe form is shown */}
-                {!showStripeForm && (
+                {/* Submit Button - Hidden when card form is shown */}
+                {!showCardForm && (
                   <Button
                     type="submit"
                     className="w-full"
@@ -420,14 +420,14 @@ export default function Checkout() {
                   >
                     {isProcessing
                       ? 'Processando...'
-                      : selectedPaymentMethod === 'CREDIT_CARD'
+                      : selectedPaymentMethod === 'CREDIT_CARD' || selectedPaymentMethod === 'DEBIT_CARD'
                       ? 'Continuar para Pagamento'
                       : 'Confirmar Pedido'}
                   </Button>
                 )}
 
                 <p className="text-xs text-gray-500 text-center mt-4">
-                  Ao confirmar, você concorda com nossos Termos de Uso
+                  Ao confirmar, voce concorda com nossos Termos de Uso
                 </p>
               </div>
             </div>

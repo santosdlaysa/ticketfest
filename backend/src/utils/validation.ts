@@ -63,6 +63,8 @@ export const createOrderSchema = z.object({
   ),
   couponCode: z.string().optional(),
   paymentMethod: z.enum(['CREDIT_CARD', 'DEBIT_CARD', 'PIX', 'BOLETO']),
+  cardToken: z.string().optional(),
+  installments: z.number().int().min(1).max(12).optional(),
 });
 
 // Coupon validation schemas

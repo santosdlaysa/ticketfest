@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -8,12 +9,18 @@ import { ordersApi } from '@/services/api';
 import { Button } from '@/components/common/Button';
 import type { Order } from '@/types';
 
+interface PixData {
+  qrCode: string;
+  qrCodeUrl: string;
+  expiresAt: string;
+}
+
 export default function CheckoutSuccess() {
   const router = useRouter();
-  const { orderId, method } = router.query;
+  const { orderId, method, pixCode: pixCodeParam, pixUrl, pixExpires } = router.query;
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [pixCode, setPixCode] = useState('');
+  const [pixData, setPixData] = useState<PixData | null>(null);
 
   useEffect(() => {
     if (orderId && typeof orderId === 'string') {
@@ -21,18 +28,33 @@ export default function CheckoutSuccess() {
     }
   }, [orderId]);
 
+  useEffect(() => {
+    // Get PIX data from URL params if available
+    if (method === 'pix' && pixCodeParam) {
+      setPixData({
+        qrCode: pixCodeParam as string,
+        qrCodeUrl: (pixUrl as string) || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixCodeParam as string)}`,
+        expiresAt: (pixExpires as string) || new Date(Date.now() + 3600000).toISOString(),
+      });
+    }
+  }, [method, pixCodeParam, pixUrl, pixExpires]);
+
   const fetchOrder = async (id: string) => {
     try {
       setIsLoading(true);
       const orderData = await ordersApi.getById(id);
       setOrder(orderData);
 
-      // Generate mock PIX code for demonstration
-      if (method === 'pix') {
-        const mockPixCode = `00020126580014br.gov.bcb.pix0136${id}520400005303986540${orderData.total.toFixed(
+      // If PIX and no URL params, generate fallback QR code
+      if (method === 'pix' && !pixCodeParam) {
+        const fallbackPixCode = `00020126580014br.gov.bcb.pix0136${id}520400005303986540${orderData.total.toFixed(
           2
         )}5802BR5925Lumera TECNOLOGIA6009SAO PAULO62070503***6304`;
-        setPixCode(mockPixCode);
+        setPixData({
+          qrCode: fallbackPixCode,
+          qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fallbackPixCode)}`,
+          expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        });
       }
     } catch (error: any) {
       console.error('Error fetching order:', error);
@@ -43,8 +65,10 @@ export default function CheckoutSuccess() {
   };
 
   const copyPixCode = () => {
-    navigator.clipboard.writeText(pixCode);
-    toast.success('Código PIX copiado!');
+    if (pixData?.qrCode) {
+      navigator.clipboard.writeText(pixData.qrCode);
+      toast.success('Codigo PIX copiado!');
+    }
   };
 
   const downloadBoleto = () => {
@@ -104,7 +128,7 @@ export default function CheckoutSuccess() {
           </div>
 
           {/* Payment Instructions */}
-          {method === 'pix' && (
+          {method === 'pix' && pixData && (
             <div className="card p-6 mb-6">
               <h2 className="text-xl font-bold mb-4 flex items-center">
                 <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -115,20 +139,29 @@ export default function CheckoutSuccess() {
 
               <div className="bg-gray-50 p-4 rounded-lg mb-4">
                 <p className="text-sm text-gray-600 mb-2">
-                  Escaneie o QR Code abaixo com o aplicativo do seu banco ou copie o código PIX:
+                  Escaneie o QR Code abaixo com o aplicativo do seu banco ou copie o codigo PIX:
                 </p>
 
-                {/* Mock QR Code */}
-                <div className="bg-white p-4 rounded-lg inline-block mb-4">
-                  <div className="w-64 h-64 bg-gray-200 flex items-center justify-center">
-                    <svg className="w-32 h-32 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm-2 14h8v-8H3v8zm2-6h4v4H5v-4zm8-10v8h8V3h-8zm6 6h-4V5h4v4zm-6 4h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm2-2h2v2h-2v-2zm0-4h2v2h-2v-2zm-4 0h2v2h-2v-2z" />
-                    </svg>
+                {/* QR Code Image */}
+                <div className="flex justify-center mb-4">
+                  <div className="bg-white p-4 rounded-lg">
+                    <img
+                      src={pixData.qrCodeUrl}
+                      alt="QR Code PIX"
+                      width={200}
+                      height={200}
+                      className="w-48 h-48"
+                    />
                   </div>
                 </div>
 
+                {/* Expiration info */}
+                <p className="text-sm text-center text-gray-600 mb-3">
+                  Valido ate: {format(new Date(pixData.expiresAt), 'dd/MM/yyyy HH:mm')}
+                </p>
+
                 <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-3 mb-3">
-                  <p className="text-xs font-mono break-all text-gray-700">{pixCode}</p>
+                  <p className="text-xs font-mono break-all text-gray-700">{pixData.qrCode}</p>
                 </div>
 
                 <Button onClick={copyPixCode} variant="outline" className="w-full">
@@ -140,7 +173,7 @@ export default function CheckoutSuccess() {
                       d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                     />
                   </svg>
-                  Copiar Código PIX
+                  Copiar Codigo PIX
                 </Button>
               </div>
 
@@ -158,9 +191,9 @@ export default function CheckoutSuccess() {
                     />
                   </svg>
                   <div className="text-sm text-blue-700">
-                    <p className="font-semibold">O pagamento é instantâneo!</p>
+                    <p className="font-semibold">O pagamento e instantaneo!</p>
                     <p>
-                      Assim que confirmarmos o pagamento, você receberá seus ingressos por email.
+                      Assim que confirmarmos o pagamento, voce recebera seus ingressos por email.
                     </p>
                   </div>
                 </div>

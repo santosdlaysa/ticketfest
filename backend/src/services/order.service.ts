@@ -15,6 +15,9 @@ export interface CreateOrderData {
   }>;
   couponCode?: string;
   paymentMethod: 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'BOLETO';
+  // Dados do cartão para pagamento com cartão (Pagar.me)
+  cardToken?: string;
+  installments?: number;
 }
 
 export class OrderService {
@@ -161,32 +164,112 @@ export class OrderService {
       return newOrder;
     });
 
+    // Get user for payment
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new AppError(404, 'User not found');
+    }
+
+    // Prepare customer data for Pagar.me
+    const customerData = {
+      name: user.name,
+      email: user.email,
+      document: user.cpf || '',
+      phone: user.phone || undefined,
+    };
+
+    // Prepare items for payment
+    const paymentItems = tickets.map(({ ticket, quantity }) => ({
+      name: ticket.name,
+      quantity,
+      price: ticket.price,
+      id: ticket.id,
+    }));
+
     // Process payment
     let paymentData: any = {};
 
-    if (data.paymentMethod === 'CREDIT_CARD' || data.paymentMethod === 'DEBIT_CARD') {
-      const paymentIntent = await paymentService.createPaymentIntent(total, 'brl', {
-        orderId: order.id,
-        userId,
-      });
-      paymentData = { paymentIntent };
+    if (data.paymentMethod === 'CREDIT_CARD') {
+      if (!data.cardToken) {
+        throw new AppError(400, 'Card token is required for credit card payment');
+      }
+
+      const cardPayment = await paymentService.createCreditCardPayment(
+        customerData,
+        paymentItems,
+        data.cardToken,
+        data.installments || 1,
+        { orderId: order.id, userId }
+      );
+
+      paymentData = { card: cardPayment };
 
       // Update order with payment ID
       await prisma.order.update({
         where: { id: order.id },
-        data: { paymentId: paymentIntent.id },
+        data: { paymentId: cardPayment.chargeId },
       });
+
+      // If payment was immediately approved, update order status
+      if (cardPayment.status === 'paid') {
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            paymentStatus: 'PAID',
+            status: 'CONFIRMED',
+            paidAt: new Date(),
+          },
+        });
+      }
+    } else if (data.paymentMethod === 'DEBIT_CARD') {
+      if (!data.cardToken) {
+        throw new AppError(400, 'Card token is required for debit card payment');
+      }
+
+      const cardPayment = await paymentService.createDebitCardPayment(
+        customerData,
+        paymentItems,
+        data.cardToken,
+        { orderId: order.id, userId }
+      );
+
+      paymentData = { card: cardPayment };
+
+      // Update order with payment ID
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { paymentId: cardPayment.chargeId },
+      });
+
+      // If payment was immediately approved, update order status
+      if (cardPayment.status === 'paid') {
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            paymentStatus: 'PAID',
+            status: 'CONFIRMED',
+            paidAt: new Date(),
+          },
+        });
+      }
     } else if (data.paymentMethod === 'PIX') {
-      const pixData = await paymentService.generatePixPayment(total, order.id);
-      paymentData = { pix: pixData };
-    } else if (data.paymentMethod === 'BOLETO') {
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      const boletoData = await paymentService.generateBoleto(total, order.id, {
-        name: user!.name,
-        cpf: user!.cpf || '',
-        email: user!.email,
+      const pixPayment = await paymentService.createPixPayment(
+        customerData,
+        paymentItems,
+        3600, // 1 hour expiration
+        { orderId: order.id, userId }
+      );
+
+      paymentData = { pix: pixPayment };
+
+      // Update order with payment ID
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { paymentId: pixPayment.chargeId },
       });
-      paymentData = { boleto: boletoData };
+    } else if (data.paymentMethod === 'BOLETO') {
+      // Boleto não suportado no Pagar.me v5 diretamente, usar PIX como alternativa
+      throw new AppError(400, 'Boleto payment is not available. Please use PIX or card payment.');
     }
 
     // Get full order with relations

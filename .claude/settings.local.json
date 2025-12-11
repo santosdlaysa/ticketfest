@@ -17,7 +17,9 @@
       "Bash(git -C '/c/Users/ldsantos/Documents/Lumera' log --oneline -20)",
       "Bash(npx expo:*)",
       "Bash(git commit:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.pagar.me)"
     ],
     "deny": [],
     "ask": []

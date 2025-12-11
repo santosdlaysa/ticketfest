@@ -1,58 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
-import { statsApi } from '@/services/api';
-import type { OrganizerStats } from '@/types';
+import { adminApi, type DashboardData } from '@/services/api';
 import { Button } from '@/components/common/Button';
-import { StatCard } from '@/components/admin/StatCard';
-import { SalesChart } from '@/components/admin/SalesChart';
-
-// Mock stats for development without backend
-const mockStats: OrganizerStats = {
-  totalEvents: 5,
-  publishedEvents: 3,
-  draftEvents: 2,
-  cancelledEvents: 0,
-  completedEvents: 0,
-  totalTicketsSold: 150,
-  totalRevenue: 15000,
-  todayCheckIns: 0,
-  upcomingEvents: [
-    { id: '1', name: 'Rock in Rio 2025', slug: 'rock-in-rio', date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), location: 'Rio de Janeiro', status: 'PUBLISHED', totalTickets: 100, soldTickets: 75, revenue: 7500, ordersCount: 50 },
-    { id: '2', name: 'Festival de Verão', slug: 'festival-verao', date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), location: 'São Paulo', status: 'PUBLISHED', totalTickets: 200, soldTickets: 50, revenue: 5000, ordersCount: 30 },
-  ],
-  draftEventsList: [
-    { id: '3', name: 'Evento Teste', slug: 'evento-teste', date: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  ],
-  salesByDay: [
-    { date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], amount: 1500, tickets: 15 },
-    { date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], amount: 2000, tickets: 20 },
-    { date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], amount: 1800, tickets: 18 },
-    { date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], amount: 3000, tickets: 30 },
-    { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], amount: 2500, tickets: 25 },
-    { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], amount: 2200, tickets: 22 },
-    { date: new Date().toISOString().split('T')[0], amount: 2000, tickets: 20 },
-  ],
-};
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<OrganizerStats | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
-    loadStats();
+    loadDashboard();
   }, []);
 
-  const loadStats = async () => {
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      loadDashboard();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
+
+  const loadDashboard = async () => {
     try {
-      setLoading(true);
-      const data = await statsApi.getOrganizerStats();
-      setStats(data);
+      const data = await adminApi.getDashboard();
+      setDashboard(data);
     } catch (error: any) {
-      // Use mock data if API fails
-      console.warn('Using mock stats:', error);
-      setStats(mockStats);
+      console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +46,8 @@ export default function AdminDashboard() {
     return new Date(dateStr).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -80,10 +58,21 @@ export default function AdminDashboard() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) return 'Hoje';
-    if (diffDays === 1) return 'Amanhã';
+    if (diffDays === 1) return 'Amanha';
     if (diffDays < 7) return `Em ${diffDays} dias`;
     if (diffDays < 30) return `Em ${Math.ceil(diffDays / 7)} semanas`;
-    return formatDate(dateStr);
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; className: string }> = {
+      PAID: { label: 'Pago', className: 'bg-green-100 text-green-800' },
+      PENDING: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800' },
+      FAILED: { label: 'Falhou', className: 'bg-red-100 text-red-800' },
+      REFUNDED: { label: 'Reembolsado', className: 'bg-gray-100 text-gray-800' },
+    };
+    const info = statusMap[status] || { label: status, className: 'bg-gray-100 text-gray-800' };
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${info.className}`}>{info.label}</span>;
   };
 
   if (loading) {
@@ -105,183 +94,183 @@ export default function AdminDashboard() {
       <Head><title>Dashboard - Lumera</title></Head>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-600 mt-1">
-              Bem-vindo ao painel de controle!
+              Acompanhe suas vendas em tempo real
             </p>
           </div>
-          <div className="mt-4 md:mt-0 flex gap-3">
-            <Link href="/admin/events/create">
-              <Button>
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Novo Evento
-              </Button>
-            </Link>
-            <Link href="/admin/events">
-              <Button variant="outline">Ver Eventos</Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total de Eventos"
-            value={stats?.totalEvents || 0}
-            subtitle={`${stats?.publishedEvents || 0} publicados`}
-            color="primary"
-            icon={
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            }
-          />
-          <StatCard
-            title="Ingressos Vendidos"
-            value={stats?.totalTicketsSold || 0}
-            color="success"
-            icon={
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-              </svg>
-            }
-          />
-          <StatCard
-            title="Receita Total"
-            value={formatCurrency(stats?.totalRevenue || 0)}
-            color="info"
-            icon={
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
-          />
-          <StatCard
-            title="Check-ins Hoje"
-            value={stats?.todayCheckIns || 0}
-            color="warning"
-            icon={
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            }
-          />
-        </div>
-
-        {/* Charts and Lists */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Sales Chart */}
-          <div className="lg:col-span-2">
-            {stats?.salesByDay && stats.salesByDay.length > 0 ? (
-              <SalesChart
-                data={stats.salesByDay}
-                type="area"
-                dataKey="amount"
-                title="Vendas dos Últimos 7 Dias"
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm text-gray-600">
+              <input
+                type="checkbox"
+                checked={autoRefresh}
+                onChange={(e) => setAutoRefresh(e.target.checked)}
+                className="rounded text-primary-600"
               />
-            ) : (
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Vendas dos Últimos 7 Dias
-                </h3>
-                <div className="h-[300px] flex items-center justify-center text-gray-500">
-                  Nenhuma venda registrada no período
-                </div>
+              Atualizar automaticamente
+            </label>
+            <Button variant="outline" onClick={loadDashboard}>
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Atualizar
+            </Button>
+          </div>
+        </div>
+
+        {/* Today's Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Receita Hoje</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(dashboard?.summary.todayRevenue || 0)}
+                </p>
+                {dashboard?.summary.dailyGrowth !== 0 && (
+                  <p className={`text-sm ${dashboard?.summary.dailyGrowth > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {dashboard?.summary.dailyGrowth > 0 ? '+' : ''}
+                    {dashboard?.summary.dailyGrowth.toFixed(1)}% vs ontem
+                  </p>
+                )}
               </div>
-            )}
+              <div className="p-3 bg-green-100 rounded-full">
+                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
           </div>
 
-          {/* Quick Stats */}
           <div className="card p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Resumo de Status
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-gray-600">Publicados</span>
-                </div>
-                <span className="font-semibold">{stats?.publishedEvents || 0}</span>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Pedidos Hoje</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {dashboard?.summary.todayOrders || 0}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {dashboard?.summary.todayTickets || 0} ingressos
+                </p>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                  <span className="text-gray-600">Rascunhos</span>
-                </div>
-                <span className="font-semibold">{stats?.draftEvents || 0}</span>
+              <div className="p-3 bg-blue-100 rounded-full">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  <span className="text-gray-600">Cancelados</span>
-                </div>
-                <span className="font-semibold">{stats?.cancelledEvents || 0}</span>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Receita do Mes</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(dashboard?.summary.monthRevenue || 0)}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {dashboard?.summary.monthOrders || 0} pedidos
+                </p>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-primary-500"></div>
-                  <span className="text-gray-600">Concluídos</span>
-                </div>
-                <span className="font-semibold">{stats?.completedEvents || 0}</span>
+              <div className="p-3 bg-purple-100 rounded-full">
+                <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Pendentes</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {dashboard?.summary.pendingOrders || 0}
+                </p>
+                <p className="text-sm text-gray-500">aguardando pagamento</p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-full">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Events Lists */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Upcoming Events */}
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="card p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white">
+            <p className="text-sm opacity-80">Receita Total (Todos os Tempos)</p>
+            <p className="text-3xl font-bold mt-1">
+              {formatCurrency(dashboard?.summary.totalRevenue || 0)}
+            </p>
+            <p className="text-sm opacity-80 mt-2">
+              {dashboard?.summary.totalOrders || 0} pedidos realizados
+            </p>
+          </div>
+
+          <div className="card p-6 bg-gradient-to-br from-green-500 to-green-700 text-white">
+            <p className="text-sm opacity-80">Esta Semana</p>
+            <p className="text-3xl font-bold mt-1">
+              {formatCurrency(dashboard?.summary.weekRevenue || 0)}
+            </p>
+            <p className="text-sm opacity-80 mt-2">
+              {dashboard?.summary.weekOrders || 0} pedidos
+            </p>
+          </div>
+
+          <div className="card p-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white">
+            <p className="text-sm opacity-80">Este Mes</p>
+            <p className="text-3xl font-bold mt-1">
+              {formatCurrency(dashboard?.summary.monthRevenue || 0)}
+            </p>
+            <p className="text-sm opacity-80 mt-2">
+              {dashboard?.summary.monthOrders || 0} pedidos
+            </p>
+          </div>
+        </div>
+
+        {/* Recent Orders and Upcoming Events */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Recent Orders */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                Próximos Eventos
+                Pedidos Recentes
               </h3>
-              <Link href="/admin/events" className="text-primary-600 text-sm hover:underline">
+              <Link href="/admin/orders" className="text-primary-600 text-sm hover:underline">
                 Ver todos
               </Link>
             </div>
-            {stats?.upcomingEvents && stats.upcomingEvents.length > 0 ? (
-              <div className="space-y-4">
-                {stats.upcomingEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            {dashboard?.recentOrders && dashboard.recentOrders.length > 0 ? (
+              <div className="space-y-3">
+                {dashboard.recentOrders.slice(0, 5).map((order) => (
+                  <Link
+                    key={order.id}
+                    href={`/admin/orders/${order.id}`}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/admin/events/${event.id}/tickets`}
-                        className="font-medium text-gray-900 hover:text-primary-600 truncate block"
-                      >
-                        {event.name}
-                      </Link>
-                      <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
-                        <span>{getRelativeDate(event.date)}</span>
-                        <span>•</span>
-                        <span>{event.location}</span>
-                      </div>
+                      <p className="font-medium text-gray-900 truncate">
+                        {order.customer}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">
+                        {order.event}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {formatDate(order.createdAt)}
+                      </p>
                     </div>
                     <div className="text-right ml-4">
-                      <p className="text-sm font-medium text-gray-900">
-                        {event.soldTickets}/{event.totalTickets}
+                      <p className="font-medium text-gray-900">
+                        {formatCurrency(order.total)}
                       </p>
-                      <p className="text-xs text-gray-500">ingressos</p>
+                      {getPaymentStatusBadge(order.paymentStatus)}
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -292,14 +281,70 @@ export default function AdminDashboard() {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <p className="mt-2">Nenhum evento próximo</p>
+                <p className="mt-2">Nenhum pedido recente</p>
+              </div>
+            )}
+          </div>
+
+          {/* Upcoming Events */}
+          <div className="card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Proximos Eventos
+              </h3>
+              <Link href="/admin/events" className="text-primary-600 text-sm hover:underline">
+                Ver todos
+              </Link>
+            </div>
+            {dashboard?.upcomingEvents && dashboard.upcomingEvents.length > 0 ? (
+              <div className="space-y-3">
+                {dashboard.upcomingEvents.map((event) => (
+                  <Link
+                    key={event.id}
+                    href={`/admin/events/${event.id}/tickets`}
+                    className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium text-gray-900 truncate">
+                        {event.name}
+                      </p>
+                      <span className="text-xs text-gray-500">
+                        {getRelativeDate(event.date)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      </svg>
+                      <span className="truncate">{event.location}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2 mr-3">
+                        <div
+                          className="bg-primary-600 h-2 rounded-full transition-all"
+                          style={{ width: `${Math.min(event.occupancy, 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm text-gray-600">
+                        {event.ticketsSold}/{event.totalCapacity}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="mt-2">Nenhum evento proximo</p>
                 <Link href="/admin/events/create">
                   <Button className="mt-4" size="sm">
                     Criar Evento
@@ -308,150 +353,52 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+        </div>
 
-          {/* Draft Events */}
+        {/* Top Events This Month */}
+        {dashboard?.topEvents && dashboard.topEvents.length > 0 && (
           <div className="card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Eventos em Rascunho
-              </h3>
-              <span className="badge badge-gray">{stats?.draftEvents || 0}</span>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Top Eventos Este Mes
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Evento</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Pedidos</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Receita</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.topEvents.map((event, index) => (
+                    <tr key={event.id} className="border-b border-gray-100 last:border-0">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center justify-center w-8 h-8 bg-primary-100 text-primary-600 rounded-full text-sm font-medium">
+                            {index + 1}
+                          </span>
+                          <Link
+                            href={`/admin/events/${event.id}/tickets`}
+                            className="font-medium text-gray-900 hover:text-primary-600"
+                          >
+                            {event.name}
+                          </Link>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right text-gray-600">
+                        {event.orders}
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium text-gray-900">
+                        {formatCurrency(event.revenue)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            {stats?.draftEventsList && stats.draftEventsList.length > 0 ? (
-              <div className="space-y-4">
-                {stats.draftEventsList.map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/admin/events/${event.id}/edit`}
-                        className="font-medium text-gray-900 hover:text-primary-600 truncate block"
-                      >
-                        {event.name}
-                      </Link>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Atualizado em {formatDate(event.updatedAt)}
-                      </p>
-                    </div>
-                    <Link href={`/admin/events/${event.id}/edit`}>
-                      <Button variant="outline" size="sm">
-                        Editar
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <p className="mt-2">Nenhum rascunho pendente</p>
-              </div>
-            )}
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Ações Rápidas</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link
-              href="/admin/events/create"
-              className="card p-4 text-center hover:shadow-lg transition-shadow"
-            >
-              <svg
-                className="w-8 h-8 mx-auto text-primary-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <p className="mt-2 text-sm font-medium">Criar Evento</p>
-            </Link>
-            <Link
-              href="/admin/events"
-              className="card p-4 text-center hover:shadow-lg transition-shadow"
-            >
-              <svg
-                className="w-8 h-8 mx-auto text-primary-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 10h16M4 14h16M4 18h16"
-                />
-              </svg>
-              <p className="mt-2 text-sm font-medium">Gerenciar Eventos</p>
-            </Link>
-            <Link
-              href="/admin/venues"
-              className="card p-4 text-center hover:shadow-lg transition-shadow"
-            >
-              <svg
-                className="w-8 h-8 mx-auto text-primary-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <p className="mt-2 text-sm font-medium">Locais</p>
-            </Link>
-            <Link
-              href="/admin/checkin"
-              className="card p-4 text-center hover:shadow-lg transition-shadow"
-            >
-              <svg
-                className="w-8 h-8 mx-auto text-primary-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                />
-              </svg>
-              <p className="mt-2 text-sm font-medium">Check-in</p>
-            </Link>
-          </div>
-        </div>
+        )}
       </div>
     </>
   );

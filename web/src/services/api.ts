@@ -8,6 +8,13 @@ import type {
   Order,
   OrganizerStats,
   Venue,
+  OrdersResponse,
+  SalesReport,
+  RevenueReport,
+  FinancialSummary,
+  TransactionsResponse,
+  PayoutsResponse,
+  AdminOrder,
 } from '@/types';
 
 // Auth API
@@ -166,6 +173,8 @@ export const ordersApi = {
     items: Array<{ ticketId: string; quantity: number }>;
     couponCode?: string;
     paymentMethod: 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'BOLETO';
+    cardToken?: string;
+    installments?: number;
   }): Promise<{ order: Order; payment: any }> => {
     const response = await api.post('/orders', data);
     return response.data;
@@ -243,5 +252,207 @@ export const venuesApi = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/venues/${id}`);
+  },
+};
+
+// Dashboard Data Types
+export interface DashboardData {
+  summary: {
+    todayRevenue: number;
+    todayOrders: number;
+    todayTickets: number;
+    pendingOrders: number;
+    weekRevenue: number;
+    weekOrders: number;
+    monthRevenue: number;
+    monthOrders: number;
+    totalRevenue: number;
+    totalOrders: number;
+    dailyGrowth: number;
+  };
+  recentOrders: Array<{
+    id: string;
+    customer: string;
+    email: string;
+    event: string;
+    total: number;
+    status: string;
+    paymentStatus: string;
+    paymentMethod: string;
+    createdAt: string;
+  }>;
+  upcomingEvents: Array<{
+    id: string;
+    name: string;
+    date: string;
+    location: string;
+    ticketsSold: number;
+    totalCapacity: number;
+    occupancy: number;
+  }>;
+  topEvents: Array<{
+    id: string;
+    name: string;
+    revenue: number;
+    orders: number;
+  }>;
+}
+
+// Admin API
+export const adminApi = {
+  // Dashboard
+  getDashboard: async (): Promise<DashboardData> => {
+    const response = await api.get('/admin/dashboard');
+    return response.data;
+  },
+
+  // Orders
+  getOrders: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    paymentStatus?: string;
+    eventId?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }): Promise<OrdersResponse> => {
+    const response = await api.get('/admin/orders', { params });
+    return response.data;
+  },
+
+  getOrderDetails: async (id: string): Promise<AdminOrder> => {
+    const response = await api.get(`/admin/orders/${id}`);
+    return response.data;
+  },
+
+  refundOrder: async (id: string): Promise<{ message: string }> => {
+    const response = await api.post(`/admin/orders/${id}/refund`);
+    return response.data;
+  },
+
+  resendOrderEmail: async (id: string): Promise<{ message: string }> => {
+    const response = await api.post(`/admin/orders/${id}/resend-email`);
+    return response.data;
+  },
+
+  // Reports
+  getSalesReport: async (params?: {
+    startDate?: string;
+    endDate?: string;
+    groupBy?: 'day' | 'week' | 'month';
+    eventId?: string;
+  }): Promise<SalesReport> => {
+    const response = await api.get('/admin/reports/sales', { params });
+    return response.data;
+  },
+
+  getRevenueReport: async (params?: {
+    startDate?: string;
+    endDate?: string;
+    eventId?: string;
+  }): Promise<RevenueReport> => {
+    const response = await api.get('/admin/reports/revenue', { params });
+    return response.data;
+  },
+
+  exportReport: async (params: {
+    type: 'orders' | 'sales' | 'revenue';
+    format?: 'csv' | 'xlsx';
+    startDate?: string;
+    endDate?: string;
+    eventId?: string;
+  }): Promise<Blob> => {
+    const response = await api.get('/admin/reports/export', {
+      params,
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Financial
+  getFinancialSummary: async (params?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<FinancialSummary> => {
+    const response = await api.get('/admin/financial/summary', { params });
+    return response.data;
+  },
+
+  getTransactions: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<TransactionsResponse> => {
+    const response = await api.get('/admin/financial/transactions', { params });
+    return response.data;
+  },
+
+  // Payouts
+  getPayouts: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }): Promise<PayoutsResponse> => {
+    const response = await api.get('/admin/payouts', { params });
+    return response.data;
+  },
+
+  approvePayout: async (id: string): Promise<any> => {
+    const response = await api.post(`/admin/payouts/${id}/approve`);
+    return response.data;
+  },
+
+  rejectPayout: async (id: string, reason: string): Promise<{ message: string }> => {
+    const response = await api.post(`/admin/payouts/${id}/reject`, { reason });
+    return response.data;
+  },
+
+  exportEventAttendees: async (eventId: string): Promise<void> => {
+    const response = await api.get(`/admin/events/${eventId}/attendees/export`, {
+      responseType: 'blob',
+    });
+
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+
+    // Extract filename from Content-Disposition header or use default
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = 'participantes.csv';
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="(.+)"/);
+      if (match) {
+        filename = match[1];
+      }
+    }
+
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+};
+
+// Pagar.me API
+export const pagarmeApi = {
+  createCardToken: async (data: {
+    number: string;
+    holderName: string;
+    expMonth: number;
+    expYear: number;
+    cvv: string;
+  }): Promise<{ token: string; brand: string; lastFourDigits: string }> => {
+    const response = await api.post('/orders/card-token', data);
+    return response.data;
+  },
+
+  getPublicKey: async (): Promise<{ publicKey: string | null }> => {
+    const response = await api.get('/orders/payment-config');
+    return response.data;
   },
 };

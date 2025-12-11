@@ -8,6 +8,8 @@ import checkinRoutes from './checkin.routes.js';
 import splitPaymentRoutes from './split-payment.routes.js';
 import statsRoutes from './stats.routes.js';
 import venueRoutes from './venue.routes.js';
+import adminRoutes from './admin.routes.js';
+import webhookRoutes from './webhook.routes.js';
 
 const router = Router();
 
@@ -30,5 +32,7 @@ router.use('/checkin', checkinRoutes);
 router.use('/split', splitPaymentRoutes);
 router.use('/stats', statsRoutes);
 router.use('/venues', venueRoutes);
+router.use('/admin', adminRoutes);
+router.use('/webhooks', webhookRoutes);
 
 export default router;

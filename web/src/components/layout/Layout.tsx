@@ -1,8 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { useAuthStore } from '@/contexts/AuthContext';
-import { useCartStore } from '@/contexts/CartContext';
 import { Toaster } from 'react-hot-toast';
 
 interface LayoutProps {
@@ -10,14 +8,6 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { checkAuth } = useAuthStore();
-  const { fetchCart } = useCartStore();
-
-  useEffect(() => {
-    checkAuth();
-    fetchCart();
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />

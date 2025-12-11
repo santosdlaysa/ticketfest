@@ -58,10 +58,15 @@ const envSchema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
 
-  // Stripe
+  // Stripe (legacy)
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+
+  // Pagar.me
+  PAGARME_SECRET_KEY: z.string().optional(),
+  PAGARME_PUBLIC_KEY: z.string().optional(),
+  PAGARME_WEBHOOK_SECRET: z.string().optional(),
 
   // AWS S3
   AWS_ACCESS_KEY_ID: z.string().optional(),

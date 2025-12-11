@@ -185,6 +185,143 @@ export interface SalesByDay {
   tickets: number;
 }
 
+// Admin types
+export interface AdminOrder extends Order {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
+}
+
+export interface OrdersResponse {
+  orders: AdminOrder[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface SalesReport {
+  summary: {
+    totalRevenue: number;
+    totalTickets: number;
+    totalOrders: number;
+    averageOrderValue: number;
+  };
+  salesByPeriod: Array<{
+    date: string;
+    revenue: number;
+    tickets: number;
+    orders: number;
+  }>;
+  salesByEvent: Array<{
+    eventId: string;
+    name: string;
+    revenue: number;
+    tickets: number;
+    orders: number;
+  }>;
+  salesByPaymentMethod: Array<{
+    method: string;
+    revenue: number;
+    count: number;
+  }>;
+}
+
+export interface RevenueReport {
+  grossRevenue: number;
+  discounts: number;
+  netRevenue: number;
+  refunds: number;
+  platformFees: number;
+  organizerRevenue: number;
+  finalRevenue: number;
+}
+
+export interface FinancialSummary {
+  revenue: {
+    paid: number;
+    pending: number;
+    refunded: number;
+  };
+  orders: {
+    paid: number;
+    pending: number;
+    refunded: number;
+    failed: number;
+  };
+  splits: {
+    platformRevenue: number;
+    organizerRevenue: number;
+    pendingAmount: number;
+  };
+  organizerBalance?: {
+    availableBalance: number;
+    pendingBalance: number;
+  } | null;
+}
+
+export interface SplitTransaction {
+  id: string;
+  orderId: string;
+  totalAmount: number;
+  platformAmount: number;
+  organizerAmount: number;
+  platformFee: number;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+  createdAt: string;
+  processedAt?: string;
+  order: {
+    id: string;
+    createdAt: string;
+    user: {
+      name: string;
+    };
+    event: {
+      name: string;
+    };
+  };
+}
+
+export interface TransactionsResponse {
+  transactions: SplitTransaction[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface Payout {
+  id: string;
+  amount: number;
+  fee: number;
+  netAmount: number;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  payoutMethod: 'BANK_TRANSFER' | 'PIX';
+  requestedAt: string;
+  processedAt?: string;
+  completedAt?: string;
+  failedAt?: string;
+  failureReason?: string;
+  organizerAccount: {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+    };
+  };
+}
+
+export interface PayoutsResponse {
+  payouts: Payout[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 // Venue types
 export interface Venue {
   id: string;
