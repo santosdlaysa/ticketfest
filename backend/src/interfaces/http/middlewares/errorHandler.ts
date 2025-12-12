@@ -36,24 +36,6 @@ export const errorHandler = (
     });
   }
 
-  // Prisma errors
-  if (err.constructor.name === 'PrismaClientKnownRequestError') {
-    const prismaError = err as any;
-
-    if (prismaError.code === 'P2002') {
-      return res.status(409).json({
-        error: 'Resource already exists',
-        field: prismaError.meta?.target?.[0],
-      });
-    }
-
-    if (prismaError.code === 'P2025') {
-      return res.status(404).json({
-        error: 'Resource not found',
-      });
-    }
-  }
-
   // Log unexpected errors
   console.error('❌ Unexpected error:', err);
 

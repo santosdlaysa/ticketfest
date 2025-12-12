@@ -39,14 +39,12 @@ src/
 │
 ├── infrastructure/            # Camada de Infraestrutura (Detalhes de Implementação)
 │   ├── database/
-│   │   ├── prisma/
-│   │   │   └── PrismaClient.ts
 │   │   └── repositories/      # Implementações dos repositórios
-│   │       ├── PrismaUserRepository.ts
-│   │       ├── PrismaEventRepository.ts
-│   │       ├── PrismaTicketRepository.ts
-│   │       ├── PrismaOrderRepository.ts
-│   │       └── PrismaCouponRepository.ts
+│   │       ├── UserRepository.ts
+│   │       ├── EventRepository.ts
+│   │       ├── TicketRepository.ts
+│   │       ├── OrderRepository.ts
+│   │       └── CouponRepository.ts
 │   ├── services/              # Serviços externos (Email, Payment, QRCode)
 │   │   ├── QRCodeService.ts
 │   │   ├── PaymentService.ts
@@ -116,7 +114,7 @@ src/
 
 **Responsabilidade:** Implementa os detalhes técnicos e integrações externas.
 
-- **Repositories:** Implementações concretas usando Prisma
+- **Repositories:** Implementações concretas usando PostgreSQL (pg)
   - Implementa as interfaces definidas no domínio
   - Lida com persistência de dados
   - Converte entre entidades de domínio e modelos do banco
@@ -166,7 +164,7 @@ Response ← Controller ← Use Case ← Repository ← Database
 
 ### 3. Open/Closed (Aberto/Fechado)
 - Fácil adicionar novos use cases sem modificar existentes
-- Fácil trocar implementações (ex: trocar Prisma por outro ORM)
+- Fácil trocar implementações
 
 ### 4. Interface Segregation (Segregação de Interface)
 - Interfaces pequenas e focadas
@@ -178,7 +176,7 @@ Response ← Controller ← Use Case ← Repository ← Database
 2. **Manutenibilidade:** Código organizado e fácil de entender
 3. **Flexibilidade:** Fácil trocar implementações (banco, APIs externas)
 4. **Escalabilidade:** Fácil adicionar novos recursos
-5. **Independência de Frameworks:** Lógica de negócio não depende de Express, Prisma, etc.
+5. **Independência de Frameworks:** Lógica de negócio não depende de Express, etc.
 
 ## Como Adicionar um Novo Recurso
 
@@ -204,8 +202,8 @@ Response ← Controller ← Use Case ← Repository ← Database
 
 3. **Infrastructure:**
    ```typescript
-   // infrastructure/database/repositories/PrismaReviewRepository.ts
-   export class PrismaReviewRepository implements IReviewRepository { ... }
+   // infrastructure/database/repositories/ReviewRepository.ts
+   export class ReviewRepository implements IReviewRepository { ... }
 
    // infrastructure/factories/ReviewUseCaseFactory.ts
    export class ReviewUseCaseFactory { ... }
@@ -227,7 +225,7 @@ Response ← Controller ← Use Case ← Repository ← Database
 - [x] Entidades de domínio (User, Event, Ticket, Order, Coupon)
 - [x] Interfaces de repositório
 - [x] Use cases de Order
-- [x] Repositórios Prisma (Order, Ticket, Coupon)
+- [x] Repositórios PostgreSQL (Order, Ticket, Coupon)
 - [x] Factory de Order
 - [x] Controller e Routes de Order
 
@@ -256,9 +254,6 @@ npm run build
 
 # Rodar testes
 npm test
-
-# Migrations do Prisma
-npm run prisma:migrate:dev
 ```
 
 ## Referências

@@ -33,17 +33,7 @@ npm install
 
 ### 4. Configurar Banco de Dados
 
-O arquivo `.env` já está criado com configurações padrão. Se sua senha do PostgreSQL for diferente de `postgres`, edite a linha `DATABASE_URL` no arquivo `.env`.
-
-Executar migrations:
-```bash
-npm run prisma:migrate
-```
-
-Popular com dados de teste:
-```bash
-npm run prisma:seed
-```
+O arquivo `.env` já está criado com configurações padrão. Se sua senha do PostgreSQL for diferente de `postgres`, edite as configurações do banco no arquivo `.env`.
 
 ### 5. Iniciar o Servidor
 
@@ -79,13 +69,6 @@ Use para testar a API de forma interativa:
 - [Postman](https://www.postman.com/)
 - [Insomnia](https://insomnia.rest/)
 
-### Prisma Studio
-Interface gráfica para visualizar e editar dados:
-```bash
-npm run prisma:studio
-```
-Abre em: http://localhost:5555
-
 ## 🔑 Usuários de Teste
 
 Após o seed, você tem estes usuários:
@@ -101,12 +84,6 @@ Após o seed, você tem estes usuários:
 ```bash
 # Desenvolvimento
 npm run dev              # Inicia servidor em modo dev
-
-# Database
-npm run prisma:studio    # Abre Prisma Studio
-npm run prisma:migrate   # Executa migrations
-npm run prisma:seed      # Popula banco de dados
-npm run prisma:generate  # Gera Prisma Client
 
 # Build
 npm run build            # Compila TypeScript
@@ -127,14 +104,6 @@ npm run format           # Formata código
 ### Erro: "Port 3000 already in use"
 - Altere a variável PORT no .env para outra porta (ex: 3001)
 
-### Erro no Prisma
-- Execute: `npm run prisma:generate`
-- Se persistir, delete a pasta `node_modules` e reinstale:
-  ```bash
-  rm -rf node_modules
-  npm install
-  ```
-
 ## 📚 Próximos Passos
 
 1. **Explorar a API**: Use o Postman/Insomnia para testar todos os endpoints
@@ -145,7 +114,6 @@ npm run format           # Formata código
 
 ## 💡 Dicas
 
-- Use `Prisma Studio` para visualizar dados facilmente
 - Todos os endpoints estão documentados no `README.md`
 - Os logs aparecem no console durante desenvolvimento
 - Erros de validação retornam detalhes úteis

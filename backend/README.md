@@ -7,8 +7,7 @@ Sistema completo de venda de ingressos - Backend API REST
 - **Node.js** 18+
 - **TypeScript** 5+
 - **Express.js** - Framework web
-- **Prisma ORM** - Database ORM
-- **PostgreSQL** - Banco de dados
+- **PostgreSQL** - Banco de dados (via pg)
 - **JWT** - Autenticação
 - **Stripe** - Gateway de pagamento
 - **QRCode** - Geração de QR Codes
@@ -33,25 +32,10 @@ cp .env.example .env
 ```
 
 Edite o arquivo `.env` com suas configurações:
-- `DATABASE_URL`: String de conexão do PostgreSQL
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`: Configurações do PostgreSQL
 - `JWT_SECRET`: Chave secreta para JWT (mínimo 32 caracteres)
 - `JWT_REFRESH_SECRET`: Chave secreta para refresh tokens
 - Outras configurações conforme necessário
-
-3. **Executar migrations do Prisma**
-```bash
-npm run prisma:migrate
-```
-
-4. **Gerar Prisma Client**
-```bash
-npm run prisma:generate
-```
-
-5. **Popular banco de dados (opcional)**
-```bash
-npm run prisma:seed
-```
 
 ## 🏃 Executar
 
@@ -64,11 +48,6 @@ npm run dev
 ```bash
 npm run build
 npm start
-```
-
-### Prisma Studio (GUI do banco)
-```bash
-npm run prisma:studio
 ```
 
 ## 📚 Documentação da API
@@ -411,7 +390,7 @@ Configure as variáveis de ambiente SMTP para habilitar o envio de emails.
 
 ## 🧪 Usuários de Teste
 
-Após executar `npm run prisma:seed`, você terá:
+Após popular o banco de dados, você terá:
 
 - **Admin**: `admin@Lumera.com` / `password123`
 - **Organizer**: `organizer@Lumera.com` / `password123`
@@ -421,12 +400,14 @@ Após executar `npm run prisma:seed`, você terá:
 
 ```
 backend/
-├── prisma/
-│   ├── schema.prisma      # Schema do banco de dados
-│   └── seed.ts            # Dados de exemplo
 ├── src/
 │   ├── config/           # Configurações
 │   ├── controllers/      # Controllers
+│   ├── domain/           # Entidades e interfaces de domínio
+│   ├── application/      # Use cases e DTOs
+│   ├── infrastructure/   # Implementações de infraestrutura
+│   ├── interfaces/       # Controllers HTTP e middlewares
+│   ├── lib/              # Utilitários de banco de dados
 │   ├── middlewares/      # Middlewares
 │   ├── routes/           # Rotas
 │   ├── services/         # Lógica de negócio
@@ -444,10 +425,6 @@ backend/
 - `npm run dev` - Inicia servidor em modo desenvolvimento
 - `npm run build` - Compila TypeScript para JavaScript
 - `npm start` - Inicia servidor em produção
-- `npm run prisma:generate` - Gera Prisma Client
-- `npm run prisma:migrate` - Executa migrations
-- `npm run prisma:studio` - Abre Prisma Studio
-- `npm run prisma:seed` - Popula banco com dados de teste
 - `npm test` - Executa testes
 - `npm run lint` - Executa linter
 

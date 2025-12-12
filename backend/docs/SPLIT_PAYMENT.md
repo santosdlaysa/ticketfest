@@ -366,11 +366,11 @@ src/
 │           └── GetPayoutsUseCase.ts
 ├── infrastructure/
 │   ├── database/repositories/
-│   │   ├── PrismaOrganizerAccountRepository.ts
-│   │   ├── PrismaSplitRuleRepository.ts
-│   │   ├── PrismaSplitTransactionRepository.ts
-│   │   ├── PrismaPayoutRepository.ts
-│   │   └── PrismaAuditLogRepository.ts
+│   │   ├── OrganizerAccountRepository.ts
+│   │   ├── SplitRuleRepository.ts
+│   │   ├── SplitTransactionRepository.ts
+│   │   ├── PayoutRepository.ts
+│   │   └── AuditLogRepository.ts
 │   └── services/
 │       └── SplitPaymentService.ts
 ├── controllers/
