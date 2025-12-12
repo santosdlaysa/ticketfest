@@ -36,20 +36,29 @@ export const errorHandler = (
     });
   }
 
-  // Prisma errors
-  if (err.constructor.name === 'PrismaClientKnownRequestError') {
-    const prismaError = err as any;
-
-    if (prismaError.code === 'P2002') {
+  // PostgreSQL errors (pg driver)
+  const pgError = err as any;
+  if (pgError.code) {
+    // Unique constraint violation
+    if (pgError.code === '23505') {
+      const match = pgError.detail?.match(/Key \((\w+)\)/);
       return res.status(409).json({
         error: 'Resource already exists',
-        field: prismaError.meta?.target?.[0],
+        field: match ? match[1] : undefined,
       });
     }
 
-    if (prismaError.code === 'P2025') {
-      return res.status(404).json({
-        error: 'Resource not found',
+    // Foreign key violation
+    if (pgError.code === '23503') {
+      return res.status(400).json({
+        error: 'Referenced resource not found',
+      });
+    }
+
+    // Not null violation
+    if (pgError.code === '23502') {
+      return res.status(400).json({
+        error: `Missing required field: ${pgError.column}`,
       });
     }
   }

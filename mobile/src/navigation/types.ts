@@ -25,6 +25,7 @@ export type HomeTabsParamList = {
 
 // Stack de Validacao
 export type ValidationStackParamList = {
+  EventSelection: undefined;
   TicketScanner: undefined;
   ValidationResult: { result: ValidationResult };
   ManualValidation: undefined;

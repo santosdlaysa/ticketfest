@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { prisma } from '../config/database.js';
+import { query, transaction } from '../config/database.js';
 import { pagarmeService } from '../services/pagarme.service.js';
 import { EmailService } from '../services/email.service.js';
 
@@ -56,56 +56,63 @@ async function handleChargePaid(chargeData: any) {
 
   console.log(`Processing paid charge: ${chargeId}`);
 
-  // Find order by paymentId (which stores the chargeId)
-  const order = await prisma.order.findFirst({
-    where: {
-      OR: [
-        { paymentId: chargeId },
-        { paymentId: pagarmeOrderId },
-      ],
-    },
-    include: {
-      user: true,
-      event: true,
-      items: {
-        include: {
-          ticket: true,
-          ticketInstances: true,
-        },
-      },
-    },
-  });
+  // Find order by paymentId
+  const orderResult = await query<any>(
+    `SELECT o.*, u.id as user_id, u.email as user_email, u.name as user_name,
+            e.id as event_id, e.name as event_name, e.date as event_date, e.location as event_location
+     FROM orders o
+     JOIN users u ON o.user_id = u.id
+     JOIN events e ON o.event_id = e.id
+     WHERE o.payment_id = $1 OR o.payment_id = $2`,
+    [chargeId, pagarmeOrderId]
+  );
 
-  if (!order) {
+  if (orderResult.rows.length === 0) {
     console.error(`Order not found for charge ${chargeId}`);
     return;
   }
 
-  if (order.paymentStatus === 'PAID') {
+  const order = orderResult.rows[0];
+
+  if (order.payment_status === 'PAID') {
     console.log(`Order ${order.id} already marked as paid`);
     return;
   }
 
   // Update order status
-  await prisma.order.update({
-    where: { id: order.id },
-    data: {
-      paymentStatus: 'PAID',
-      status: 'CONFIRMED',
-      paidAt: new Date(),
-    },
-  });
+  await query(
+    "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+    [order.id]
+  );
 
   console.log(`Order ${order.id} marked as paid`);
 
+  // Get order items with tickets and instances
+  const itemsResult = await query<any>(
+    `SELECT oi.*, t.name as ticket_name
+     FROM order_items oi
+     JOIN tickets t ON oi.ticket_id = t.id
+     WHERE oi.order_id = $1`,
+    [order.id]
+  );
+
+  const instancesResult = await query<any>(
+    `SELECT ti.*, oi.id as order_item_id, t.name as ticket_name
+     FROM ticket_instances ti
+     JOIN order_items oi ON ti.order_item_id = oi.id
+     JOIN tickets t ON ti.ticket_id = t.id
+     WHERE oi.order_id = $1`,
+    [order.id]
+  );
+
   // Send confirmation email
   try {
-    await emailService.sendOrderConfirmation(order.user.email, {
+    await emailService.sendOrderConfirmation(order.user_email, {
       orderId: order.id,
-      eventName: order.event.name,
-      eventDate: order.event.date.toLocaleDateString('pt-BR'),
-      tickets: order.items.map((item) => ({
-        name: item.ticket.name,
+      eventName: order.event_name,
+      eventDate: new Date(order.event_date).toLocaleDateString('pt-BR'),
+      tickets: itemsResult.rows.map((item: any) => ({
+        name: item.ticket_name,
         quantity: item.quantity,
         price: item.price,
       })),
@@ -113,23 +120,21 @@ async function handleChargePaid(chargeData: any) {
     });
 
     // Send tickets with QR codes
-    const tickets = order.items.flatMap((item) =>
-      item.ticketInstances.map((instance) => ({
-        eventName: order.event.name,
-        eventDate: order.event.date.toLocaleDateString('pt-BR', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }),
-        eventLocation: order.event.location,
-        ticketName: item.ticket.name,
-        qrCode: instance.qrCode,
-        ticketCode: instance.id.slice(0, 8).toUpperCase(),
-      }))
-    );
+    const tickets = instancesResult.rows.map((instance: any) => ({
+      eventName: order.event_name,
+      eventDate: new Date(order.event_date).toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      eventLocation: order.event_location,
+      ticketName: instance.ticket_name,
+      qrCode: instance.qr_code,
+      ticketCode: instance.id.slice(0, 8).toUpperCase(),
+    }));
 
-    await emailService.sendTickets(order.user.email, tickets);
+    await emailService.sendTickets(order.user_email, tickets);
     console.log(`Confirmation email sent for order ${order.id}`);
   } catch (emailError) {
     console.error('Failed to send confirmation email:', emailError);
@@ -142,43 +147,39 @@ async function handleChargePaymentFailed(chargeData: any) {
 
   console.log(`Processing failed charge: ${chargeId}`);
 
-  const order = await prisma.order.findFirst({
-    where: {
-      OR: [
-        { paymentId: chargeId },
-        { paymentId: pagarmeOrderId },
-      ],
-    },
-    include: {
-      items: true,
-    },
-  });
+  const orderResult = await query<any>(
+    'SELECT id FROM orders WHERE payment_id = $1 OR payment_id = $2',
+    [chargeId, pagarmeOrderId]
+  );
 
-  if (!order) {
+  if (orderResult.rows.length === 0) {
     console.error(`Order not found for charge ${chargeId}`);
     return;
   }
 
-  // Update order status and restore ticket counts
-  await prisma.$transaction(async (tx) => {
-    await tx.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: 'FAILED',
-        status: 'CANCELLED',
-      },
-    });
+  const orderId = orderResult.rows[0].id;
 
-    // Restore ticket counts
-    for (const item of order.items) {
-      await tx.ticket.update({
-        where: { id: item.ticketId },
-        data: { sold: { decrement: item.quantity } },
-      });
+  // Update order status and restore ticket counts
+  await transaction(async (client) => {
+    await client.query(
+      "UPDATE orders SET payment_status = 'FAILED', status = 'CANCELLED' WHERE id = $1",
+      [orderId]
+    );
+
+    const itemsResult = await client.query<{ ticket_id: string; quantity: number }>(
+      'SELECT ticket_id, quantity FROM order_items WHERE order_id = $1',
+      [orderId]
+    );
+
+    for (const item of itemsResult.rows) {
+      await client.query(
+        'UPDATE tickets SET sold = sold - $1 WHERE id = $2',
+        [item.quantity, item.ticket_id]
+      );
     }
   });
 
-  console.log(`Order ${order.id} marked as failed`);
+  console.log(`Order ${orderId} marked as failed`);
 }
 
 async function handleChargeRefunded(chargeData: any) {
@@ -187,43 +188,39 @@ async function handleChargeRefunded(chargeData: any) {
 
   console.log(`Processing refunded charge: ${chargeId}`);
 
-  const order = await prisma.order.findFirst({
-    where: {
-      OR: [
-        { paymentId: chargeId },
-        { paymentId: pagarmeOrderId },
-      ],
-    },
-    include: {
-      items: true,
-    },
-  });
+  const orderResult = await query<any>(
+    'SELECT id FROM orders WHERE payment_id = $1 OR payment_id = $2',
+    [chargeId, pagarmeOrderId]
+  );
 
-  if (!order) {
+  if (orderResult.rows.length === 0) {
     console.error(`Order not found for charge ${chargeId}`);
     return;
   }
 
-  // Update order status and restore ticket counts
-  await prisma.$transaction(async (tx) => {
-    await tx.order.update({
-      where: { id: order.id },
-      data: {
-        paymentStatus: 'REFUNDED',
-        status: 'CANCELLED',
-      },
-    });
+  const orderId = orderResult.rows[0].id;
 
-    // Restore ticket counts
-    for (const item of order.items) {
-      await tx.ticket.update({
-        where: { id: item.ticketId },
-        data: { sold: { decrement: item.quantity } },
-      });
+  // Update order status and restore ticket counts
+  await transaction(async (client) => {
+    await client.query(
+      "UPDATE orders SET payment_status = 'REFUNDED', status = 'CANCELLED' WHERE id = $1",
+      [orderId]
+    );
+
+    const itemsResult = await client.query<{ ticket_id: string; quantity: number }>(
+      'SELECT ticket_id, quantity FROM order_items WHERE order_id = $1',
+      [orderId]
+    );
+
+    for (const item of itemsResult.rows) {
+      await client.query(
+        'UPDATE tickets SET sold = sold - $1 WHERE id = $2',
+        [item.quantity, item.ticket_id]
+      );
     }
   });
 
-  console.log(`Order ${order.id} marked as refunded`);
+  console.log(`Order ${orderId} marked as refunded`);
 }
 
 export default router;

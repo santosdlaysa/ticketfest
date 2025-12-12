@@ -1,14 +1,11 @@
-import { prisma } from '../lib/prisma.js';
+import { query } from '../config/database.js';
 import { EmailService } from './email.service.js';
-import { ReminderType } from '@prisma/client';
 
 const emailService = new EmailService();
 
+type ReminderType = 'HOURS_24' | 'HOURS_2';
+
 export class ReminderService {
-  /**
-   * Process event reminders for upcoming events
-   * Should be called periodically (e.g., every 30 minutes via cron job)
-   */
   async processReminders(): Promise<{ sent24h: number; sent2h: number }> {
     const now = new Date();
 
@@ -18,7 +15,7 @@ export class ReminderService {
     // Send 2h reminders
     const sent2h = await this.sendReminders(now, 2, 'HOURS_2');
 
-    console.log(`✅ Reminders processed: ${sent24h} (24h), ${sent2h} (2h)`);
+    console.log(`Reminders processed: ${sent24h} (24h), ${sent2h} (2h)`);
 
     return { sent24h, sent2h };
   }
@@ -29,94 +26,75 @@ export class ReminderService {
     reminderType: ReminderType
   ): Promise<number> {
     // Calculate time window
-    // For 24h reminder: between 24h and 23h before event
-    // For 2h reminder: between 2h and 1h before event
     const minTime = new Date(now.getTime() + hoursBeforeEvent * 60 * 60 * 1000);
     const maxTime = new Date(now.getTime() + (hoursBeforeEvent + 1) * 60 * 60 * 1000);
 
     // Find events in the time window
-    const events = await prisma.event.findMany({
-      where: {
-        date: {
-          gte: minTime,
-          lt: maxTime,
-        },
-        status: 'PUBLISHED',
-      },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        location: true,
-      },
-    });
+    const eventsResult = await query<{
+      id: string;
+      name: string;
+      date: Date;
+      location: string;
+    }>(
+      `SELECT id, name, date, location FROM events
+       WHERE date >= $1 AND date < $2 AND status = 'PUBLISHED'`,
+      [minTime, maxTime]
+    );
 
-    if (events.length === 0) {
+    if (eventsResult.rows.length === 0) {
       return 0;
     }
 
     let sentCount = 0;
 
-    for (const event of events) {
+    for (const event of eventsResult.rows) {
       // Find orders with confirmed payments for this event
-      const orders = await prisma.order.findMany({
-        where: {
-          eventId: event.id,
-          status: 'CONFIRMED',
-          paymentStatus: 'PAID',
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-            },
-          },
-          items: {
-            include: {
-              ticketInstances: true,
-            },
-          },
-        },
-      });
+      const ordersResult = await query<{
+        order_id: string;
+        user_id: string;
+        user_email: string;
+        user_name: string;
+        ticket_count: string;
+      }>(
+        `SELECT o.id as order_id, o.user_id, u.email as user_email, u.name as user_name,
+                COUNT(ti.id) as ticket_count
+         FROM orders o
+         JOIN users u ON o.user_id = u.id
+         JOIN order_items oi ON o.id = oi.order_id
+         JOIN ticket_instances ti ON oi.id = ti.order_item_id
+         WHERE o.event_id = $1 AND o.status = 'CONFIRMED' AND o.payment_status = 'PAID'
+         GROUP BY o.id, o.user_id, u.email, u.name`,
+        [event.id]
+      );
 
-      for (const order of orders) {
+      for (const order of ordersResult.rows) {
         // Check if reminder was already sent
-        const existingReminder = await prisma.eventReminder.findUnique({
-          where: {
-            orderId_reminderType: {
-              orderId: order.id,
-              reminderType,
-            },
-          },
-        });
+        const existingResult = await query<{ id: string }>(
+          `SELECT id FROM event_reminders
+           WHERE order_id = $1 AND reminder_type = $2`,
+          [order.order_id, reminderType]
+        );
 
-        if (existingReminder) {
+        if (existingResult.rows.length > 0) {
           continue; // Already sent
         }
 
-        // Count tickets
-        const ticketCount = order.items.reduce(
-          (sum, item) => sum + (item.ticketInstances?.length || 0),
-          0
-        );
-
+        const ticketCount = parseInt(order.ticket_count, 10);
         if (ticketCount === 0) {
-          continue; // No tickets
+          continue;
         }
 
         try {
           // Send reminder email
-          await emailService.sendEventReminder(order.user.email, {
+          await emailService.sendEventReminder(order.user_email, {
             eventName: event.name,
-            eventDate: new Date(event.date).toLocaleDateString('pt-BR', {
+            eventDate: event.date.toLocaleDateString('pt-BR', {
               weekday: 'long',
               day: '2-digit',
               month: 'long',
               year: 'numeric',
             }),
-            eventTime: new Date(event.date).toLocaleTimeString('pt-BR', {
+            eventTime: event.date.toLocaleTimeString('pt-BR', {
               hour: '2-digit',
               minute: '2-digit',
             }),
@@ -126,22 +104,19 @@ export class ReminderService {
           });
 
           // Record that reminder was sent
-          await prisma.eventReminder.create({
-            data: {
-              orderId: order.id,
-              eventId: event.id,
-              userId: order.user.id,
-              reminderType,
-            },
-          });
+          await query(
+            `INSERT INTO event_reminders (order_id, event_id, user_id, reminder_type)
+             VALUES ($1, $2, $3, $4)`,
+            [order.order_id, event.id, order.user_id, reminderType]
+          );
 
           sentCount++;
           console.log(
-            `📧 Sent ${hoursBeforeEvent}h reminder to ${order.user.email} for "${event.name}"`
+            `Sent ${hoursBeforeEvent}h reminder to ${order.user_email} for "${event.name}"`
           );
         } catch (error) {
           console.error(
-            `❌ Failed to send reminder to ${order.user.email}:`,
+            `Failed to send reminder to ${order.user_email}:`,
             error
           );
         }
@@ -151,29 +126,27 @@ export class ReminderService {
     return sentCount;
   }
 
-  /**
-   * Get reminder statistics for an event
-   */
   async getReminderStats(eventId: string): Promise<{
     total24h: number;
     total2h: number;
   }> {
-    const [total24h, total2h] = await Promise.all([
-      prisma.eventReminder.count({
-        where: {
-          eventId,
-          reminderType: 'HOURS_24',
-        },
-      }),
-      prisma.eventReminder.count({
-        where: {
-          eventId,
-          reminderType: 'HOURS_2',
-        },
-      }),
+    const [result24h, result2h] = await Promise.all([
+      query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM event_reminders
+         WHERE event_id = $1 AND reminder_type = 'HOURS_24'`,
+        [eventId]
+      ),
+      query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM event_reminders
+         WHERE event_id = $1 AND reminder_type = 'HOURS_2'`,
+        [eventId]
+      ),
     ]);
 
-    return { total24h, total2h };
+    return {
+      total24h: parseInt(result24h.rows[0].count, 10),
+      total2h: parseInt(result2h.rows[0].count, 10),
+    };
   }
 }
 

@@ -32,7 +32,9 @@ export default function Login() {
         await login(data.email, data.password);
         toast.success('Login realizado com sucesso!');
       }
-      router.push('/');
+      // Redirect to the page user was trying to access, or home
+      const redirect = router.query.redirect as string;
+      router.push(redirect || '/');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao fazer login');
     } finally {

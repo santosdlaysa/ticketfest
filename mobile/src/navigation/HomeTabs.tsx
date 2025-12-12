@@ -14,6 +14,7 @@ import CheckoutScreen from '../screens/checkout/CheckoutScreen';
 import PaymentScreen from '../screens/checkout/PaymentScreen';
 import MyTicketsScreen from '../screens/tickets/MyTicketsScreen';
 import TicketDetailsScreen from '../screens/tickets/TicketDetailsScreen';
+import EventSelectionScreen from '../screens/validation/EventSelectionScreen';
 import TicketScannerScreen from '../screens/validation/TicketScannerScreen';
 import ValidationResultScreen from '../screens/validation/ValidationResultScreen';
 import ManualValidationScreen from '../screens/validation/ManualValidationScreen';
@@ -51,6 +52,7 @@ const ValidationStack = createNativeStackNavigator();
 function ValidationStackScreen() {
   return (
     <ValidationStack.Navigator screenOptions={{ headerShown: false }}>
+      <ValidationStack.Screen name="EventSelection" component={EventSelectionScreen} />
       <ValidationStack.Screen name="TicketScanner" component={TicketScannerScreen} />
       <ValidationStack.Screen name="ValidationResult" component={ValidationResultScreen} />
       <ValidationStack.Screen name="ManualValidation" component={ManualValidationScreen} />

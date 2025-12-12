@@ -40,9 +40,9 @@ const envSchema = z.object({
   // Database URL (construída automaticamente ou definida diretamente)
   DATABASE_URL: z.string().optional(),
 
-  // Supabase
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: z.string(),
+  // Supabase (opcional - apenas se usar Supabase diretamente)
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: z.string().optional(),
 
   // JWT
   JWT_SECRET: z.string().min(32),

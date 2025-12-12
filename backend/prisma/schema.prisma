@@ -32,6 +32,7 @@ model User {
   venues       Venue[]  @relation("VenueOrganizer")
   refreshTokens RefreshToken[]
   organizerAccount OrganizerAccount?
+  teamMemberships TeamMember[]
 
   @@map("users")
 }
@@ -52,6 +53,13 @@ enum Role {
   USER
   ADMIN
   ORGANIZER
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MANAGER
+  MEMBER
 }
 
 // ============================================
@@ -120,6 +128,11 @@ model Event {
   // Organizer
   organizerId String      @map("organizer_id")
 
+  // Regras e políticas do evento
+  rules           String?   @db.Text  // Regras gerais em markdown/HTML
+  ageRestriction  Int?      @map("age_restriction") // Idade mínima
+  dressCode       String?   @map("dress_code") // Código de vestimenta
+
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
 
@@ -168,6 +181,9 @@ model Ticket {
   // Features (JSON array of strings)
   features    String[] @default([])
 
+  // Sistema de lotes
+  useBatches  Boolean  @default(false) @map("use_batches")
+
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -175,9 +191,39 @@ model Ticket {
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   orderItems  OrderItem[]
   ticketInstances TicketInstance[]
+  batches     TicketBatch[]
 
   @@index([eventId])
   @@map("tickets")
+}
+
+// Lotes de ingressos com preços diferenciados
+model TicketBatch {
+  id          String   @id @default(uuid())
+  ticketId    String   @map("ticket_id")
+
+  name        String   // Ex: "1º Lote", "2º Lote", "Lote Promocional"
+  price       Float
+  quantity    Int
+  sold        Int      @default(0)
+
+  // Período de vendas do lote
+  salesStart  DateTime @map("sales_start")
+  salesEnd    DateTime @map("sales_end")
+
+  // Status
+  isActive    Boolean  @default(true) @map("is_active")
+  order       Int      @default(0) // Ordem de exibição/prioridade
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([salesStart, salesEnd])
+  @@map("ticket_batches")
 }
 
 // ============================================
@@ -363,7 +409,19 @@ model OrganizerAccount {
   verified        Boolean  @default(false)
   verifiedAt      DateTime? @map("verified_at")
 
-  // Dados bancários
+  // ====== DADOS DA EMPRESA ======
+  companyName     String?  @map("company_name")      // Razão social
+  tradingName     String?  @map("trading_name")      // Nome fantasia
+  cnpj            String?  @unique                   // CNPJ da empresa
+  companyEmail    String?  @map("company_email")
+  companyPhone    String?  @map("company_phone")
+  companyAddress  String?  @map("company_address")
+  companyCity     String?  @map("company_city")
+  companyState    String?  @map("company_state")
+  companyZipCode  String?  @map("company_zip_code")
+  taxRegime       String?  @map("tax_regime")        // Simples, Lucro Presumido, etc
+
+  // ====== DADOS BANCÁRIOS ======
   bankCode        String?  @map("bank_code")
   bankName        String?  @map("bank_name")
   accountType     AccountType? @map("account_type")
@@ -376,6 +434,10 @@ model OrganizerAccount {
   holderName      String?  @map("holder_name")
   holderDocument  String?  @map("holder_document") // CPF ou CNPJ
   holderType      HolderType? @map("holder_type")
+
+  // Chave PIX
+  pixKeyType      PixKeyType? @map("pix_key_type")
+  pixKey          String?  @map("pix_key")
 
   // IDs externos de gateways de pagamento
   stripeAccountId     String? @unique @map("stripe_account_id")
@@ -395,8 +457,44 @@ model OrganizerAccount {
   splitRules      SplitRule[]
   payouts         Payout[]
   transactions    SplitTransaction[]
+  teamMembers     TeamMember[]
 
   @@map("organizer_accounts")
+}
+
+// Membros da equipe do organizador
+model TeamMember {
+  id                  String   @id @default(uuid())
+  organizerAccountId  String   @map("organizer_account_id")
+  userId              String   @map("user_id")
+
+  // Papel e permissões
+  role                TeamRole @default(MEMBER)
+  permissions         String[] @default([]) // Array de permissões específicas
+
+  // Status do convite
+  invitedEmail        String?  @map("invited_email") // Email do convite (se ainda não aceito)
+  invitedAt           DateTime @default(now()) @map("invited_at")
+  acceptedAt          DateTime? @map("accepted_at")
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organizerAccount    OrganizerAccount @relation(fields: [organizerAccountId], references: [id], onDelete: Cascade)
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizerAccountId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+enum PixKeyType {
+  CPF
+  CNPJ
+  EMAIL
+  PHONE
+  RANDOM   // Chave aleatória
 }
 
 enum AccountType {
@@ -554,6 +652,48 @@ model EventReminder {
 enum ReminderType {
   HOURS_24   // 24 hours before
   HOURS_2    // 2 hours before
+}
+
+// ============================================
+// PERMISSIONS SYSTEM
+// ============================================
+
+// Definição de permissões disponíveis no sistema
+model Permission {
+  id          String   @id @default(uuid())
+  code        String   @unique // Ex: "events:create", "orders:view", "users:manage"
+  name        String   // Nome legível: "Criar Eventos"
+  description String?  @db.Text
+  module      String   // Módulo: "events", "orders", "users", etc.
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  userPermissions UserPermission[]
+
+  @@index([module])
+  @@map("permissions")
+}
+
+// Vínculo de permissões aos usuários
+model UserPermission {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  permissionId String   @map("permission_id")
+
+  // Quem atribuiu a permissão
+  grantedBy    String?  @map("granted_by")
+  grantedAt    DateTime @default(now()) @map("granted_at")
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+  @@index([permissionId])
+  @@map("user_permissions")
 }
 
 // Log de auditoria para operações financeiras

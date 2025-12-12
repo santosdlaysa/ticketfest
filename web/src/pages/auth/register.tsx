@@ -37,7 +37,26 @@ export default function Register() {
       toast.success('Conta criada com sucesso!');
       router.push('/');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao criar conta');
+      console.error('Register error:', error);
+      console.error('Response:', error.response);
+      console.error('Response data:', error.response?.data);
+      console.error('Status:', error.response?.status);
+
+      const responseData = error.response?.data;
+      if (responseData?.details && Array.isArray(responseData.details)) {
+        // Mostrar erros de validação específicos
+        responseData.details.forEach((detail: { field: string; message: string }) => {
+          toast.error(`${detail.field}: ${detail.message}`);
+        });
+      } else if (responseData?.error) {
+        toast.error(responseData.error);
+      } else if (error.response?.status) {
+        toast.error(`Erro ${error.response.status}: ${error.message}`);
+      } else if (error.code === 'ERR_NETWORK') {
+        toast.error('Erro de conexão. Verifique se o servidor está rodando.');
+      } else {
+        toast.error('Erro ao criar conta');
+      }
     } finally {
       setLoading(false);
     }

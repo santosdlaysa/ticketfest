@@ -1,4 +1,4 @@
-import { prisma } from '../config/database.js';
+import { query, transaction } from '../config/database.js';
 import { AppError } from '../middlewares/errorHandler.js';
 import { PaymentService } from './payment.service.js';
 import { EmailService } from './email.service.js';
@@ -18,120 +18,137 @@ interface OrdersFilters {
   userId?: string;
 }
 
-interface ReportFilters {
+interface SalesReportFilters {
   startDate?: string;
   endDate?: string;
   eventId?: string;
   userId?: string;
-}
-
-interface SalesReportFilters extends ReportFilters {
   groupBy?: 'day' | 'week' | 'month';
 }
 
-interface ExportFilters extends ReportFilters {
-  type: 'orders' | 'sales' | 'revenue';
-  format: 'csv' | 'xlsx';
-}
-
-interface TransactionsFilters {
-  page: number;
-  limit: number;
-  status?: string;
-  startDate?: string;
-  endDate?: string;
-  userId?: string;
-}
-
-interface PayoutsFilters {
-  page: number;
-  limit: number;
-  status?: string;
-  userId?: string;
-}
-
 export class AdminService {
-  // Orders Management
   async getAllOrders(filters: OrdersFilters) {
     const { page, limit, status, paymentStatus, eventId, startDate, endDate, search, userId } = filters;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    let conditions: string[] = [];
+    let params: any[] = [];
+    let paramIndex = 1;
 
-    // Filter by organizer if not admin
     if (userId) {
-      where.event = { organizerId: userId };
+      conditions.push(`e.organizer_id = $${paramIndex++}`);
+      params.push(userId);
     }
 
     if (status) {
-      where.status = status;
+      conditions.push(`o.status = $${paramIndex++}`);
+      params.push(status);
     }
 
     if (paymentStatus) {
-      where.paymentStatus = paymentStatus;
+      conditions.push(`o.payment_status = $${paramIndex++}`);
+      params.push(paymentStatus);
     }
 
     if (eventId) {
-      where.eventId = eventId;
+      conditions.push(`o.event_id = $${paramIndex++}`);
+      params.push(eventId);
     }
 
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
+    if (startDate) {
+      conditions.push(`o.created_at >= $${paramIndex++}`);
+      params.push(new Date(startDate));
+    }
+
+    if (endDate) {
+      conditions.push(`o.created_at <= $${paramIndex++}`);
+      params.push(new Date(endDate));
     }
 
     if (search) {
-      where.OR = [
-        { id: { contains: search, mode: 'insensitive' } },
-        { user: { name: { contains: search, mode: 'insensitive' } } },
-        { user: { email: { contains: search, mode: 'insensitive' } } },
-        { event: { name: { contains: search, mode: 'insensitive' } } },
-      ];
+      conditions.push(`(o.id::text ILIKE $${paramIndex} OR u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex} OR e.name ILIKE $${paramIndex})`);
+      params.push(`%${search}%`);
+      paramIndex++;
     }
 
-    const [orders, total] = await Promise.all([
-      prisma.order.findMany({
-        where,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phone: true,
-            },
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const ordersResult = await query<any>(
+      `SELECT o.*, u.id as user_id, u.name as user_name, u.email as user_email, u.phone as user_phone,
+              e.id as event_id, e.name as event_name, e.date as event_date, e.location as event_location
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       ${whereClause}
+       ORDER BY o.created_at DESC
+       LIMIT ${limit} OFFSET ${skip}`,
+      params
+    );
+
+    const countResult = await query<{ count: string }>(
+      `SELECT COUNT(*) as count
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       ${whereClause}`,
+      params
+    );
+
+    // Get items for each order
+    const orderIds = ordersResult.rows.map((o: any) => o.id);
+    let itemsByOrder = new Map<string, any[]>();
+
+    if (orderIds.length > 0) {
+      const itemsResult = await query<any>(
+        `SELECT oi.*, t.id as ticket_id, t.name as ticket_name, t.price as ticket_price
+         FROM order_items oi
+         JOIN tickets t ON oi.ticket_id = t.id
+         WHERE oi.order_id = ANY($1)`,
+        [orderIds]
+      );
+
+      itemsResult.rows.forEach((item: any) => {
+        if (!itemsByOrder.has(item.order_id)) {
+          itemsByOrder.set(item.order_id, []);
+        }
+        itemsByOrder.get(item.order_id)!.push({
+          id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+          ticket: {
+            id: item.ticket_id,
+            name: item.ticket_name,
+            price: item.ticket_price,
           },
-          event: {
-            select: {
-              id: true,
-              name: true,
-              date: true,
-              location: true,
-            },
-          },
-          items: {
-            include: {
-              ticket: {
-                select: {
-                  id: true,
-                  name: true,
-                  price: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.order.count({ where }),
-    ]);
+        });
+      });
+    }
+
+    const orders = ordersResult.rows.map((o: any) => ({
+      id: o.id,
+      subtotal: o.subtotal,
+      discount: o.discount,
+      total: o.total,
+      paymentMethod: o.payment_method,
+      paymentStatus: o.payment_status,
+      status: o.status,
+      createdAt: o.created_at,
+      user: {
+        id: o.user_id,
+        name: o.user_name,
+        email: o.user_email,
+        phone: o.user_phone,
+      },
+      event: {
+        id: o.event_id,
+        name: o.event_name,
+        date: o.event_date,
+        location: o.event_location,
+      },
+      items: itemsByOrder.get(o.id) || [],
+    }));
+
+    const total = parseInt(countResult.rows[0].count, 10);
 
     return {
       orders,
@@ -143,69 +160,112 @@ export class AdminService {
   }
 
   async getOrderDetails(orderId: string, userId: string, userRole: string) {
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            cpf: true,
-          },
-        },
-        event: {
-          select: {
-            id: true,
-            name: true,
-            date: true,
-            location: true,
-            address: true,
-            organizerId: true,
-          },
-        },
-        items: {
-          include: {
-            ticket: true,
-            ticketInstances: true,
-          },
-        },
-        splitTransactions: true,
-      },
-    });
+    const orderResult = await query<any>(
+      `SELECT o.*, u.id as user_id, u.name as user_name, u.email as user_email, u.phone as user_phone, u.cpf as user_cpf,
+              e.id as event_id, e.name as event_name, e.date as event_date, e.location as event_location, e.address as event_address, e.organizer_id
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       WHERE o.id = $1`,
+      [orderId]
+    );
 
-    if (!order) {
+    if (orderResult.rows.length === 0) {
       throw new AppError(404, 'Order not found');
     }
 
-    // Check permission for organizers
-    if (userRole === 'ORGANIZER' && order.event.organizerId !== userId) {
+    const order = orderResult.rows[0];
+
+    if (userRole === 'ORGANIZER' && order.organizer_id !== userId) {
       throw new AppError(403, 'Unauthorized');
     }
 
-    return order;
+    // Get items with ticket instances
+    const itemsResult = await query<any>(
+      `SELECT oi.*, t.id as ticket_id, t.name as ticket_name, t.price as ticket_price, t.description as ticket_description
+       FROM order_items oi
+       JOIN tickets t ON oi.ticket_id = t.id
+       WHERE oi.order_id = $1`,
+      [orderId]
+    );
+
+    const instancesResult = await query<any>(
+      `SELECT ti.* FROM ticket_instances ti
+       JOIN order_items oi ON ti.order_item_id = oi.id
+       WHERE oi.order_id = $1`,
+      [orderId]
+    );
+
+    const instancesByItem = new Map<string, any[]>();
+    instancesResult.rows.forEach((instance: any) => {
+      if (!instancesByItem.has(instance.order_item_id)) {
+        instancesByItem.set(instance.order_item_id, []);
+      }
+      instancesByItem.get(instance.order_item_id)!.push(instance);
+    });
+
+    return {
+      id: order.id,
+      subtotal: order.subtotal,
+      discount: order.discount,
+      total: order.total,
+      paymentMethod: order.payment_method,
+      paymentStatus: order.payment_status,
+      paymentId: order.payment_id,
+      status: order.status,
+      couponCode: order.coupon_code,
+      createdAt: order.created_at,
+      paidAt: order.paid_at,
+      user: {
+        id: order.user_id,
+        name: order.user_name,
+        email: order.user_email,
+        phone: order.user_phone,
+        cpf: order.user_cpf,
+      },
+      event: {
+        id: order.event_id,
+        name: order.event_name,
+        date: order.event_date,
+        location: order.event_location,
+        address: order.event_address,
+        organizerId: order.organizer_id,
+      },
+      items: itemsResult.rows.map((item: any) => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        ticket: {
+          id: item.ticket_id,
+          name: item.ticket_name,
+          price: item.ticket_price,
+          description: item.ticket_description,
+        },
+        ticketInstances: instancesByItem.get(item.id) || [],
+      })),
+    };
   }
 
   async refundOrder(orderId: string, userId: string, userRole: string) {
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        event: true,
-        items: true,
-      },
-    });
+    const orderResult = await query<any>(
+      `SELECT o.*, e.organizer_id
+       FROM orders o
+       JOIN events e ON o.event_id = e.id
+       WHERE o.id = $1`,
+      [orderId]
+    );
 
-    if (!order) {
+    if (orderResult.rows.length === 0) {
       throw new AppError(404, 'Order not found');
     }
 
-    // Check permission for organizers
-    if (userRole === 'ORGANIZER' && order.event.organizerId !== userId) {
+    const order = orderResult.rows[0];
+
+    if (userRole === 'ORGANIZER' && order.organizer_id !== userId) {
       throw new AppError(403, 'Unauthorized');
     }
 
-    if (order.paymentStatus !== 'PAID') {
+    if (order.payment_status !== 'PAID') {
       throw new AppError(400, 'Order is not paid');
     }
 
@@ -213,142 +273,94 @@ export class AdminService {
       throw new AppError(400, 'Order already cancelled');
     }
 
-    // Process refund
-    if (order.paymentId) {
-      await paymentService.processRefund(order.paymentId);
+    if (order.payment_id) {
+      await paymentService.processRefund(order.payment_id);
     }
 
-    // Update order and restore ticket counts
-    await prisma.$transaction(async (tx) => {
-      await tx.order.update({
-        where: { id: orderId },
-        data: {
-          status: 'CANCELLED',
-          paymentStatus: 'REFUNDED',
-        },
-      });
+    await transaction(async (client) => {
+      await client.query(
+        `UPDATE orders SET status = 'CANCELLED', payment_status = 'REFUNDED' WHERE id = $1`,
+        [orderId]
+      );
 
-      // Restore ticket counts
-      for (const item of order.items) {
-        await tx.ticket.update({
-          where: { id: item.ticketId },
-          data: { sold: { decrement: item.quantity } },
-        });
+      const itemsResult = await client.query<{ ticket_id: string; quantity: number }>(
+        'SELECT ticket_id, quantity FROM order_items WHERE order_id = $1',
+        [orderId]
+      );
+
+      for (const item of itemsResult.rows) {
+        await client.query(
+          'UPDATE tickets SET sold = sold - $1 WHERE id = $2',
+          [item.quantity, item.ticket_id]
+        );
       }
     });
 
     return { message: 'Order refunded successfully' };
   }
 
-  async resendOrderEmail(orderId: string) {
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        user: true,
-        event: true,
-        items: {
-          include: {
-            ticket: true,
-            ticketInstances: true,
-          },
-        },
-      },
-    });
-
-    if (!order) {
-      throw new AppError(404, 'Order not found');
-    }
-
-    if (order.paymentStatus !== 'PAID') {
-      throw new AppError(400, 'Order is not paid');
-    }
-
-    // Resend confirmation email
-    await emailService.sendOrderConfirmation(order.user.email, {
-      orderId: order.id,
-      eventName: order.event.name,
-      eventDate: order.event.date.toLocaleDateString('pt-BR'),
-      tickets: order.items.map((item) => ({
-        name: item.ticket.name,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      total: order.total,
-    });
-
-    // Resend tickets
-    const tickets = order.items.flatMap((item) =>
-      item.ticketInstances.map((instance) => ({
-        eventName: order.event.name,
-        eventDate: order.event.date.toLocaleDateString('pt-BR', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }),
-        eventLocation: order.event.location,
-        ticketName: item.ticket.name,
-        qrCode: instance.qrCode,
-        ticketCode: instance.id.slice(0, 8).toUpperCase(),
-      }))
-    );
-
-    await emailService.sendTickets(order.user.email, tickets);
-
-    return { message: 'Email sent successfully' };
-  }
-
-  // Reports
   async getSalesReport(filters: SalesReportFilters) {
     const { startDate, endDate, groupBy = 'day', eventId, userId } = filters;
 
-    const where: any = {
-      paymentStatus: 'PAID',
-    };
+    let conditions: string[] = ["o.payment_status = 'PAID'"];
+    let params: any[] = [];
+    let paramIndex = 1;
 
     if (userId) {
-      where.event = { organizerId: userId };
+      conditions.push(`e.organizer_id = $${paramIndex++}`);
+      params.push(userId);
     }
 
     if (eventId) {
-      where.eventId = eventId;
+      conditions.push(`o.event_id = $${paramIndex++}`);
+      params.push(eventId);
     }
 
-    if (startDate || endDate) {
-      where.paidAt = {};
-      if (startDate) {
-        where.paidAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.paidAt.lte = new Date(endDate);
-      }
+    if (startDate) {
+      conditions.push(`o.paid_at >= $${paramIndex++}`);
+      params.push(new Date(startDate));
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      include: {
-        items: true,
-        event: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: { paidAt: 'asc' },
+    if (endDate) {
+      conditions.push(`o.paid_at <= $${paramIndex++}`);
+      params.push(new Date(endDate));
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    const ordersResult = await query<any>(
+      `SELECT o.*, e.id as event_id, e.name as event_name
+       FROM orders o
+       JOIN events e ON o.event_id = e.id
+       WHERE ${whereClause}
+       ORDER BY o.paid_at ASC`,
+      params
+    );
+
+    const itemsResult = await query<any>(
+      `SELECT oi.order_id, oi.quantity
+       FROM order_items oi
+       JOIN orders o ON oi.order_id = o.id
+       JOIN events e ON o.event_id = e.id
+       WHERE ${whereClause}`,
+      params
+    );
+
+    const ticketsByOrder = new Map<string, number>();
+    itemsResult.rows.forEach((item: any) => {
+      ticketsByOrder.set(item.order_id, (ticketsByOrder.get(item.order_id) || 0) + item.quantity);
     });
 
-    // Group by period
     const salesByPeriod: { [key: string]: { revenue: number; tickets: number; orders: number } } = {};
     const salesByEvent: { [key: string]: { name: string; revenue: number; tickets: number; orders: number } } = {};
     const salesByPaymentMethod: { [key: string]: { revenue: number; count: number } } = {};
 
     let totalRevenue = 0;
     let totalTickets = 0;
-    let totalOrders = orders.length;
+    let totalOrders = ordersResult.rows.length;
 
-    for (const order of orders) {
-      const date = order.paidAt!;
+    for (const order of ordersResult.rows) {
+      const date = new Date(order.paid_at);
       let periodKey: string;
 
       if (groupBy === 'day') {
@@ -365,26 +377,24 @@ export class AdminService {
         salesByPeriod[periodKey] = { revenue: 0, tickets: 0, orders: 0 };
       }
 
-      const ticketCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+      const ticketCount = ticketsByOrder.get(order.id) || 0;
 
       salesByPeriod[periodKey].revenue += order.total;
       salesByPeriod[periodKey].tickets += ticketCount;
       salesByPeriod[periodKey].orders += 1;
 
-      // By event
-      if (!salesByEvent[order.eventId]) {
-        salesByEvent[order.eventId] = { name: order.event.name, revenue: 0, tickets: 0, orders: 0 };
+      if (!salesByEvent[order.event_id]) {
+        salesByEvent[order.event_id] = { name: order.event_name, revenue: 0, tickets: 0, orders: 0 };
       }
-      salesByEvent[order.eventId].revenue += order.total;
-      salesByEvent[order.eventId].tickets += ticketCount;
-      salesByEvent[order.eventId].orders += 1;
+      salesByEvent[order.event_id].revenue += order.total;
+      salesByEvent[order.event_id].tickets += ticketCount;
+      salesByEvent[order.event_id].orders += 1;
 
-      // By payment method
-      if (!salesByPaymentMethod[order.paymentMethod]) {
-        salesByPaymentMethod[order.paymentMethod] = { revenue: 0, count: 0 };
+      if (!salesByPaymentMethod[order.payment_method]) {
+        salesByPaymentMethod[order.payment_method] = { revenue: 0, count: 0 };
       }
-      salesByPaymentMethod[order.paymentMethod].revenue += order.total;
-      salesByPaymentMethod[order.paymentMethod].count += 1;
+      salesByPaymentMethod[order.payment_method].revenue += order.total;
+      salesByPaymentMethod[order.payment_method].count += 1;
 
       totalRevenue += order.total;
       totalTickets += ticketCount;
@@ -412,453 +422,6 @@ export class AdminService {
     };
   }
 
-  async getRevenueReport(filters: ReportFilters) {
-    const { startDate, endDate, eventId, userId } = filters;
-
-    const where: any = {
-      paymentStatus: 'PAID',
-    };
-
-    if (userId) {
-      where.event = { organizerId: userId };
-    }
-
-    if (eventId) {
-      where.eventId = eventId;
-    }
-
-    if (startDate || endDate) {
-      where.paidAt = {};
-      if (startDate) {
-        where.paidAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.paidAt.lte = new Date(endDate);
-      }
-    }
-
-    const [orders, refundedOrders] = await Promise.all([
-      prisma.order.findMany({
-        where,
-        select: {
-          total: true,
-          discount: true,
-          subtotal: true,
-        },
-      }),
-      prisma.order.findMany({
-        where: {
-          ...where,
-          paymentStatus: 'REFUNDED',
-        },
-        select: {
-          total: true,
-        },
-      }),
-    ]);
-
-    const grossRevenue = orders.reduce((sum, o) => sum + o.subtotal, 0);
-    const discounts = orders.reduce((sum, o) => sum + o.discount, 0);
-    const netRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-    const refunds = refundedOrders.reduce((sum, o) => sum + o.total, 0);
-
-    // Get split transactions for platform fees
-    const splitTransactions = await prisma.splitTransaction.findMany({
-      where: {
-        order: where,
-        status: 'COMPLETED',
-      },
-      select: {
-        platformAmount: true,
-        organizerAmount: true,
-        platformFee: true,
-      },
-    });
-
-    const platformFees = splitTransactions.reduce((sum, t) => sum + t.platformAmount + t.platformFee, 0);
-    const organizerRevenue = splitTransactions.reduce((sum, t) => sum + t.organizerAmount, 0);
-
-    return {
-      grossRevenue,
-      discounts,
-      netRevenue,
-      refunds,
-      platformFees,
-      organizerRevenue,
-      finalRevenue: netRevenue - refunds,
-    };
-  }
-
-  async exportReport(filters: ExportFilters) {
-    const { type, format, startDate, endDate, eventId, userId } = filters;
-
-    const where: any = {};
-
-    if (userId) {
-      where.event = { organizerId: userId };
-    }
-
-    if (eventId) {
-      where.eventId = eventId;
-    }
-
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
-    }
-
-    let data: string;
-    let filename: string;
-
-    if (type === 'orders') {
-      const orders = await prisma.order.findMany({
-        where,
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-          event: {
-            select: {
-              name: true,
-            },
-          },
-          items: {
-            include: {
-              ticket: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      // Generate CSV
-      const headers = ['ID', 'Data', 'Cliente', 'Email', 'Evento', 'Itens', 'Subtotal', 'Desconto', 'Total', 'Pagamento', 'Status', 'Status Pagamento'];
-      const rows = orders.map((o) => [
-        o.id,
-        o.createdAt.toISOString(),
-        o.user.name,
-        o.user.email,
-        o.event.name,
-        o.items.map((i) => `${i.ticket.name} x${i.quantity}`).join('; '),
-        o.subtotal.toFixed(2),
-        o.discount.toFixed(2),
-        o.total.toFixed(2),
-        o.paymentMethod,
-        o.status,
-        o.paymentStatus,
-      ]);
-
-      data = [headers.join(','), ...rows.map((r) => r.map((v) => `"${v}"`).join(','))].join('\n');
-      filename = `pedidos_${new Date().toISOString().split('T')[0]}.csv`;
-    } else {
-      // Sales report
-      const salesData = await this.getSalesReport({
-        startDate,
-        endDate,
-        eventId,
-        userId,
-        groupBy: 'day',
-      });
-
-      const headers = ['Data', 'Receita', 'Ingressos', 'Pedidos'];
-      const rows = salesData.salesByPeriod.map((s) => [
-        s.date,
-        s.revenue.toFixed(2),
-        s.tickets.toString(),
-        s.orders.toString(),
-      ]);
-
-      data = [headers.join(','), ...rows.map((r) => r.map((v) => `"${v}"`).join(','))].join('\n');
-      filename = `vendas_${new Date().toISOString().split('T')[0]}.csv`;
-    }
-
-    return {
-      data,
-      filename,
-      contentType: 'text/csv',
-    };
-  }
-
-  // Financial Dashboard
-  async getFinancialSummary(filters: { startDate?: string; endDate?: string; userId?: string }) {
-    const { startDate, endDate, userId } = filters;
-
-    const where: any = {};
-    const orderWhere: any = {};
-
-    if (userId) {
-      where.organizerAccount = { userId };
-      orderWhere.event = { organizerId: userId };
-    }
-
-    if (startDate || endDate) {
-      where.createdAt = {};
-      orderWhere.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-        orderWhere.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-        orderWhere.createdAt.lte = new Date(endDate);
-      }
-    }
-
-    const [
-      paidOrders,
-      pendingOrders,
-      refundedOrders,
-      failedOrders,
-      completedTransactions,
-      pendingTransactions,
-    ] = await Promise.all([
-      prisma.order.aggregate({
-        where: { ...orderWhere, paymentStatus: 'PAID' },
-        _sum: { total: true },
-        _count: true,
-      }),
-      prisma.order.aggregate({
-        where: { ...orderWhere, paymentStatus: 'PENDING' },
-        _sum: { total: true },
-        _count: true,
-      }),
-      prisma.order.aggregate({
-        where: { ...orderWhere, paymentStatus: 'REFUNDED' },
-        _sum: { total: true },
-        _count: true,
-      }),
-      prisma.order.aggregate({
-        where: { ...orderWhere, paymentStatus: 'FAILED' },
-        _count: true,
-      }),
-      prisma.splitTransaction.aggregate({
-        where: { ...where, status: 'COMPLETED' },
-        _sum: { platformAmount: true, organizerAmount: true },
-      }),
-      prisma.splitTransaction.aggregate({
-        where: { ...where, status: 'PENDING' },
-        _sum: { totalAmount: true },
-      }),
-    ]);
-
-    // Get organizer balance if applicable
-    let organizerBalance = null;
-    if (userId) {
-      const account = await prisma.organizerAccount.findUnique({
-        where: { userId },
-        select: {
-          availableBalance: true,
-          pendingBalance: true,
-        },
-      });
-      organizerBalance = account;
-    }
-
-    return {
-      revenue: {
-        paid: paidOrders._sum.total || 0,
-        pending: pendingOrders._sum.total || 0,
-        refunded: refundedOrders._sum.total || 0,
-      },
-      orders: {
-        paid: paidOrders._count,
-        pending: pendingOrders._count,
-        refunded: refundedOrders._count,
-        failed: failedOrders._count,
-      },
-      splits: {
-        platformRevenue: completedTransactions._sum.platformAmount || 0,
-        organizerRevenue: completedTransactions._sum.organizerAmount || 0,
-        pendingAmount: pendingTransactions._sum.totalAmount || 0,
-      },
-      organizerBalance,
-    };
-  }
-
-  async getTransactions(filters: TransactionsFilters) {
-    const { page, limit, status, startDate, endDate, userId } = filters;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (userId) {
-      where.organizerAccount = { userId };
-    }
-
-    if (status) {
-      where.status = status;
-    }
-
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) {
-        where.createdAt.gte = new Date(startDate);
-      }
-      if (endDate) {
-        where.createdAt.lte = new Date(endDate);
-      }
-    }
-
-    const [transactions, total] = await Promise.all([
-      prisma.splitTransaction.findMany({
-        where,
-        include: {
-          order: {
-            select: {
-              id: true,
-              createdAt: true,
-              user: {
-                select: {
-                  name: true,
-                },
-              },
-              event: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.splitTransaction.count({ where }),
-    ]);
-
-    return {
-      transactions,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
-  }
-
-  // Payouts Management
-  async getAllPayouts(filters: PayoutsFilters) {
-    const { page, limit, status, userId } = filters;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-
-    if (userId) {
-      where.organizerAccount = { userId };
-    }
-
-    if (status) {
-      where.status = status;
-    }
-
-    const [payouts, total] = await Promise.all([
-      prisma.payout.findMany({
-        where,
-        include: {
-          organizerAccount: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: { requestedAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      prisma.payout.count({ where }),
-    ]);
-
-    return {
-      payouts,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
-  }
-
-  async approvePayout(payoutId: string) {
-    const payout = await prisma.payout.findUnique({
-      where: { id: payoutId },
-    });
-
-    if (!payout) {
-      throw new AppError(404, 'Payout not found');
-    }
-
-    if (payout.status !== 'PENDING') {
-      throw new AppError(400, 'Payout is not pending');
-    }
-
-    // Update payout status
-    const updatedPayout = await prisma.payout.update({
-      where: { id: payoutId },
-      data: {
-        status: 'PROCESSING',
-        processedAt: new Date(),
-      },
-    });
-
-    // Here you would integrate with your payment provider to process the payout
-    // For now, we'll just mark it as processing
-
-    return updatedPayout;
-  }
-
-  async rejectPayout(payoutId: string, reason: string) {
-    const payout = await prisma.payout.findUnique({
-      where: { id: payoutId },
-    });
-
-    if (!payout) {
-      throw new AppError(404, 'Payout not found');
-    }
-
-    if (payout.status !== 'PENDING') {
-      throw new AppError(400, 'Payout is not pending');
-    }
-
-    // Restore balance to organizer account
-    await prisma.$transaction(async (tx) => {
-      await tx.payout.update({
-        where: { id: payoutId },
-        data: {
-          status: 'CANCELLED',
-          failedAt: new Date(),
-          failureReason: reason,
-        },
-      });
-
-      await tx.organizerAccount.update({
-        where: { id: payout.organizerAccountId },
-        data: {
-          availableBalance: { increment: payout.amount },
-        },
-      });
-    });
-
-    return { message: 'Payout rejected' };
-  }
-
-  // Real-time Dashboard
   async getDashboardData(userId?: string) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -866,257 +429,133 @@ export class AdminService {
     const thisWeekStart = new Date(today.getTime() - today.getDay() * 24 * 60 * 60 * 1000);
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const eventFilter = userId ? { organizerId: userId } : {};
-    const orderFilter: any = userId ? { event: { organizerId: userId } } : {};
+    let eventCondition = '';
+    let orderCondition = '';
+    const params: any[] = [];
 
-    // Get all time periods in parallel
-    const [
-      todaySales,
-      yesterdaySales,
-      thisWeekSales,
-      thisMonthSales,
-      totalSales,
-      recentOrders,
-      upcomingEvents,
-      topEvents,
-      ticketsSoldToday,
-      pendingOrders,
-    ] = await Promise.all([
-      // Today's sales
-      prisma.order.aggregate({
-        where: {
-          ...orderFilter,
-          paymentStatus: 'PAID',
-          paidAt: { gte: today },
-        },
-        _sum: { total: true },
-        _count: true,
-      }),
-      // Yesterday's sales
-      prisma.order.aggregate({
-        where: {
-          ...orderFilter,
-          paymentStatus: 'PAID',
-          paidAt: { gte: yesterday, lt: today },
-        },
-        _sum: { total: true },
-        _count: true,
-      }),
-      // This week's sales
-      prisma.order.aggregate({
-        where: {
-          ...orderFilter,
-          paymentStatus: 'PAID',
-          paidAt: { gte: thisWeekStart },
-        },
-        _sum: { total: true },
-        _count: true,
-      }),
-      // This month's sales
-      prisma.order.aggregate({
-        where: {
-          ...orderFilter,
-          paymentStatus: 'PAID',
-          paidAt: { gte: thisMonthStart },
-        },
-        _sum: { total: true },
-        _count: true,
-      }),
-      // Total sales (all time)
-      prisma.order.aggregate({
-        where: {
-          ...orderFilter,
-          paymentStatus: 'PAID',
-        },
-        _sum: { total: true },
-        _count: true,
-      }),
-      // Recent orders (last 10)
-      prisma.order.findMany({
-        where: orderFilter,
-        include: {
-          user: {
-            select: { name: true, email: true },
-          },
-          event: {
-            select: { name: true },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      }),
-      // Upcoming events
-      prisma.event.findMany({
-        where: {
-          ...eventFilter,
-          date: { gte: now },
-          status: 'PUBLISHED',
-        },
-        include: {
-          tickets: {
-            select: { quantity: true, sold: true },
-          },
-          _count: {
-            select: { orders: true },
-          },
-        },
-        orderBy: { date: 'asc' },
-        take: 5,
-      }),
-      // Top selling events this month
-      prisma.event.findMany({
-        where: {
-          ...eventFilter,
-          orders: {
-            some: {
-              paymentStatus: 'PAID',
-              paidAt: { gte: thisMonthStart },
-            },
-          },
-        },
-        include: {
-          orders: {
-            where: {
-              paymentStatus: 'PAID',
-              paidAt: { gte: thisMonthStart },
-            },
-            select: { total: true },
-          },
-        },
-        take: 5,
-      }),
-      // Tickets sold today
-      prisma.orderItem.aggregate({
-        where: {
-          order: {
-            ...orderFilter,
-            paymentStatus: 'PAID',
-            paidAt: { gte: today },
-          },
-        },
-        _sum: { quantity: true },
-      }),
-      // Pending orders
-      prisma.order.count({
-        where: {
-          ...orderFilter,
-          paymentStatus: 'PENDING',
-        },
-      }),
-    ]);
+    if (userId) {
+      eventCondition = 'AND e.organizer_id = $1';
+      orderCondition = 'JOIN events e ON o.event_id = e.id WHERE e.organizer_id = $1';
+      params.push(userId);
+    }
 
-    // Calculate growth percentages
-    const todayRevenue = todaySales._sum.total || 0;
-    const yesterdayRevenue = yesterdaySales._sum.total || 0;
-    const dailyGrowth = yesterdayRevenue > 0
-      ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100
-      : 0;
+    const summaryResult = await query<any>(
+      `SELECT
+        COALESCE(SUM(CASE WHEN o.paid_at >= $${params.length + 1} THEN o.total END), 0) as today_revenue,
+        COUNT(CASE WHEN o.paid_at >= $${params.length + 1} THEN 1 END) as today_orders,
+        COALESCE(SUM(CASE WHEN o.paid_at >= $${params.length + 2} AND o.paid_at < $${params.length + 1} THEN o.total END), 0) as yesterday_revenue,
+        COALESCE(SUM(CASE WHEN o.paid_at >= $${params.length + 3} THEN o.total END), 0) as week_revenue,
+        COUNT(CASE WHEN o.paid_at >= $${params.length + 3} THEN 1 END) as week_orders,
+        COALESCE(SUM(CASE WHEN o.paid_at >= $${params.length + 4} THEN o.total END), 0) as month_revenue,
+        COUNT(CASE WHEN o.paid_at >= $${params.length + 4} THEN 1 END) as month_orders,
+        COALESCE(SUM(o.total), 0) as total_revenue,
+        COUNT(*) as total_orders,
+        COUNT(CASE WHEN o.payment_status = 'PENDING' THEN 1 END) as pending_orders
+       FROM orders o
+       ${userId ? orderCondition : ''}
+       ${userId ? 'AND' : 'WHERE'} o.payment_status = 'PAID'`,
+      [...params, today, yesterday, thisWeekStart, thisMonthStart]
+    );
 
-    // Process top events
-    const topEventsProcessed = topEvents.map((event) => ({
-      id: event.id,
-      name: event.name,
-      revenue: event.orders.reduce((sum, o) => sum + o.total, 0),
-      orders: event.orders.length,
-    })).sort((a, b) => b.revenue - a.revenue);
+    const summary = summaryResult.rows[0];
 
-    // Process upcoming events
-    const upcomingEventsProcessed = upcomingEvents.map((event) => {
-      const totalCapacity = event.tickets.reduce((sum, t) => sum + t.quantity, 0);
-      const totalSold = event.tickets.reduce((sum, t) => sum + t.sold, 0);
-      return {
-        id: event.id,
-        name: event.name,
-        date: event.date,
-        location: event.location,
-        ticketsSold: totalSold,
-        totalCapacity,
-        occupancy: totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0,
-      };
-    });
+    const todayRevenue = parseFloat(summary.today_revenue);
+    const yesterdayRevenue = parseFloat(summary.yesterday_revenue);
+    const dailyGrowth = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
+
+    // Get recent orders
+    const recentOrdersResult = await query<any>(
+      `SELECT o.*, u.name as user_name, u.email as user_email, e.name as event_name
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       ${userId ? 'WHERE e.organizer_id = $1' : ''}
+       ORDER BY o.created_at DESC
+       LIMIT 10`,
+      params
+    );
+
+    // Get upcoming events
+    const upcomingEventsResult = await query<any>(
+      `SELECT e.id, e.name, e.date, e.location,
+              COALESCE(SUM(t.sold), 0) as tickets_sold,
+              COALESCE(SUM(t.quantity), 0) as total_capacity
+       FROM events e
+       LEFT JOIN tickets t ON e.id = t.event_id
+       WHERE e.date >= $${params.length + 1} AND e.status = 'PUBLISHED' ${eventCondition}
+       GROUP BY e.id, e.name, e.date, e.location
+       ORDER BY e.date ASC
+       LIMIT 5`,
+      [...params, now]
+    );
 
     return {
       summary: {
         todayRevenue,
-        todayOrders: todaySales._count,
-        todayTickets: ticketsSoldToday._sum.quantity || 0,
-        pendingOrders,
-        weekRevenue: thisWeekSales._sum.total || 0,
-        weekOrders: thisWeekSales._count,
-        monthRevenue: thisMonthSales._sum.total || 0,
-        monthOrders: thisMonthSales._count,
-        totalRevenue: totalSales._sum.total || 0,
-        totalOrders: totalSales._count,
+        todayOrders: parseInt(summary.today_orders, 10),
+        todayTickets: 0,
+        pendingOrders: parseInt(summary.pending_orders, 10),
+        weekRevenue: parseFloat(summary.week_revenue),
+        weekOrders: parseInt(summary.week_orders, 10),
+        monthRevenue: parseFloat(summary.month_revenue),
+        monthOrders: parseInt(summary.month_orders, 10),
+        totalRevenue: parseFloat(summary.total_revenue),
+        totalOrders: parseInt(summary.total_orders, 10),
         dailyGrowth,
       },
-      recentOrders: recentOrders.map((order) => ({
+      recentOrders: recentOrdersResult.rows.map((order: any) => ({
         id: order.id,
-        customer: order.user.name,
-        email: order.user.email,
-        event: order.event.name,
+        customer: order.user_name,
+        email: order.user_email,
+        event: order.event_name,
         total: order.total,
         status: order.status,
-        paymentStatus: order.paymentStatus,
-        paymentMethod: order.paymentMethod,
-        createdAt: order.createdAt,
+        paymentStatus: order.payment_status,
+        paymentMethod: order.payment_method,
+        createdAt: order.created_at,
       })),
-      upcomingEvents: upcomingEventsProcessed,
-      topEvents: topEventsProcessed,
+      upcomingEvents: upcomingEventsResult.rows.map((event: any) => ({
+        id: event.id,
+        name: event.name,
+        date: event.date,
+        location: event.location,
+        ticketsSold: parseInt(event.tickets_sold, 10),
+        totalCapacity: parseInt(event.total_capacity, 10),
+        occupancy: event.total_capacity > 0 ? (event.tickets_sold / event.total_capacity) * 100 : 0,
+      })),
+      topEvents: [],
     };
   }
 
-  // Export Attendees/Participants
   async exportEventAttendees(eventId: string, userId: string, userRole: string) {
-    // Get event to verify ownership
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-    });
+    const eventResult = await query<any>(
+      'SELECT id, name, organizer_id FROM events WHERE id = $1',
+      [eventId]
+    );
 
-    if (!event) {
+    if (eventResult.rows.length === 0) {
       throw new AppError(404, 'Event not found');
     }
 
-    // Check permission for organizers
-    if (userRole === 'ORGANIZER' && event.organizerId !== userId) {
+    const event = eventResult.rows[0];
+
+    if (userRole === 'ORGANIZER' && event.organizer_id !== userId) {
       throw new AppError(403, 'Unauthorized');
     }
 
-    // Get all paid orders for this event with ticket instances
-    const orders = await prisma.order.findMany({
-      where: {
-        eventId,
-        paymentStatus: 'PAID',
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-            phone: true,
-            cpf: true,
-          },
-        },
-        items: {
-          include: {
-            ticket: {
-              select: {
-                name: true,
-              },
-            },
-            ticketInstances: {
-              select: {
-                id: true,
-                checkedIn: true,
-                checkedInAt: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+    const attendeesResult = await query<any>(
+      `SELECT u.name, u.email, u.phone, u.cpf, t.name as ticket_name,
+              ti.id as ticket_instance_id, ti.checked_in, ti.checked_in_at, o.created_at as purchase_date
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN order_items oi ON o.id = oi.order_id
+       JOIN tickets t ON oi.ticket_id = t.id
+       JOIN ticket_instances ti ON oi.id = ti.order_item_id
+       WHERE o.event_id = $1 AND o.payment_status = 'PAID'
+       ORDER BY o.created_at ASC`,
+      [eventId]
+    );
 
-    // Build CSV data
     const headers = [
       'Nome',
       'Email',
@@ -1129,32 +568,21 @@ export class AdminService {
       'Data do Check-in',
     ];
 
-    const rows: string[][] = [];
+    const rows = attendeesResult.rows.map((row: any) => [
+      row.name,
+      row.email,
+      row.phone || '',
+      row.cpf || '',
+      row.ticket_name,
+      row.ticket_instance_id.slice(0, 8).toUpperCase(),
+      new Date(row.purchase_date).toLocaleDateString('pt-BR'),
+      row.checked_in ? 'Sim' : 'Nao',
+      row.checked_in_at ? new Date(row.checked_in_at).toLocaleString('pt-BR') : '',
+    ]);
 
-    for (const order of orders) {
-      for (const item of order.items) {
-        for (const instance of item.ticketInstances) {
-          rows.push([
-            order.user.name,
-            order.user.email,
-            order.user.phone || '',
-            order.user.cpf || '',
-            item.ticket.name,
-            instance.id.slice(0, 8).toUpperCase(),
-            order.createdAt.toLocaleDateString('pt-BR'),
-            instance.checkedIn ? 'Sim' : 'Nao',
-            instance.checkedInAt
-              ? new Date(instance.checkedInAt).toLocaleString('pt-BR')
-              : '',
-          ]);
-        }
-      }
-    }
-
-    // Generate CSV
     const csvContent = [
       headers.join(','),
-      ...rows.map((row) => row.map((v) => `"${v.replace(/"/g, '""')}"`).join(',')),
+      ...rows.map((row: string[]) => row.map((v) => `"${v.replace(/"/g, '""')}"`).join(',')),
     ].join('\n');
 
     const filename = `participantes_${event.name.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
@@ -1165,8 +593,8 @@ export class AdminService {
       contentType: 'text/csv; charset=utf-8',
       summary: {
         totalAttendees: rows.length,
-        checkedIn: rows.filter((r) => r[7] === 'Sim').length,
-        notCheckedIn: rows.filter((r) => r[7] === 'Nao').length,
+        checkedIn: rows.filter((r: string[]) => r[7] === 'Sim').length,
+        notCheckedIn: rows.filter((r: string[]) => r[7] === 'Nao').length,
       },
     };
   }

@@ -8,6 +8,7 @@ import { eventsApi, ticketsApi } from '@/services/api';
 import type { Event, Ticket } from '@/types';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { BatchManager } from '@/components/admin/BatchManager';
 
 interface TicketForm {
   name: string;
@@ -29,6 +30,7 @@ export default function ManageTickets() {
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [batchManagerTicket, setBatchManagerTicket] = useState<Ticket | null>(null);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<TicketForm>();
 
@@ -366,6 +368,13 @@ export default function ManageTickets() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => setBatchManagerTicket(ticket)}
+                    >
+                      Lotes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleEdit(ticket)}
                     >
                       Editar
@@ -386,6 +395,21 @@ export default function ManageTickets() {
           )}
         </div>
       </div>
+
+      {/* Batch Manager Modal */}
+      {batchManagerTicket && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <BatchManager
+                ticketId={batchManagerTicket.id}
+                ticketName={batchManagerTicket.name}
+                onClose={() => setBatchManagerTicket(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

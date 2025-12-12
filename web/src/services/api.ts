@@ -456,3 +456,405 @@ export const pagarmeApi = {
     return response.data;
   },
 };
+
+// ========================================
+// COMPANY API - Company Settings & Team
+// ========================================
+
+export interface CompanySettings {
+  companyName?: string;
+  tradingName?: string;
+  cnpj?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyAddress?: string;
+  companyCity?: string;
+  companyState?: string;
+  companyZipCode?: string;
+  taxRegime?: string;
+}
+
+export interface BankDetails {
+  bankCode?: string;
+  bankName?: string;
+  accountType?: string;
+  accountNumber?: string;
+  accountDigit?: string;
+  agencyNumber?: string;
+  agencyDigit?: string;
+  holderName?: string;
+  holderDocument?: string;
+  holderType?: string;
+}
+
+export interface CompanySettingsResponse {
+  id: string;
+  userId: string;
+  verified: boolean;
+  companySettings: CompanySettings;
+  bankDetails: BankDetails;
+  availableBalance: number;
+  pendingBalance: number;
+}
+
+export interface TeamMember {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  role: 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
+  permissions: string[];
+  invitedEmail?: string;
+  invitedAt: string;
+  acceptedAt?: string;
+  isAccepted: boolean;
+}
+
+export interface TeamMembersResponse {
+  members: TeamMember[];
+  pendingInvites: TeamMember[];
+  totalMembers: number;
+}
+
+export const companyApi = {
+  getSettings: async (): Promise<CompanySettingsResponse> => {
+    const response = await api.get('/company/settings');
+    return response.data;
+  },
+
+  updateSettings: async (data: CompanySettings): Promise<CompanySettingsResponse> => {
+    const response = await api.put('/company/settings', data);
+    return response.data;
+  },
+
+  getTeam: async (): Promise<TeamMembersResponse> => {
+    const response = await api.get('/company/team');
+    return response.data;
+  },
+
+  inviteMember: async (data: {
+    email: string;
+    role?: 'ADMIN' | 'MANAGER' | 'MEMBER';
+    permissions?: string[];
+  }): Promise<TeamMember> => {
+    const response = await api.post('/company/team/invite', data);
+    return response.data;
+  },
+
+  updateMember: async (
+    memberId: string,
+    data: { role?: string; permissions?: string[] }
+  ): Promise<TeamMember> => {
+    const response = await api.put(`/company/team/${memberId}`, data);
+    return response.data;
+  },
+
+  removeMember: async (memberId: string): Promise<void> => {
+    await api.delete(`/company/team/${memberId}`);
+  },
+
+  acceptInvite: async (inviteId: string): Promise<any> => {
+    const response = await api.post('/company/team/accept', { inviteId });
+    return response.data;
+  },
+};
+
+// ========================================
+// TICKET BATCH API - Lotes de Ingressos
+// ========================================
+
+export interface TicketBatch {
+  id: string;
+  ticketId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  sold: number;
+  available: number;
+  salesStart: string;
+  salesEnd: string;
+  isActive: boolean;
+  isOnSale: boolean;
+  isSoldOut: boolean;
+  salesProgress: number;
+  order: number;
+}
+
+export interface TicketBatchesResponse {
+  batches: TicketBatch[];
+  currentBatch: TicketBatch | null;
+  totalQuantity: number;
+  totalSold: number;
+  totalAvailable: number;
+}
+
+export const ticketBatchApi = {
+  getByTicket: async (ticketId: string, activeOnly?: boolean): Promise<TicketBatchesResponse> => {
+    const response = await api.get(`/tickets/${ticketId}/batches`, {
+      params: { activeOnly },
+    });
+    return response.data;
+  },
+
+  create: async (
+    ticketId: string,
+    data: {
+      name: string;
+      price: number;
+      quantity: number;
+      salesStart: string;
+      salesEnd: string;
+      order?: number;
+    }
+  ): Promise<TicketBatch> => {
+    const response = await api.post(`/tickets/${ticketId}/batches`, data);
+    return response.data;
+  },
+
+  update: async (
+    ticketId: string,
+    batchId: string,
+    data: Partial<{
+      name: string;
+      price: number;
+      quantity: number;
+      salesStart: string;
+      salesEnd: string;
+      isActive: boolean;
+      order: number;
+    }>
+  ): Promise<TicketBatch> => {
+    const response = await api.put(`/tickets/${ticketId}/batches/${batchId}`, data);
+    return response.data;
+  },
+
+  delete: async (ticketId: string, batchId: string): Promise<void> => {
+    await api.delete(`/tickets/${ticketId}/batches/${batchId}`);
+  },
+};
+
+// ========================================
+// CHECK-IN WEB API - Dashboard de Check-in
+// ========================================
+
+export interface CheckinStats {
+  total: number;
+  checkedIn: number;
+  pending: number;
+  percentageCheckedIn: number;
+}
+
+export interface TicketForCheckin {
+  id: string;
+  qrCode: string;
+  ticketName: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  orderDate: string;
+  checkedIn: boolean;
+  checkedInAt?: string;
+}
+
+export interface CheckinSearchResult {
+  tickets: TicketForCheckin[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CheckinHistoryItem {
+  id: string;
+  ticketInstanceId: string;
+  ticketName: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  checkedInAt: string;
+}
+
+export interface ValidateTicketResult {
+  valid: boolean;
+  ticket: TicketForCheckin | null;
+  message: string;
+  alreadyCheckedIn: boolean;
+}
+
+export const checkinWebApi = {
+  getStats: async (eventId: string): Promise<CheckinStats> => {
+    const response = await api.get(`/checkin-web/events/${eventId}/stats`);
+    return response.data;
+  },
+
+  searchTickets: async (
+    eventId: string,
+    params?: {
+      query?: string;
+      status?: 'all' | 'checked_in' | 'pending';
+      page?: number;
+      limit?: number;
+    }
+  ): Promise<CheckinSearchResult> => {
+    const response = await api.get(`/checkin-web/events/${eventId}/tickets`, { params });
+    return response.data;
+  },
+
+  getHistory: async (eventId: string, limit?: number): Promise<{ history: CheckinHistoryItem[]; total: number }> => {
+    const response = await api.get(`/checkin-web/events/${eventId}/history`, {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  validateTicket: async (qrCode: string, performCheckin?: boolean): Promise<ValidateTicketResult> => {
+    const response = await api.post('/checkin-web/validate', { qrCode, performCheckin });
+    return response.data;
+  },
+
+  manualCheckin: async (ticketInstanceId: string): Promise<any> => {
+    const response = await api.post(`/checkin-web/tickets/${ticketInstanceId}/checkin`);
+    return response.data;
+  },
+
+  undoCheckin: async (ticketInstanceId: string): Promise<any> => {
+    const response = await api.post(`/checkin-web/tickets/${ticketInstanceId}/undo`);
+    return response.data;
+  },
+};
+
+// ========================================
+// PERMISSIONS API - User Permissions Management
+// ========================================
+
+export interface Permission {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  module: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserWithPermissions {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  createdAt?: string;
+  permissions: Permission[];
+}
+
+export interface UsersWithPermissionsResponse {
+  users: UserWithPermissions[];
+  total: number;
+  totalPages: number;
+  page: number;
+}
+
+export const permissionsApi = {
+  // Get my permissions
+  getMyPermissions: async (): Promise<{ permissions: Permission[]; codes: string[] }> => {
+    const response = await api.get('/permissions/me');
+    return response.data;
+  },
+
+  // Check if I have a specific permission
+  checkPermission: async (code: string): Promise<{ hasPermission: boolean }> => {
+    const response = await api.get(`/permissions/check/${code}`);
+    return response.data;
+  },
+
+  // Check multiple permissions
+  checkPermissions: async (codes: string[]): Promise<Record<string, boolean>> => {
+    const response = await api.post('/permissions/check', { codes });
+    return response.data;
+  },
+
+  // Admin: Get all permissions
+  getAllPermissions: async (params?: { module?: string }): Promise<Permission[]> => {
+    const response = await api.get('/permissions', { params });
+    return response.data;
+  },
+
+  // Admin: Get permissions grouped by module
+  getPermissionsByModule: async (): Promise<Record<string, Permission[]>> => {
+    const response = await api.get('/permissions/grouped');
+    return response.data;
+  },
+
+  // Admin: Get users with permissions
+  getUsersWithPermissions: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+  }): Promise<UsersWithPermissionsResponse> => {
+    const response = await api.get('/permissions/users', { params });
+    return response.data;
+  },
+
+  // Admin: Get specific user's permissions
+  getUserPermissions: async (userId: string): Promise<UserWithPermissions> => {
+    const response = await api.get(`/permissions/users/${userId}`);
+    return response.data;
+  },
+
+  // Admin: Set user's permissions (replace all)
+  setUserPermissions: async (
+    userId: string,
+    permissionIds: string[]
+  ): Promise<{ message: string; user: UserWithPermissions }> => {
+    const response = await api.put(`/permissions/users/${userId}`, { permissionIds });
+    return response.data;
+  },
+
+  // Admin: Grant a single permission
+  grantPermission: async (
+    userId: string,
+    data: { permissionId?: string; permissionCode?: string }
+  ): Promise<{ message: string }> => {
+    const response = await api.post(`/permissions/users/${userId}/grant`, data);
+    return response.data;
+  },
+
+  // Admin: Revoke a single permission
+  revokePermission: async (
+    userId: string,
+    data: { permissionId?: string; permissionCode?: string }
+  ): Promise<{ message: string }> => {
+    const response = await api.post(`/permissions/users/${userId}/revoke`, data);
+    return response.data;
+  },
+
+  // Admin: Create new permission
+  createPermission: async (data: {
+    code: string;
+    name: string;
+    description?: string;
+    module: string;
+  }): Promise<Permission> => {
+    const response = await api.post('/permissions', data);
+    return response.data;
+  },
+
+  // Admin: Update permission
+  updatePermission: async (
+    id: string,
+    data: { name?: string; description?: string; module?: string }
+  ): Promise<Permission> => {
+    const response = await api.put(`/permissions/permission/${id}`, data);
+    return response.data;
+  },
+
+  // Admin: Delete permission
+  deletePermission: async (id: string): Promise<{ message: string }> => {
+    const response = await api.delete(`/permissions/permission/${id}`);
+    return response.data;
+  },
+
+  // Admin: Run migration (create tables and seed data)
+  runMigration: async (): Promise<{ message: string }> => {
+    const response = await api.post('/permissions/migrate');
+    return response.data;
+  },
+};

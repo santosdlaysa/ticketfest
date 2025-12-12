@@ -19,6 +19,9 @@ interface EventForm {
   category: string;
   images: string;
   status: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
+  ageRestriction?: number;
+  dressCode?: string;
+  rules?: string;
 }
 
 const CATEGORIES = [
@@ -77,6 +80,9 @@ export default function EditEvent() {
         category: data.category,
         images: data.images?.join(', ') || '',
         status: data.status,
+        ageRestriction: (data as any).ageRestriction || undefined,
+        dressCode: (data as any).dressCode || '',
+        rules: (data as any).rules || '',
       });
     } catch (error: any) {
       toast.error('Erro ao carregar evento');
@@ -115,6 +121,9 @@ export default function EditEvent() {
         category: data.category,
         images,
         status: data.status,
+        ageRestriction: data.ageRestriction ? Number(data.ageRestriction) : undefined,
+        dressCode: data.dressCode || undefined,
+        rules: data.rules || undefined,
       };
 
       await eventsApi.update(id as string, eventData);
@@ -331,6 +340,59 @@ export default function EditEvent() {
                   placeholder="Ex: Av. Paulista, 1000 - São Paulo, SP"
                   disabled={isCompleted}
                 />
+              </div>
+            </div>
+
+            {/* Regras e Restrições */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Regras e Restrições</h2>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Classificação Etária
+                    </label>
+                    <select
+                      {...register('ageRestriction')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      disabled={isCompleted}
+                    >
+                      <option value="">Livre</option>
+                      <option value="10">10 anos</option>
+                      <option value="12">12 anos</option>
+                      <option value="14">14 anos</option>
+                      <option value="16">16 anos</option>
+                      <option value="18">18 anos</option>
+                      <option value="21">21 anos</option>
+                    </select>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Idade mínima para participar do evento
+                    </p>
+                  </div>
+
+                  <Input
+                    label="Dress Code"
+                    {...register('dressCode')}
+                    placeholder="Ex: Traje Social, Casual, etc."
+                    disabled={isCompleted}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Regras do Evento
+                  </label>
+                  <textarea
+                    {...register('rules')}
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder="Digite as regras do evento (uma por linha)"
+                    disabled={isCompleted}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Informe as regras e orientações para os participantes
+                  </p>
+                </div>
               </div>
             </div>
 
