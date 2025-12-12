@@ -1,6 +1,6 @@
 # TicketFest - Tarefas Pendentes
 
-## Status Geral: 70% Completo
+## Status Geral: 85% Completo
 
 ---
 
@@ -12,10 +12,10 @@
 - [x] **TASK-003**: Pagina "Meus Ingressos" com QR Code visivel
 
 ### Prioridade Media
-- [ ] **TASK-004**: Lista de espera para eventos esgotados
-- [ ] **TASK-005**: Historico de eventos frequentados
-- [ ] **TASK-006**: Favoritos/eventos salvos
-- [ ] **TASK-007**: Busca avancada com filtros (data, preco, localizacao)
+- [x] **TASK-004**: Lista de espera para eventos esgotados
+- [x] **TASK-005**: Historico de eventos frequentados
+- [x] **TASK-006**: Favoritos/eventos salvos
+- [x] **TASK-007**: Busca avancada com filtros (data, preco, localizacao)
 
 ---
 
@@ -26,13 +26,13 @@
 - [x] **TASK-011**: Botao "Reenviar Email" na pagina de detalhes do pedido
 - [x] **TASK-012**: Exportar lista de participantes (CSV/Excel)
 - [x] **TASK-013**: Dashboard de vendas em tempo real
-- [ ] **TASK-014**: Relatorios financeiros detalhados
+- [x] **TASK-014**: Relatorios financeiros detalhados
 
 ### Prioridade Media
-- [ ] **TASK-015**: Duplicar evento (criar a partir de template)
+- [x] **TASK-015**: Duplicar evento (criar a partir de template)
 - [ ] **TASK-016**: Envio de email marketing para compradores do evento
 - [ ] **TASK-017**: Gestao de equipe (varios usuarios por organizador)
-- [ ] **TASK-018**: Cancelamento de evento com reembolso automatico
+- [x] **TASK-018**: Cancelamento de evento com reembolso automatico
 
 ### Prioridade Baixa
 - [ ] **TASK-019**: Analytics demografico dos compradores
@@ -43,9 +43,9 @@
 ## ADMIN (Plataforma)
 
 ### Prioridade Alta
-- [ ] **TASK-030**: Moderacao de eventos (aprovar antes de publicar)
-- [ ] **TASK-031**: Gestao de usuarios (listar, suspender, banir)
-- [ ] **TASK-032**: Painel de monitoramento da plataforma
+- [x] **TASK-030**: Moderacao de eventos (aprovar antes de publicar)
+- [x] **TASK-031**: Gestao de usuarios (listar, suspender, banir)
+- [x] **TASK-032**: Painel de monitoramento da plataforma
 - [ ] **TASK-033**: Reconciliacao de pagamentos com gateway
 
 ### Prioridade Media
@@ -102,6 +102,16 @@
 | TASK-003 | Pagina Meus Ingressos com QR Code | 2024-12-11 | Concluido |
 | TASK-002 | Email lembrete 24h e 2h antes do evento | 2024-12-11 | Concluido |
 | TASK-013 | Dashboard de vendas em tempo real | 2024-12-11 | Concluido |
+| TASK-004 | Lista de espera para eventos esgotados | 2024-12-12 | Concluido |
+| TASK-005 | Historico de eventos frequentados | 2024-12-12 | Concluido |
+| TASK-006 | Favoritos/eventos salvos | 2024-12-12 | Concluido |
+| TASK-007 | Busca avancada com filtros | 2024-12-12 | Concluido |
+| TASK-014 | Relatorios financeiros detalhados | 2024-12-12 | Concluido |
+| TASK-015 | Duplicar evento (criar a partir de template) | 2024-12-12 | Concluido |
+| TASK-018 | Cancelamento de evento com reembolso automatico | 2024-12-12 | Concluido |
+| TASK-030 | Moderacao de eventos (aprovar antes de publicar) | 2024-12-12 | Concluido |
+| TASK-031 | Gestao de usuarios (listar, suspender, banir) | 2024-12-12 | Concluido |
+| TASK-032 | Painel de monitoramento da plataforma | 2024-12-12 | Concluido |
 
 ---
 

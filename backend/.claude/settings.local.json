@@ -13,7 +13,9 @@
       "Bash(npx jest:*)",
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout 10 npm run dev)"
     ]
   }
 }
