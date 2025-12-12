@@ -42,9 +42,9 @@ Lumera/
 ## 🚀 Status do Projeto
 
 - ✅ **Backend API**: 100% Completo e Funcional
-- ✅ **Frontend Web**: 90% Completo (Checkout Implementado!)
-- ⚠️ **Configuração**: Requer PostgreSQL e Stripe
-- ⏳ **Mobile App**: Planejado (Fase 3)
+- ✅ **Frontend Web**: 95% Completo (Admin + Usuario completo!)
+- ✅ **Mobile App**: 95% Completo (React Native + Scanner QR)
+- ⚠️ **Configuracao**: Requer PostgreSQL e Pagar.me
 
 ## 🎯 Funcionalidades Implementadas (Backend)
 
@@ -237,37 +237,52 @@ MIT
 
 ## 🎯 Roadmap
 
-### Fase 1 (Concluída) ✅
+### Fase 1 (Concluida) ✅
 - [x] Backend API completo
-- [x] Autenticação e autorização
+- [x] Autenticacao e autorizacao
 - [x] CRUD de eventos e ingressos
 - [x] Sistema de carrinho
-- [x] Pagamentos (Stripe + mocks)
+- [x] Pagamentos (Pagar.me - PIX e Cartao)
 - [x] QR codes e check-in
 - [x] Emails transacionais
 
-### Fase 2 (90% Concluída) 🟢
+### Fase 2 (Concluida) ✅
 - [x] Frontend Web (Next.js)
-- [x] Páginas de eventos
+- [x] Paginas de eventos
 - [x] Carrinho funcional
-- [x] Autenticação e registro
+- [x] Autenticacao e registro
 - [x] Layout responsivo
-- [x] Checkout completo com Stripe ✨ **NOVO!**
-- [x] Suporte PIX e Boleto ✨ **NOVO!**
-- [ ] Página "Meus Ingressos"
-- [ ] Página "Meus Pedidos"
+- [x] Checkout completo com Pagar.me
+- [x] Suporte PIX e Cartao
+- [x] Pagina "Meus Ingressos" com QR Code
+- [x] Pagina "Meus Pedidos"
+- [x] Email de lembrete (24h e 2h antes)
 
-### Fase 3
-- [ ] Aplicativo Mobile
-- [ ] Scanner de QR codes
-- [ ] Notificações push
-- [ ] Wallet integration
+### Fase 3 (Concluida) ✅
+- [x] Aplicativo Mobile (React Native)
+- [x] Scanner de QR codes
+- [x] Dashboard de vendas em tempo real
+- [x] Exportar lista de participantes (CSV)
 
-### Fase 4
-- [ ] Analytics e relatórios
-- [ ] Sistema de avaliações
-- [ ] Transferência de ingressos
-- [ ] Upgrades de ingressos
+### Fase 4 (85% Concluida) 🟢 **NOVA!**
+- [x] Lista de espera para eventos esgotados
+- [x] Historico de eventos frequentados
+- [x] Favoritos/eventos salvos
+- [x] Busca avancada com filtros
+- [x] Relatorios financeiros detalhados
+- [x] Duplicar evento (template)
+- [x] Cancelamento de evento com reembolso
+- [x] Moderacao de eventos
+- [x] Gestao de usuarios (admin)
+- [x] Painel de monitoramento da plataforma
+- [ ] Email marketing
+- [ ] Gestao de equipe
+
+### Fase 5 (Planejada)
+- [ ] Testes automatizados
+- [ ] Cache com Redis
+- [ ] 2FA/MFA
+- [ ] Analytics demografico
 
 ## 💬 Suporte
 
@@ -307,6 +322,6 @@ npm run dev
 
 ---
 
-**Status**: 🟢 Backend 100% | 🟢 Frontend 90% (Checkout ✅) | 🟡 Mobile Planejado
+**Status**: 🟢 Backend 100% | 🟢 Frontend 95% | 🟢 Mobile 95%
 
-**Versão Atual:** 1.1.0 | **Data:** 20 de Outubro de 2025
+**Versao Atual:** 1.2.0 | **Data:** 12 de Dezembro de 2025

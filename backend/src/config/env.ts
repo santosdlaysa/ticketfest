@@ -44,6 +44,18 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: z.string().optional(),
 
+  // Database Failover - Supabase como backup
+  SUPABASE_DB_HOST: z.string().optional(),
+  SUPABASE_DB_PORT: z.string().default('5432'),
+  SUPABASE_DB_USER: z.string().optional(),
+  SUPABASE_DB_PASSWORD: z.string().optional(),
+  SUPABASE_DB_NAME: z.string().default('postgres'),
+  SUPABASE_DATABASE_URL: z.string().optional(),
+
+  // Failover config
+  DB_FAILOVER_ENABLED: z.string().default('true'),
+  DB_HEALTH_CHECK_INTERVAL: z.string().default('30000'), // 30 seconds
+
   // JWT
   JWT_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
@@ -108,6 +120,27 @@ export const env = parseEnv();
 
 // Configuração do banco de dados exportada separadamente para fácil acesso
 export const dbConfig = {
+  primary: {
+    host: env.DB_HOST,
+    port: parseInt(env.DB_PORT, 10),
+    user: env.DB_USER,
+    password: env.DB_PASSWORD,
+    database: env.DB_NAME,
+    url: env.DATABASE_URL,
+  },
+  secondary: {
+    host: env.SUPABASE_DB_HOST,
+    port: parseInt(env.SUPABASE_DB_PORT, 10),
+    user: env.SUPABASE_DB_USER,
+    password: env.SUPABASE_DB_PASSWORD,
+    database: env.SUPABASE_DB_NAME,
+    url: env.SUPABASE_DATABASE_URL,
+  },
+  failover: {
+    enabled: env.DB_FAILOVER_ENABLED === 'true',
+    healthCheckInterval: parseInt(env.DB_HEALTH_CHECK_INTERVAL, 10),
+  },
+  // Backward compatibility
   host: env.DB_HOST,
   port: parseInt(env.DB_PORT, 10),
   user: env.DB_USER,

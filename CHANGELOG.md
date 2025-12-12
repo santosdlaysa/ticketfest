@@ -167,39 +167,116 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 ---
 
-## [Próximas Versões] - Planejado
+## [1.2.0] - 2025-12-12
 
-### [1.2.0] - Planejado
+### Novas Funcionalidades - Cliente
 
-**A Implementar**
-- [ ] Visualização de ingressos (QR codes)
-- [ ] Área do usuário (meus ingressos)
-- [ ] Página de pedidos
+**Adicionado**
+- ✅ **Lista de espera para eventos esgotados** (TASK-004)
+  - Backend: `waitlist.service.ts`, `waitlist.controller.ts`
+  - Rotas: POST/GET/DELETE `/api/waitlist`
+  - Frontend: Botao "Entrar na lista de espera" na pagina do evento
+  - Notificacao automatica quando ingresso disponivel
+
+- ✅ **Historico de eventos frequentados** (TASK-005)
+  - Backend: `getUserEventHistory()` em `order.service.ts`
+  - Rota: GET `/api/orders/event-history`
+  - Frontend: `/user/history.tsx` com filtros e paginacao
+  - Link "Historico" no header do usuario
+
+- ✅ **Favoritos/eventos salvos** (TASK-006)
+  - Backend: `favorites.service.ts`, `favorites.controller.ts`
+  - Rotas: POST/GET/DELETE `/api/favorites`
+  - Frontend: `/user/favorites.tsx`
+  - Botao de coracao nos cards de eventos
+
+- ✅ **Busca avancada com filtros** (TASK-007)
+  - Filtros por data, preco, localizacao, categoria
+  - Frontend: Componente de filtros avancados na listagem
+  - Backend: Query params estendidos no endpoint de eventos
+
+### Novas Funcionalidades - Organizador
+
+**Adicionado**
+- ✅ **Relatorios financeiros detalhados** (TASK-014)
+  - Backend: `financial.service.ts` com 6 metodos
+  - Rotas: `/admin/financials/*`
+  - Frontend: Pagina com 5 abas (visao geral, transacoes, reembolsos, projecoes, comissoes)
+  - Graficos e exportacao CSV
+
+- ✅ **Duplicar evento** (TASK-015)
+  - Backend: `duplicateEvent()` em `event.service.ts`
+  - Rota: POST `/api/events/:id/duplicate`
+  - Frontend: Botao "Duplicar" na lista de eventos
+  - Modal de configuracao com opcoes de copia
+
+- ✅ **Cancelamento de evento com reembolso automatico** (TASK-018)
+  - Backend: `cancelEventWithRefunds()` em `event.service.ts`
+  - Rota: POST `/api/events/:id/cancel`
+  - Email de notificacao de cancelamento
+  - Tabela `refund_logs` para auditoria
+  - Frontend: Modal de confirmacao com resumo de reembolsos
+
+### Novas Funcionalidades - Admin
+
+**Adicionado**
+- ✅ **Moderacao de eventos** (TASK-030)
+  - Status `PENDING_APPROVAL` para novos eventos
+  - Backend: `moderateEvent()`, `getPendingEvents()`
+  - Rotas: GET `/admin/events/pending`, POST `/admin/events/:id/moderate`
+  - Frontend: Painel de moderacao com aprovacao/rejeicao
+
+- ✅ **Gestao de usuarios** (TASK-031)
+  - Backend: `user.service.ts` com metodos de listagem/suspensao/ban
+  - Rotas: `/admin/users/*`
+  - Frontend: `/admin/users/index.tsx` com tabela paginada
+  - Acoes: visualizar, suspender, banir, reativar
+  - Logs de auditoria para acoes administrativas
+
+- ✅ **Painel de monitoramento da plataforma** (TASK-032)
+  - Backend: `getMonitoringStats()`, `getMonitoringAlerts()`, `getMonitoringActivity()`
+  - Rotas: `/admin/monitoring/*`
+  - Frontend: Dashboard com metricas em tempo real
+  - Alertas do sistema e feed de atividades
+  - Auto-refresh a cada 30 segundos
+
+### Migrations
+
+**Banco de Dados**
+- Nova tabela `event_waitlist` para lista de espera
+- Nova tabela `user_favorites` para favoritos
+- Nova tabela `refund_logs` para auditoria de reembolsos
+- Nova coluna `status` com valor `PENDING_APPROVAL` em events
+- Nova tabela `admin_audit_logs` para logs administrativos
+
+---
+
+## [Proximas Versoes] - Planejado
 
 ### [1.3.0] - Planejado
 
 **A Implementar**
-- [ ] Painel administrativo
-- [ ] Dashboard de vendas
-- [ ] Gerenciamento de eventos (frontend)
-- [ ] Upload de imagens (AWS S3)
-- [ ] Relatórios
+- [ ] Email marketing para compradores (TASK-016)
+- [ ] Gestao de equipe (TASK-017)
+- [ ] Reconciliacao de pagamentos (TASK-033)
+- [ ] Sistema de suporte/tickets (TASK-034)
 
 ### [1.4.0] - Planejado
 
 **A Implementar**
-- [ ] Sistema de avaliações
-- [ ] Transferência de ingressos
-- [ ] Notificações push
-- [ ] PWA (Service Workers)
+- [ ] Analytics demografico (TASK-019)
+- [ ] Previsao de receita (TASK-020)
+- [ ] Configuracao de taxas por organizador (TASK-035)
+- [ ] Codigos promocionais da plataforma (TASK-036)
 
 ### [2.0.0] - Planejado
 
 **A Implementar**
-- [ ] Mobile App (React Native/Flutter)
-- [ ] Scanner QR code nativo
-- [ ] Wallet integration
-- [ ] Modo offline
+- [ ] Testes automatizados (TASK-040)
+- [ ] Monitoramento de erros - Sentry (TASK-041)
+- [ ] Cache com Redis (TASK-042)
+- [ ] Rate limiting avancado (TASK-043)
+- [ ] 2FA/MFA (TASK-044)
 
 ---
 
@@ -219,6 +296,6 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
-**Versão Atual:** 1.1.0
-**Status:** MVP 90% Completo - Checkout Implementado
-**Data:** 20 de Outubro de 2025
+**Versao Atual:** 1.2.0
+**Status:** MVP 85% Completo - 10 novas funcionalidades
+**Data:** 12 de Dezembro de 2025

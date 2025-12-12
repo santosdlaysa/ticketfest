@@ -9,15 +9,26 @@ import statsRoutes from './stats.routes.js';
 import venueRoutes from './venue.routes.js';
 import adminRoutes from './admin.routes.js';
 import webhookRoutes from './webhook.routes.js';
+import { getConnectionStatus } from '../config/database.js';
 
 const router = Router();
 
 // Health check
 router.get('/health', (req, res) => {
+  const dbStatus = getConnectionStatus();
+
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    database: {
+      active: dbStatus.active,
+      primary: dbStatus.primary.healthy ? 'healthy' : 'unhealthy',
+      secondary: dbStatus.secondary.configured
+        ? dbStatus.secondary.healthy ? 'healthy' : 'unhealthy'
+        : 'not configured',
+      failover: dbStatus.failoverEnabled ? 'enabled' : 'disabled',
+    },
   });
 });
 

@@ -1,20 +1,21 @@
 # 📋 Lumera - Resumo Executivo
 
-> **Última atualização:** 11 de Dezembro de 2025
+> **Ultima atualizacao:** 12 de Dezembro de 2025
 
 ---
 
-## 🎯 Visão Geral do Projeto
+## 🎯 Visao Geral do Projeto
 
-O **Lumera** é uma plataforma completa de venda de ingressos online, desenvolvida para oferecer uma experiência moderna e intuitiva tanto para compradores quanto organizadores de eventos.
+O **Lumera** e uma plataforma completa de venda de ingressos online, desenvolvida para oferecer uma experiencia moderna e intuitiva tanto para compradores quanto organizadores de eventos.
 
 ### Status Atual
 ```
 ┌─────────────────────────────────────────────┐
-│ Projeto: Lumera v1.0.0                      │
-│ Status: MVP Completo (95% completo)         │
-│ Início: Outubro 2025                        │
+│ Projeto: Lumera v1.2.0                      │
+│ Status: MVP Completo (85% completo)         │
+│ Inicio: Outubro 2025                        │
 │ Tecnologia: Node.js + Next.js + PostgreSQL  │
+│ Pagamento: Pagar.me (PIX + Cartao)          │
 │ Mobile: React Native + Expo                 │
 └─────────────────────────────────────────────┘
 ```
@@ -32,23 +33,35 @@ O **Lumera** é uma plataforma completa de venda de ingressos online, desenvolvi
 
 ---
 
-## ✅ O Que Está Funcionando
+## ✅ O Que Esta Funcionando
 
 ### Backend (100%)
 
 #### Funcionalidades Core
-- ✅ **Autenticação JWT** - Login, registro, refresh token, profile
+- ✅ **Autenticacao JWT** - Login, registro, refresh token, profile
 - ✅ **Gerenciamento de Eventos** - CRUD completo, busca, filtros, destaque
-- ✅ **Sistema de Ingressos** - Tipos, preços, disponibilidade
-- ✅ **Carrinho de Compras** - Para guests e usuários logados
-- ✅ **Processamento de Pedidos** - Criação, confirmação, cancelamento
-- ✅ **Pagamentos** - Stripe + PIX + Boleto (mock)
-- ✅ **QR Codes** - Geração e criptografia
-- ✅ **Check-in** - Validação e estatísticas
-- ✅ **Emails** - Confirmação e ingressos
-- ✅ **Split Payments** - Divisão de pagamentos entre organizadores
+- ✅ **Sistema de Ingressos** - Tipos, precos, disponibilidade
+- ✅ **Carrinho de Compras** - Para guests e usuarios logados
+- ✅ **Processamento de Pedidos** - Criacao, confirmacao, cancelamento
+- ✅ **Pagamentos** - Pagar.me (PIX + Cartao)
+- ✅ **QR Codes** - Geracao e criptografia
+- ✅ **Check-in** - Validacao e estatisticas
+- ✅ **Emails** - Confirmacao, ingressos e lembretes
+- ✅ **Split Payments** - Divisao de pagamentos entre organizadores
 - ✅ **Gerenciamento de Locais** - CRUD completo de venues
-- ✅ **Painel Admin** - Relatórios, financeiro, payouts
+- ✅ **Painel Admin** - Relatorios, financeiro, payouts
+
+#### Funcionalidades v1.2.0 (NOVAS)
+- ✅ **Lista de Espera** - Para eventos esgotados
+- ✅ **Favoritos** - Salvar eventos
+- ✅ **Historico de Eventos** - Eventos frequentados
+- ✅ **Busca Avancada** - Filtros por data, preco, local
+- ✅ **Relatorios Financeiros** - 5 abas detalhadas
+- ✅ **Duplicar Evento** - Template de evento
+- ✅ **Cancelar Evento** - Com reembolso automatico
+- ✅ **Moderacao de Eventos** - Aprovar antes de publicar
+- ✅ **Gestao de Usuarios** - Listar, suspender, banir
+- ✅ **Painel de Monitoramento** - Metricas em tempo real
 
 #### Tecnologias Backend
 - Node.js 18+ | Express.js 5.x | TypeScript 5.7
@@ -138,36 +151,46 @@ O **Lumera** é uma plataforma completa de venda de ingressos online, desenvolvi
 
 ---
 
-## 🔄 O Que Está Pendente
+## 🔄 O Que Esta Pendente
 
-### Crítico para Produção
+### Critico para Producao
 
-#### 1. Configuração Stripe Real
-- 🟡 Substituir chave de teste pela produção
-- 🟡 Configurar webhooks no Stripe dashboard
-- 🟡 Testar fluxo completo com cartão real
+#### 1. Configuracao Pagar.me Real
+- 🟡 Substituir chave de teste pela producao
+- 🟡 Configurar webhooks no Pagar.me dashboard
+- 🟡 Testar fluxo completo com cartao real
 
 #### 2. Deploy e Infraestrutura
 - 🟡 Deploy do backend (Railway/Render/Heroku)
 - 🟡 Deploy do frontend (Vercel)
-- 🟡 Configurar banco de dados de produção (Supabase/Neon)
-- 🟡 Configurar variáveis de ambiente
+- 🟡 Configurar banco de dados de producao (Supabase/Neon)
+- 🟡 Configurar variaveis de ambiente
 
-### Desejável (Médio Prazo)
+### Desejavel (Medio Prazo)
 
 #### 3. Features Adicionais
-- 🟡 Upload de imagens (AWS S3/Cloudinary)
-- 🟡 Sistema de avaliações
-- 🟡 Transferência de ingressos
-- 🟡 Notificações push (mobile)
-- 🟡 Download de ingresso em PDF
+- 🟡 Email marketing para compradores
+- 🟡 Gestao de equipe (multiplos usuarios)
+- 🟡 Sistema de suporte (tickets)
+- 🟡 Reconciliacao de pagamentos
+- 🟡 Testes automatizados
+
+### Infraestrutura (Medio Prazo)
+
+#### 4. Melhorias Tecnicas
+- 🟡 Cache com Redis
+- 🟡 Rate limiting avancado
+- 🟡 2FA/MFA para login
+- 🟡 Monitoramento (Sentry)
+- 🟡 Logs estruturados
 
 ### Futuro (Longo Prazo)
 
-#### 4. Mobile App - Melhorias
+#### 5. Mobile App - Melhorias
 - ⚪ Apple Pay / Google Pay
 - ⚪ Wallet integration (Apple Wallet/Google Wallet)
-- ⚪ Publicação nas app stores
+- ⚪ Publicacao nas app stores
+- ⚪ Push notifications
 
 ---
 
@@ -446,53 +469,59 @@ Status: **Planejado**
 
 ---
 
-## 📞 Informações de Contato
+## 📞 Informacoes de Contato
 
 **Projeto:** Lumera
-**Versão:** 1.0.0
+**Versao:** 1.2.0
 **Data:** Dezembro 2025
-**Status:** MVP Completo (95%)
+**Status:** MVP Completo (85%)
 
 **Documentos Relacionados:**
-- Visão técnica completa: `PROJETO-STATUS.md`
+- Visao tecnica completa: `PROJETO-STATUS.md`
 - Checklist detalhado: `CHECKLIST.md`
-- Histórico de mudanças: `CHANGELOG.md`
-- Guia de execução: `START.md`
+- Historico de mudancas: `CHANGELOG.md`
+- Guia de execucao: `START.md`
+- Lista de tarefas: `tasks.md`
 
 ---
 
-## 🎯 Conclusão
+## 🎯 Conclusao
 
-O **Lumera** está **95% completo** e possui uma **base sólida, funcional e multiplataforma**.
+O **Lumera** esta **85% completo** e possui uma **base solida, funcional e multiplataforma**.
 
 ### ✅ Pronto para:
-- Demonstrações e apresentações
+- Demonstracoes e apresentacoes
 - Testes de compra completos
-- Vendas reais (após configurar Stripe produção)
-- Validação de ingressos via mobile
-- Gestão completa de eventos e vendas
+- Vendas reais (apos configurar Pagar.me producao)
+- Validacao de ingressos via mobile
+- Gestao completa de eventos e vendas
+- Moderacao de eventos pela plataforma
+- Monitoramento em tempo real
 
-### ✅ O que foi implementado:
+### ✅ O que foi implementado (v1.2.0):
 - **Backend completo** com 40+ endpoints
-- **Frontend Web completo** com 27 páginas (incluindo painel admin)
-- **App Mobile funcional** com 15 telas e scanner QR
-- **Área do usuário completa** (pedidos, ingressos, perfil)
-- **Painel administrativo completo** (eventos, venues, relatórios, financeiro)
+- **Frontend Web completo** com painel admin
+- **App Mobile funcional** com scanner QR
+- **Area do usuario completa** (pedidos, ingressos, historico, favoritos)
+- **Painel administrativo completo** (eventos, usuarios, moderacao, monitoramento)
+- **Features avancadas** (lista de espera, duplicar evento, cancelar com reembolso)
 
-### 🔄 Próximos passos:
+### 🔄 Proximos passos:
 - Deploy da infraestrutura
-- Configuração Stripe produção
-- Testes finais de integração
+- Configuracao Pagar.me producao
+- Testes finais de integracao
+- Email marketing
+- Gestao de equipe
 
 ### 🎉 Resultado:
-O sistema está **pronto para deploy em produção**. Todas as funcionalidades core estão implementadas em todas as plataformas (Web + Mobile).
+O sistema esta **pronto para deploy em producao**. Todas as funcionalidades core estao implementadas em todas as plataformas (Web + Mobile).
 
 ---
 
-**Status Geral:** ✅ **MVP Completo - Pronto para Produção**
+**Status Geral:** ✅ **MVP Completo - Pronto para Producao**
 
-**Recomendação:** 🚀 **Prosseguir com deploy e configuração de produção**
+**Recomendacao:** 🚀 **Prosseguir com deploy e configuracao de producao**
 
 ---
 
-*Este documento oferece uma visão executiva do projeto. Para detalhes técnicos, consulte `PROJETO-STATUS.md`.*
+*Este documento oferece uma visao executiva do projeto. Para detalhes tecnicos, consulte `PROJETO-STATUS.md`.*
