@@ -40,6 +40,35 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
+// Optional authentication - populates req.user if token is valid, but doesn't block the request
+export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return next();
+  }
+
+  const [bearer, token] = authHeader.split(' ');
+
+  if (bearer !== 'Bearer' || !token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
+
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email,
+      role: decoded.role,
+    };
+  } catch (error) {
+    // Token invalid or expired, continue without user
+  }
+
+  next();
+};
+
 export const authorize = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {

@@ -39,18 +39,20 @@ interface Event {
 
 export class CartService {
   private async getOrCreateCart(userId?: string, sessionId?: string) {
-    // Find existing cart
+    // Find existing cart - prioritize sessionId for consistency
     let cartResult;
-    if (userId) {
+    if (sessionId) {
+      cartResult = await query<Cart>('SELECT * FROM carts WHERE session_id = $1', [sessionId]);
+    } else if (userId) {
       cartResult = await query<Cart>('SELECT * FROM carts WHERE user_id = $1', [userId]);
     } else {
-      cartResult = await query<Cart>('SELECT * FROM carts WHERE session_id = $1', [sessionId]);
+      cartResult = { rows: [] };
     }
 
     let cart: Cart;
 
     if (cartResult.rows.length === 0) {
-      // Create new cart
+      // Create new cart with sessionId (always use sessionId for cart identification)
       const newCartResult = await query<Cart>(
         `INSERT INTO carts (user_id, session_id, expires_at)
          VALUES ($1, $2, $3)
@@ -60,11 +62,51 @@ export class CartService {
       cart = newCartResult.rows[0];
     } else {
       cart = cartResult.rows[0];
+      // Update userId if user logged in and cart doesn't have one
+      if (userId && !cart.user_id) {
+        await query('UPDATE carts SET user_id = $1 WHERE id = $2', [userId, cart.id]);
+        cart.user_id = userId;
+      }
     }
 
     // Get cart items with ticket and event data
-    const itemsResult = await query<CartItem & Ticket & { event_name: string; event_date: Date; event_location: string; event_images: string[] }>(
-      `SELECT ci.*, t.*, e.name as event_name, e.date as event_date, e.location as event_location, e.images as event_images
+    const itemsResult = await query<{
+      cart_item_id: string;
+      cart_id: string;
+      ticket_id: string;
+      cart_item_quantity: number;
+      cart_item_created_at: Date;
+      ticket_name: string;
+      ticket_description: string | null;
+      ticket_price: number;
+      ticket_quantity: number;
+      ticket_sold: number;
+      sales_start: Date;
+      sales_end: Date;
+      event_id: string;
+      event_name: string;
+      event_date: Date;
+      event_location: string;
+      event_images: string[];
+    }>(
+      `SELECT
+         ci.id as cart_item_id,
+         ci.cart_id,
+         ci.ticket_id,
+         ci.quantity as cart_item_quantity,
+         ci.created_at as cart_item_created_at,
+         t.name as ticket_name,
+         t.description as ticket_description,
+         t.price as ticket_price,
+         t.quantity as ticket_quantity,
+         t.sold as ticket_sold,
+         t.sales_start,
+         t.sales_end,
+         e.id as event_id,
+         e.name as event_name,
+         e.date as event_date,
+         e.location as event_location,
+         e.images as event_images
        FROM cart_items ci
        JOIN tickets t ON ci.ticket_id = t.id
        JOIN events e ON t.event_id = e.id
@@ -79,19 +121,19 @@ export class CartService {
     }
 
     const items = itemsResult.rows.map((row) => ({
-      id: row.id,
+      id: row.cart_item_id,
       cartId: row.cart_id,
       ticketId: row.ticket_id,
-      quantity: row.quantity,
-      createdAt: row.created_at,
+      quantity: row.cart_item_quantity,
+      createdAt: row.cart_item_created_at,
       ticket: {
         id: row.ticket_id,
         eventId: row.event_id,
-        name: row.name,
-        description: row.description,
-        price: row.price,
-        quantity: row.quantity,
-        sold: row.sold,
+        name: row.ticket_name,
+        description: row.ticket_description,
+        price: row.ticket_price,
+        quantity: row.ticket_quantity,
+        sold: row.ticket_sold,
         salesStart: row.sales_start,
         salesEnd: row.sales_end,
         event: {
@@ -258,11 +300,14 @@ export class CartService {
   }
 
   async clearCart(userId?: string, sessionId?: string) {
+    // Prioritize sessionId for consistency
     let cartResult;
-    if (userId) {
+    if (sessionId) {
+      cartResult = await query<Cart>('SELECT id FROM carts WHERE session_id = $1', [sessionId]);
+    } else if (userId) {
       cartResult = await query<Cart>('SELECT id FROM carts WHERE user_id = $1', [userId]);
     } else {
-      cartResult = await query<Cart>('SELECT id FROM carts WHERE session_id = $1', [sessionId]);
+      return { message: 'Cart cleared' };
     }
 
     if (cartResult.rows.length > 0) {

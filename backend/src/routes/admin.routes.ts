@@ -16,6 +16,7 @@ router.get('/dashboard', (req, res) => adminController.getDashboard(req, res));
 router.get('/orders', (req, res) => adminController.getAllOrders(req, res));
 router.get('/orders/:id', (req, res) => adminController.getOrderDetails(req, res));
 router.post('/orders/:id/refund', (req, res) => adminController.refundOrder(req, res));
+router.post('/orders/:id/confirm-payment', (req, res) => adminController.confirmPaymentManual(req, res));
 router.post('/orders/:id/resend-email', (req, res) => adminController.resendOrderEmail(req, res));
 
 // Reports

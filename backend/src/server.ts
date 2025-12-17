@@ -11,14 +11,15 @@ const startServer = async () => {
     // Conectar ao banco de dados
     await DatabaseService.connect();
 
-    // Start server
-    const server = app.listen(PORT, () => {
+    // Start server - listen on all interfaces (0.0.0.0) to accept connections from mobile devices
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log('');
       console.log('🎉 Lumera API Server Started');
       console.log('================================');
       console.log(`📡 Port: ${PORT}`);
       console.log(`🌍 Environment: ${env.NODE_ENV}`);
       console.log(`🔗 API URL: ${env.API_URL}`);
+      console.log(`📱 Mobile access: http://192.168.100.136:${PORT}/api`);
       console.log(`📦 Database: ${dbConfig.database}@${dbConfig.host}:${dbConfig.port}`);
       console.log('');
       console.log('📚 API Endpoints:');

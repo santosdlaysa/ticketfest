@@ -381,7 +381,7 @@ export default function Checkout() {
                         </h4>
                         <p className="text-xs text-gray-600">{item.ticket.name}</p>
                         <p className="text-xs text-gray-500">
-                          {item.quantity}x R$ {item.ticket.price.toFixed(2)}
+                          {item.quantity}x R$ {Number(item.ticket.price).toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -392,10 +392,10 @@ export default function Checkout() {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
-                    <span>R$ {cart.subtotal.toFixed(2)}</span>
+                    <span>R$ {Number(cart.subtotal).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
-                    <span>Taxa de servico</span>
+                    <span>Taxa de serviço</span>
                     <span>R$ 0,00</span>
                   </div>
                 </div>
@@ -403,8 +403,8 @@ export default function Checkout() {
                 <div className="border-t pt-4 mb-6">
                   <div className="flex justify-between items-baseline">
                     <span className="font-semibold">Total</span>
-                    <span className="text-2xl font-bold text-primary-600">
-                      R$ {cart.total.toFixed(2)}
+                    <span className="text-2xl font-bold text-primary-500">
+                      R$ {Number(cart.total).toFixed(2)}
                     </span>
                   </div>
                 </div>

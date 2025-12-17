@@ -34,6 +34,13 @@ import type { HomeStackParamList } from '../../navigation/types';
 const { width, height } = Dimensions.get('window');
 const IMAGE_HEIGHT = height * 0.4;
 
+// Helper to fix localhost URLs for mobile
+const fixImageUrl = (url: string): string => {
+  if (!url) return 'https://via.placeholder.com/400x250?text=Evento';
+  // Replace localhost with the actual server IP for mobile access
+  return url.replace('http://localhost:3000', 'http://192.168.100.136:3000');
+};
+
 type NavigationProp = NativeStackNavigationProp<HomeStackParamList>;
 type RouteProps = RouteProp<HomeStackParamList, 'EventDetails'>;
 
@@ -153,7 +160,7 @@ export default function EventDetailsScreen() {
     );
   }
 
-  const imageUrl = event.images?.[0] || 'https://via.placeholder.com/400x250?text=Evento';
+  const imageUrl = fixImageUrl(event.images?.[0] || '');
   const dateInfo = formatEventDate(event.date);
   const category = categoryConfig[event.category] || { icon: 'calendar', color: theme.colors.primary };
 
@@ -171,7 +178,7 @@ export default function EventDetailsScreen() {
       >
         {/* Hero Image */}
         <View style={styles.heroContainer}>
-          <Image source={{ uri: imageUrl }} style={styles.heroImage} />
+          <Image source={{ uri: imageUrl }} style={styles.heroImage} resizeMode="cover" />
           <LinearGradient
             colors={['transparent', lumeraColors.pretoObsidian + 'E6']}
             style={styles.heroGradient}

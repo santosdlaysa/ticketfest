@@ -179,7 +179,7 @@ CREATE TABLE ticket_instances (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_item_id UUID NOT NULL REFERENCES order_items(id) ON DELETE CASCADE,
     ticket_id UUID NOT NULL REFERENCES tickets(id),
-    qr_code VARCHAR(255) UNIQUE NOT NULL,
+    qr_code VARCHAR(100) UNIQUE NOT NULL,
     qr_code_data TEXT NOT NULL,
     checked_in BOOLEAN DEFAULT FALSE NOT NULL,
     checked_in_at TIMESTAMP,

@@ -216,7 +216,7 @@ export default function MyOrders() {
                           {item.quantity}x {item.ticket.name}
                         </span>
                         <span className="font-medium">
-                          R$ {(item.price * item.quantity).toFixed(2)}
+                          R$ {(Number(item.price) * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     ))}
@@ -227,17 +227,17 @@ export default function MyOrders() {
                 <div className="border-t border-gray-200 pt-4 mb-4">
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-600">Subtotal:</span>
-                    <span>R$ {order.subtotal.toFixed(2)}</span>
+                    <span>R$ {Number(order.subtotal).toFixed(2)}</span>
                   </div>
                   {order.discount > 0 && (
                     <div className="flex justify-between text-sm text-green-600 mb-1">
                       <span>Desconto:</span>
-                      <span>- R$ {order.discount.toFixed(2)}</span>
+                      <span>- R$ {Number(order.discount).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>R$ {order.total.toFixed(2)}</span>
+                    <span>R$ {Number(order.total).toFixed(2)}</span>
                   </div>
                 </div>
 

@@ -48,7 +48,10 @@ export default function Login() {
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold">Bem-vindo de volta!</h1>
+            <div className="w-16 h-16 bg-gradient-lumera rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
+              <span className="text-white font-bold text-3xl">L</span>
+            </div>
+            <h1 className="text-3xl font-bold text-lumera-obsidian">Bem-vindo de volta!</h1>
             <p className="text-gray-600 mt-2">Entre com sua conta para continuar</p>
           </div>
 
@@ -72,7 +75,7 @@ export default function Login() {
 
             <p className="text-center text-sm text-gray-600">
               Não tem uma conta?{' '}
-              <Link href="/auth/register" className="text-primary-600 hover:underline">
+              <Link href="/auth/register" className="text-primary-500 hover:text-primary-600 hover:underline font-medium">
                 Criar conta
               </Link>
             </p>

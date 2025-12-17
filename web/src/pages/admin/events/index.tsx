@@ -181,15 +181,32 @@ export default function AdminEvents() {
               <div key={event.id} className="card p-6">
                 <div className="flex flex-col md:flex-row gap-6">
                   {/* Imagem */}
-                  {event.images && event.images[0] && (
-                    <div className="w-full md:w-48 flex-shrink-0">
+                  <div className="w-full md:w-48 flex-shrink-0">
+                    {event.images && event.images[0] ? (
                       <img
                         src={event.images[0]}
                         alt={event.name}
-                        className="w-full h-32 md:h-full object-cover rounded-lg"
+                        className="w-full h-32 md:h-full object-cover rounded-lg bg-gray-100"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.parentElement!.innerHTML = `
+                            <div class="w-full h-32 md:h-full bg-gray-100 rounded-lg flex items-center justify-center">
+                              <svg class="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                          `;
+                        }}
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-full h-32 md:h-full bg-gray-100 rounded-lg flex items-center justify-center">
+                        <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Conteúdo */}
                   <div className="flex-1">

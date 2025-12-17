@@ -1,4 +1,4 @@
-import api from '@/lib/axios';
+import api, { api as axiosInstance } from '@/lib/axios';
 import type {
   User,
   AuthResponse,
@@ -200,6 +200,15 @@ export const ordersApi = {
   cancel: async (orderId: string): Promise<void> => {
     await api.post(`/orders/${orderId}/cancel`);
   },
+
+  checkPaymentStatus: async (orderId: string): Promise<{
+    status: string;
+    orderStatus: string;
+    message: string;
+  }> => {
+    const response = await api.get(`/orders/${orderId}/check-payment`);
+    return response.data;
+  },
 };
 
 // Stats API
@@ -328,6 +337,11 @@ export const adminApi = {
 
   refundOrder: async (id: string): Promise<{ message: string }> => {
     const response = await api.post(`/admin/orders/${id}/refund`);
+    return response.data;
+  },
+
+  confirmPayment: async (id: string): Promise<{ message: string }> => {
+    const response = await api.post(`/admin/orders/${id}/confirm-payment`);
     return response.data;
   },
 
@@ -855,6 +869,43 @@ export const permissionsApi = {
   // Admin: Run migration (create tables and seed data)
   runMigration: async (): Promise<{ message: string }> => {
     const response = await api.post('/permissions/migrate');
+    return response.data;
+  },
+};
+
+// ========================================
+// UPLOAD API - Image Upload
+// ========================================
+
+export const uploadApi = {
+  uploadImage: async (file: File): Promise<{ success: boolean; url: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/upload/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  uploadImages: async (files: File[]): Promise<{ success: boolean; urls: string[]; count: number }> => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+
+    const response = await api.post('/upload/images', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteImage: async (filename: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.delete(`/upload/${filename}`);
     return response.data;
   },
 };

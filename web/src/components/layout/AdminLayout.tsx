@@ -129,27 +129,27 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const { user, logout, isAuthenticated, checkAuth } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [isAuthValid, setIsAuthValid] = useState(false);
 
   useEffect(() => {
     const verifyAuth = async () => {
-      await checkAuth();
+      const authenticated = await checkAuth();
+      setIsAuthValid(authenticated);
       setIsChecking(false);
+
+      if (!authenticated) {
+        router.push('/auth/login?redirect=' + encodeURIComponent(router.asPath));
+      }
     };
     verifyAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (!isChecking && !isAuthenticated) {
-      router.push('/auth/login?redirect=' + encodeURIComponent(router.asPath));
-    }
-  }, [isChecking, isAuthenticated, router]);
+  }, []);
 
   // Show loading while checking authentication
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-lumera-luminoso flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Verificando autenticação...</p>
         </div>
       </div>
@@ -157,7 +157,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   }
 
   // Don't render content if not authenticated
-  if (!isAuthenticated) {
+  if (!isAuthValid) {
     return null;
   }
 
@@ -179,16 +179,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
         isActive(item.href)
           ? 'bg-primary-100 text-primary-700'
-          : 'text-gray-700 hover:bg-gray-100'
+          : 'text-lumera-obsidian hover:bg-primary-50'
       }`}
       onClick={() => setSidebarOpen(false)}
     >
-      <span className={isActive(item.href) ? 'text-primary-600' : 'text-gray-500'}>
+      <span className={isActive(item.href) ? 'text-primary-500' : 'text-gray-500'}>
         {item.icon}
       </span>
       {item.name}
       {item.badge && (
-        <span className="ml-auto bg-primary-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+        <span className="ml-auto bg-primary-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
           {item.badge}
         </span>
       )}
@@ -196,32 +196,32 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-lumera-luminoso">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-lumera-obsidian bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-lumera-divider ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-4 border-b">
+          <div className="flex items-center justify-between h-16 px-4 border-b border-lumera-divider">
             <Link href="/admin" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-lumera rounded-lg flex items-center justify-center shadow-sm">
                 <span className="text-white font-bold text-xl">L</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">Lumera</span>
+              <span className="text-xl font-bold text-gradient-lumera">Lumera</span>
             </Link>
             <button
-              className="lg:hidden p-2 text-gray-500 hover:text-gray-700"
+              className="lg:hidden p-2 text-gray-500 hover:text-primary-500"
               onClick={() => setSidebarOpen(false)}
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -270,7 +270,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-lumera-divider">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                 <span className="text-primary-700 font-medium">
@@ -278,14 +278,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+                <p className="text-sm font-medium text-lumera-obsidian truncate">{user?.name}</p>
                 <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               </div>
             </div>
             <div className="space-y-1">
               <Link
                 href="/"
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary-50 rounded-lg"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -309,10 +309,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white shadow-sm">
+        <header className="sticky top-0 z-30 bg-white shadow-sm border-b border-lumera-divider">
           <div className="flex items-center justify-between h-16 px-4">
             <button
-              className="lg:hidden p-2 text-gray-500 hover:text-gray-700"
+              className="lg:hidden p-2 text-gray-500 hover:text-primary-500"
               onClick={() => setSidebarOpen(true)}
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -321,13 +321,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </button>
 
             <div className="flex-1 lg:hidden text-center">
-              <span className="font-semibold text-gray-900">Admin</span>
+              <span className="font-semibold text-lumera-obsidian">Admin</span>
             </div>
 
             <div className="flex items-center gap-4">
               <Link
                 href="/admin/events/create"
-                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-lumera text-white text-sm font-medium rounded-lg hover:opacity-90 transition-all shadow-sm hover:shadow-glow"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

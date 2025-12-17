@@ -2,17 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   LUMERA - Identidade Visual
+   "Uma nova era de brilho"
+   ======================================== */
+
 @layer base {
   html {
     @apply scroll-smooth;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-lumera-luminoso text-lumera-obsidian antialiased;
   }
 
   * {
-    @apply border-gray-200;
+    @apply border-lumera-border;
   }
 }
 
@@ -22,23 +27,43 @@
   }
 
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+    @apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 shadow-sm hover:shadow-glow;
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400;
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700;
+  }
+
+  .btn-accent {
+    @apply bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700;
   }
 
   .btn-outline {
-    @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100;
+    @apply border-2 border-primary-500 text-primary-500 hover:bg-primary-50 active:bg-primary-100;
+  }
+
+  .btn-outline-secondary {
+    @apply border-2 border-secondary-500 text-secondary-500 hover:bg-secondary-50 active:bg-secondary-100;
+  }
+
+  .btn-gradient {
+    @apply bg-gradient-lumera text-white hover:opacity-90 active:opacity-80 shadow-sm hover:shadow-glow;
+  }
+
+  .btn-vip {
+    @apply bg-vip-500 text-lumera-obsidian hover:bg-vip-600 active:bg-vip-700 font-semibold;
   }
 
   .input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+    @apply w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white;
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200;
+    @apply bg-white rounded-xl shadow-card hover:shadow-card-hover transition-shadow duration-200 border border-lumera-divider;
+  }
+
+  .card-gradient {
+    @apply rounded-xl bg-gradient-lumera text-white p-6 shadow-glow;
   }
 
   .container-custom {
@@ -51,6 +76,18 @@
 
   .badge-primary {
     @apply bg-primary-100 text-primary-800;
+  }
+
+  .badge-secondary {
+    @apply bg-secondary-100 text-secondary-800;
+  }
+
+  .badge-accent {
+    @apply bg-accent-100 text-accent-800;
+  }
+
+  .badge-vip {
+    @apply bg-vip-100 text-vip-800;
   }
 
   .badge-success {
@@ -68,10 +105,29 @@
   .badge-gray {
     @apply bg-gray-100 text-gray-800;
   }
+
+  /* Superfícies Lumera */
+  .surface-lumera {
+    @apply bg-lumera-surface border border-lumera-border;
+  }
+
+  /* Gradiente de texto */
+  .text-gradient-lumera {
+    @apply bg-gradient-lumera bg-clip-text text-transparent;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Efeito de brilho Lumera */
+  .glow-lumera {
+    box-shadow: 0 0 20px rgba(123, 46, 255, 0.3);
+  }
+
+  .glow-lumera-lg {
+    box-shadow: 0 0 40px rgba(123, 46, 255, 0.4);
   }
 }

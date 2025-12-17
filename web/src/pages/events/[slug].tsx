@@ -58,7 +58,7 @@ export default function EventDetail() {
   const totalSelected = Object.values(selectedTickets).reduce((sum, qty) => sum + qty, 0);
   const totalPrice = tickets.reduce((sum, ticket) => {
     const qty = selectedTickets[ticket.id] || 0;
-    return sum + ticket.price * qty;
+    return sum + Number(ticket.price) * qty;
   }, 0);
 
   if (loading) {
@@ -83,12 +83,11 @@ export default function EventDetail() {
           <div className="lg:col-span-2">
             {/* Images */}
             {event.images && event.images.length > 0 && (
-              <div className="relative h-96 rounded-xl overflow-hidden mb-6">
-                <Image
+              <div className="relative rounded-xl overflow-hidden mb-6">
+                <img
                   src={event.images[0]}
                   alt={event.name}
-                  fill
-                  className="object-cover"
+                  className="w-full h-auto rounded-xl"
                 />
               </div>
             )}
@@ -118,6 +117,23 @@ export default function EventDetail() {
               <div className="prose max-w-none">
                 <p className="text-gray-700 whitespace-pre-wrap">{event.description}</p>
               </div>
+
+              {/* Organizador */}
+              {event.organizer && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Organizado por</p>
+                      <p className="font-semibold text-gray-900">{event.organizer.name}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -138,7 +154,7 @@ export default function EventDetail() {
                           )}
                         </div>
                         <span className="font-bold text-primary-600">
-                          R$ {ticket.price.toFixed(2)}
+                          R$ {Number(ticket.price).toFixed(2)}
                         </span>
                       </div>
 

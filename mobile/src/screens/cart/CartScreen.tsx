@@ -47,7 +47,7 @@ export default function CartScreen() {
 
   useEffect(() => {
     fetchCart();
-  }, [fetchCart]);
+  }, []);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString('pt-BR', {

@@ -35,6 +35,13 @@ import type { HomeStackParamList } from '../../navigation/types';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - spacing.md * 2;
 
+// Helper to fix localhost URLs for mobile
+const fixImageUrl = (url: string): string => {
+  if (!url) return 'https://via.placeholder.com/400x200?text=Evento';
+  // Replace localhost with the actual server IP for mobile access
+  return url.replace('http://localhost:3000', 'http://192.168.100.136:3000');
+};
+
 const CATEGORIES = [
   { id: 'all', label: 'Todos' },
   { id: 'SHOW', label: 'Shows' },
@@ -124,7 +131,7 @@ export default function HomeScreen() {
 
   const renderEventCard = ({ item }: { item: Event }) => {
     const lowestPrice = getLowestPrice(item);
-    const imageUrl = item.images?.[0] || 'https://via.placeholder.com/400x200?text=Evento';
+    const imageUrl = fixImageUrl(item.images?.[0] || '');
 
     return (
       <TouchableOpacity
@@ -153,7 +160,7 @@ export default function HomeScreen() {
   };
 
   const renderFeaturedEvent = ({ item }: { item: Event }) => {
-    const imageUrl = item.images?.[0] || 'https://via.placeholder.com/400x200?text=Destaque';
+    const imageUrl = fixImageUrl(item.images?.[0] || '');
 
     return (
       <TouchableOpacity

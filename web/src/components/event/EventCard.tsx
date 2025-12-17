@@ -11,14 +11,14 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const eventDate = new Date(event.date);
   const minPrice = event.tickets && event.tickets.length > 0
-    ? Math.min(...event.tickets.map((t) => t.price))
+    ? Math.min(...event.tickets.map((t) => Number(t.price)))
     : 0;
 
   return (
     <Link href={`/events/${event.slug}`}>
       <div className="card overflow-hidden cursor-pointer group">
         {/* Image */}
-        <div className="relative h-48 bg-gray-200 overflow-hidden">
+        <div className="relative h-48 bg-lumera-surface overflow-hidden">
           {event.images && event.images.length > 0 ? (
             <Image
               src={event.images[0]}
@@ -27,7 +27,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-400 to-primary-600">
+            <div className="w-full h-full flex items-center justify-center bg-gradient-lumera">
               <span className="text-white text-4xl font-bold">
                 {event.name.charAt(0)}
               </span>
@@ -35,7 +35,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           )}
           {/* Category Badge */}
           <div className="absolute top-3 right-3">
-            <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-900">
+            <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-lumera-obsidian">
               {event.category}
             </span>
           </div>
@@ -43,7 +43,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
         {/* Content */}
         <div className="p-4">
-          <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+          <h3 className="font-bold text-lg text-lumera-obsidian mb-2 line-clamp-2 group-hover:text-primary-500 transition-colors">
             {event.name}
           </h3>
 
@@ -52,7 +52,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
             <div className="flex items-center text-sm text-gray-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-2"
+                className="h-4 w-4 mr-2 text-secondary-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -71,7 +71,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
             <div className="flex items-center text-sm text-gray-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-2"
+                className="h-4 w-4 mr-2 text-accent-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -97,7 +97,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           {minPrice > 0 && (
             <div className="flex items-baseline">
               <span className="text-xs text-gray-500 mr-1">a partir de</span>
-              <span className="text-lg font-bold text-primary-600">
+              <span className="text-lg font-bold text-primary-500">
                 R$ {minPrice.toFixed(2)}
               </span>
             </div>

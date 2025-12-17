@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -67,7 +67,7 @@ export default function CheckoutScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
-  const { cart, clearCart } = useCartStore();
+  const { cart, clearCart, fetchCart, loading: cartLoading } = useCartStore();
 
   const [step, setStep] = useState<CheckoutStep>('review');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('PIX');
@@ -88,6 +88,20 @@ export default function CheckoutScreen() {
   const [pixCode, setPixCode] = useState('');
   const [pixQrData, setPixQrData] = useState('');
   const [pixPaymentId, setPixPaymentId] = useState('');
+
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+  // Buscar o carrinho ao montar a tela
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        await fetchCart();
+      } finally {
+        setInitialLoadDone(true);
+      }
+    };
+    loadCart();
+  }, []);
 
   const formatPrice = (price: number) => {
     return price.toLocaleString('pt-BR', {
@@ -254,6 +268,18 @@ export default function CheckoutScreen() {
     await Clipboard.setStringAsync(pixCode);
     Alert.alert('Copiado!', 'Código PIX copiado para a área de transferência');
   };
+
+  // Mostrar loading enquanto carrega o carrinho pela primeira vez
+  if (!initialLoadDone || (cartLoading && !cart)) {
+    return (
+      <View style={[styles.emptyContainer, { paddingTop: insets.top }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.emptySubtitle, { marginTop: spacing.md }]}>
+          Carregando carrinho...
+        </Text>
+      </View>
+    );
+  }
 
   if (!cart || !cart.items || cart.items.length === 0) {
     return (

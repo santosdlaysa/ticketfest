@@ -2,9 +2,11 @@ import { query, transaction } from '../config/database.js';
 import { AppError } from '../middlewares/errorHandler.js';
 import { PaymentService } from './payment.service.js';
 import { EmailService } from './email.service.js';
+import { OrderService } from './order.service.js';
 
 const paymentService = new PaymentService();
 const emailService = new EmailService();
+const orderService = new OrderService();
 
 interface OrdersFilters {
   page: number;
@@ -597,5 +599,72 @@ export class AdminService {
         notCheckedIn: rows.filter((r: string[]) => r[7] === 'Nao').length,
       },
     };
+  }
+
+  async confirmPaymentManual(orderId: string) {
+    return orderService.confirmPaymentManual(orderId);
+  }
+
+  async resendOrderEmail(orderId: string) {
+    const orderResult = await query<any>(
+      `SELECT o.*, u.email as user_email, e.name as event_name, e.date as event_date
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       WHERE o.id = $1`,
+      [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      throw new AppError(404, 'Pedido não encontrado');
+    }
+
+    const order = orderResult.rows[0];
+
+    if (order.payment_status !== 'PAID') {
+      throw new AppError(400, 'Pedido ainda não foi pago');
+    }
+
+    // Get order items
+    const itemsResult = await query<any>(
+      `SELECT t.name as ticket_name, oi.quantity, oi.price
+       FROM order_items oi
+       JOIN tickets t ON oi.ticket_id = t.id
+       WHERE oi.order_id = $1`,
+      [orderId]
+    );
+
+    // Send confirmation email
+    await emailService.sendOrderConfirmation(order.user_email, {
+      orderId: order.id,
+      eventName: order.event_name,
+      eventDate: new Date(order.event_date).toLocaleDateString('pt-BR'),
+      tickets: itemsResult.rows.map((item: any) => ({
+        name: item.ticket_name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      total: order.total,
+    });
+
+    // Get ticket instances and send tickets email
+    const instancesResult = await query<any>(
+      `SELECT ti.qr_code, t.name as ticket_name
+       FROM ticket_instances ti
+       JOIN order_items oi ON ti.order_item_id = oi.id
+       JOIN tickets t ON ti.ticket_id = t.id
+       WHERE oi.order_id = $1`,
+      [orderId]
+    );
+
+    const tickets = instancesResult.rows.map((instance: any) => ({
+      eventName: order.event_name,
+      ticketName: instance.ticket_name,
+      qrCode: instance.qr_code,
+    }));
+
+    await emailService.sendTickets(order.user_email, tickets);
+
+    return { message: 'Emails reenviados com sucesso!' };
   }
 }

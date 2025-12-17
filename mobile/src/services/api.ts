@@ -22,11 +22,11 @@ import {
 } from './mockData';
 
 // Flag para usar dados mock (true = mock, false = API real)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // API URL - use localhost for development (change to production URL when deploying)
 const API_URL = __DEV__
-  ? 'http://localhost:4000/api'  // For Android emulator use: 10.0.2.2:4000
+  ? 'http://192.168.100.136:3000/api'  // IP local da máquina (localhost não funciona em dispositivos reais)
   : 'https://api.Lumera.com/api'; // Production URL
 
 // Create axios instance
@@ -45,9 +45,9 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Add session ID for guest carts
+    // Always add session ID for cart consistency
     const sessionId = await AsyncStorage.getItem('sessionId');
-    if (sessionId && !token) {
+    if (sessionId) {
       config.headers['X-Session-ID'] = sessionId;
     }
 
@@ -58,9 +58,16 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle token refresh and session ID
 api.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    // Capture session ID from response headers for guest carts
+    const sessionId = response.headers['x-session-id'];
+    if (sessionId) {
+      await AsyncStorage.setItem('sessionId', sessionId);
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 

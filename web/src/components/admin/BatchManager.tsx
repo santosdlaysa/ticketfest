@@ -169,7 +169,7 @@ export function BatchManager({ ticketId, ticketName, onClose }: BatchManagerProp
             <span className="font-medium">{data.currentBatch.name}</span>
             <span className="text-gray-600">-</span>
             <span className="font-semibold text-primary-600">
-              R$ {data.currentBatch.price.toFixed(2)}
+              R$ {Number(data.currentBatch.price).toFixed(2)}
             </span>
           </div>
         </div>
@@ -286,7 +286,7 @@ export function BatchManager({ ticketId, ticketName, onClose }: BatchManagerProp
                   )}
                 </div>
                 <div className="text-xl font-bold text-primary-600">
-                  R$ {batch.price.toFixed(2)}
+                  R$ {Number(batch.price).toFixed(2)}
                 </div>
               </div>
 

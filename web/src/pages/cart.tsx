@@ -88,7 +88,7 @@ export default function Cart() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <span className="font-bold text-lg">R$ {(item.ticket.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-bold text-lg">R$ {(Number(item.ticket.price) * item.quantity).toFixed(2)}</span>
                       <button onClick={() => handleRemove(item.id)} className="text-red-600 hover:text-red-700" disabled={isLoading}>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -109,7 +109,7 @@ export default function Cart() {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span>Subtotal ({cart.itemCount} item{cart.itemCount > 1 ? 's' : ''})</span>
-                  <span>R$ {cart.subtotal.toFixed(2)}</span>
+                  <span>R$ {Number(cart.subtotal).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Taxa de serviço</span>
@@ -120,7 +120,7 @@ export default function Cart() {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-baseline">
                   <span className="font-semibold">Total</span>
-                  <span className="text-2xl font-bold text-primary-600">R$ {cart.total.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-primary-500">R$ {Number(cart.total).toFixed(2)}</span>
                 </div>
               </div>
 

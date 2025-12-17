@@ -51,6 +51,12 @@ export class AdminController {
     res.status(200).json(result);
   }
 
+  async confirmPaymentManual(req: Request, res: Response) {
+    const { id } = req.params;
+    const result = await adminService.confirmPaymentManual(id);
+    res.status(200).json(result);
+  }
+
   // Reports
   async getSalesReport(req: Request, res: Response) {
     const { startDate, endDate, groupBy = 'day', eventId } = req.query;

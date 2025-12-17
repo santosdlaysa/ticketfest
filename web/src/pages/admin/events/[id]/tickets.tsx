@@ -323,7 +323,7 @@ export default function ManageTickets() {
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-primary-600">
-                        R$ {ticket.price.toFixed(2)}
+                        R$ {Number(ticket.price).toFixed(2)}
                       </p>
                     </div>
                   </div>

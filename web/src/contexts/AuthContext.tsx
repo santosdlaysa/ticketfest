@@ -22,7 +22,7 @@ interface AuthState {
   }) => Promise<void>;
   logout: () => Promise<void>;
   setAuth: (data: AuthResponse) => void;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -134,16 +134,19 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken: storedRefreshToken,
                 isAuthenticated: true,
               });
+              return true;
             }
           }
-          return;
+          return false;
         }
 
         try {
           const user = await authApi.getProfile();
           set({ user, isAuthenticated: true });
+          return true;
         } catch (error) {
-          get().logout();
+          await get().logout();
+          return false;
         }
       },
     }),

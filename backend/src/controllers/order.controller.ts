@@ -84,4 +84,12 @@ export class OrderController {
       paymentMethods: ['PIX', 'CREDIT_CARD', 'DEBIT_CARD'],
     });
   }
+
+  async checkPaymentStatus(req: Request, res: Response) {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const result = await orderService.checkAndUpdatePaymentStatus(id, userId);
+    res.status(200).json(result);
+  }
 }
