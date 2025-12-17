@@ -667,4 +667,357 @@ export class AdminService {
 
     return { message: 'Emails reenviados com sucesso!' };
   }
+
+  async getFinancialSummary(filters: { startDate?: string; endDate?: string; userId?: string }) {
+    const { startDate, endDate, userId } = filters;
+
+    let dateConditions: string[] = [];
+    let params: any[] = [];
+    let paramIndex = 1;
+
+    if (userId) {
+      dateConditions.push(`e.organizer_id = $${paramIndex++}`);
+      params.push(userId);
+    }
+
+    if (startDate) {
+      dateConditions.push(`o.created_at >= $${paramIndex++}`);
+      params.push(new Date(startDate));
+    }
+
+    if (endDate) {
+      dateConditions.push(`o.created_at <= $${paramIndex++}`);
+      params.push(new Date(endDate));
+    }
+
+    const dateWhereClause = dateConditions.length > 0 ? `WHERE ${dateConditions.join(' AND ')}` : '';
+
+    // Get revenue by payment status
+    const revenueResult = await query<any>(
+      `SELECT
+        COALESCE(SUM(CASE WHEN o.payment_status = 'PAID' THEN o.total ELSE 0 END), 0) as paid,
+        COALESCE(SUM(CASE WHEN o.payment_status = 'PENDING' THEN o.total ELSE 0 END), 0) as pending,
+        COALESCE(SUM(CASE WHEN o.payment_status = 'REFUNDED' THEN o.total ELSE 0 END), 0) as refunded
+       FROM orders o
+       JOIN events e ON o.event_id = e.id
+       ${dateWhereClause}`,
+      params
+    );
+
+    // Get orders count by payment status
+    const ordersResult = await query<any>(
+      `SELECT
+        COUNT(CASE WHEN o.payment_status = 'PAID' THEN 1 END) as paid,
+        COUNT(CASE WHEN o.payment_status = 'PENDING' THEN 1 END) as pending,
+        COUNT(CASE WHEN o.payment_status = 'REFUNDED' THEN 1 END) as refunded,
+        COUNT(CASE WHEN o.payment_status = 'FAILED' THEN 1 END) as failed
+       FROM orders o
+       JOIN events e ON o.event_id = e.id
+       ${dateWhereClause}`,
+      params
+    );
+
+    const revenue = revenueResult.rows[0];
+    const orders = ordersResult.rows[0];
+
+    const paidRevenue = parseFloat(revenue.paid);
+    const refundedRevenue = parseFloat(revenue.refunded);
+
+    // Calculate splits (platform fee = 10%)
+    const platformFeeRate = 0.10;
+    const platformRevenue = paidRevenue * platformFeeRate;
+    const organizerRevenue = paidRevenue * (1 - platformFeeRate);
+    const pendingAmount = parseFloat(revenue.pending);
+
+    return {
+      revenue: {
+        paid: paidRevenue,
+        pending: pendingAmount,
+        refunded: refundedRevenue,
+      },
+      orders: {
+        paid: parseInt(orders.paid || '0', 10),
+        pending: parseInt(orders.pending || '0', 10),
+        refunded: parseInt(orders.refunded || '0', 10),
+        failed: parseInt(orders.failed || '0', 10),
+      },
+      splits: {
+        platformRevenue,
+        organizerRevenue,
+        pendingAmount,
+      },
+      organizerBalance: userId ? {
+        availableBalance: organizerRevenue,
+        pendingBalance: pendingAmount * (1 - platformFeeRate),
+      } : undefined,
+    };
+  }
+
+  async getRevenueReport(filters: { startDate?: string; endDate?: string; eventId?: string; userId?: string }) {
+    const { startDate, endDate, eventId, userId } = filters;
+
+    let conditions: string[] = ["o.payment_status = 'PAID'"];
+    let params: any[] = [];
+    let paramIndex = 1;
+
+    if (userId) {
+      conditions.push(`e.organizer_id = $${paramIndex++}`);
+      params.push(userId);
+    }
+
+    if (eventId) {
+      conditions.push(`o.event_id = $${paramIndex++}`);
+      params.push(eventId);
+    }
+
+    if (startDate) {
+      conditions.push(`o.paid_at >= $${paramIndex++}`);
+      params.push(new Date(startDate));
+    }
+
+    if (endDate) {
+      conditions.push(`o.paid_at <= $${paramIndex++}`);
+      params.push(new Date(endDate));
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    const revenueResult = await query<any>(
+      `SELECT
+        COALESCE(SUM(o.subtotal), 0) as gross_revenue,
+        COALESCE(SUM(o.discount), 0) as discounts,
+        COALESCE(SUM(o.total), 0) as net_revenue
+       FROM orders o
+       JOIN events e ON o.event_id = e.id
+       WHERE ${whereClause}`,
+      params
+    );
+
+    // Get refunds separately (orders that were refunded)
+    let refundConditions: string[] = ["o.payment_status = 'REFUNDED'"];
+    let refundParams: any[] = [];
+    let refundParamIndex = 1;
+
+    if (userId) {
+      refundConditions.push(`e.organizer_id = $${refundParamIndex++}`);
+      refundParams.push(userId);
+    }
+
+    if (eventId) {
+      refundConditions.push(`o.event_id = $${refundParamIndex++}`);
+      refundParams.push(eventId);
+    }
+
+    if (startDate) {
+      refundConditions.push(`o.created_at >= $${refundParamIndex++}`);
+      refundParams.push(new Date(startDate));
+    }
+
+    if (endDate) {
+      refundConditions.push(`o.created_at <= $${refundParamIndex++}`);
+      refundParams.push(new Date(endDate));
+    }
+
+    const refundWhereClause = refundConditions.join(' AND ');
+
+    const refundsResult = await query<any>(
+      `SELECT COALESCE(SUM(o.total), 0) as refunds
+       FROM orders o
+       JOIN events e ON o.event_id = e.id
+       WHERE ${refundWhereClause}`,
+      refundParams
+    );
+
+    const revenue = revenueResult.rows[0];
+    const grossRevenue = parseFloat(revenue.gross_revenue);
+    const discounts = parseFloat(revenue.discounts);
+    const netRevenue = parseFloat(revenue.net_revenue);
+    const refunds = parseFloat(refundsResult.rows[0]?.refunds || '0');
+
+    return {
+      grossRevenue,
+      discounts,
+      netRevenue,
+      refunds,
+      finalRevenue: netRevenue - refunds,
+    };
+  }
+
+  async getTransactions(filters: {
+    page: number;
+    limit: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    userId?: string;
+  }) {
+    const { page, limit, status, startDate, endDate, userId } = filters;
+    const skip = (page - 1) * limit;
+
+    let conditions: string[] = ["o.payment_status = 'PAID'"];
+    let params: any[] = [];
+    let paramIndex = 1;
+
+    if (userId) {
+      conditions.push(`e.organizer_id = $${paramIndex++}`);
+      params.push(userId);
+    }
+
+    // Map frontend status to transaction status
+    if (status) {
+      if (status === 'COMPLETED') {
+        conditions.push(`o.payment_status = 'PAID'`);
+      } else if (status === 'REFUNDED') {
+        conditions = conditions.filter(c => c !== "o.payment_status = 'PAID'");
+        conditions.push(`o.payment_status = 'REFUNDED'`);
+      }
+    }
+
+    if (startDate) {
+      conditions.push(`o.created_at >= $${paramIndex++}`);
+      params.push(new Date(startDate));
+    }
+
+    if (endDate) {
+      conditions.push(`o.created_at <= $${paramIndex++}`);
+      params.push(new Date(endDate));
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const transactionsResult = await query<any>(
+      `SELECT o.id, o.total, o.subtotal, o.discount, o.payment_method, o.payment_status, o.payment_id,
+              o.created_at, o.paid_at, u.id as user_id, u.name as user_name, u.email as user_email,
+              e.id as event_id, e.name as event_name
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       ${whereClause}
+       ORDER BY o.created_at DESC
+       LIMIT ${limit} OFFSET ${skip}`,
+      params
+    );
+
+    const countResult = await query<{ count: string }>(
+      `SELECT COUNT(*) as count
+       FROM orders o
+       JOIN events e ON o.event_id = e.id
+       ${whereClause}`,
+      params
+    );
+
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    // Platform fee rate (10%)
+    const platformFeeRate = 0.10;
+
+    return {
+      transactions: transactionsResult.rows.map((row: any) => {
+        const totalAmount = parseFloat(row.total);
+        const platformAmount = totalAmount * platformFeeRate;
+        const organizerAmount = totalAmount * (1 - platformFeeRate);
+
+        // Map payment_status to transaction status
+        let transactionStatus = 'COMPLETED';
+        if (row.payment_status === 'REFUNDED') transactionStatus = 'REFUNDED';
+        else if (row.payment_status === 'PENDING') transactionStatus = 'PENDING';
+        else if (row.payment_status === 'FAILED') transactionStatus = 'FAILED';
+
+        return {
+          id: row.id,
+          orderId: row.id,
+          totalAmount,
+          platformAmount,
+          platformFee: 0,
+          organizerAmount,
+          status: transactionStatus,
+          createdAt: row.created_at,
+          processedAt: row.paid_at,
+          order: {
+            id: row.id,
+            event: {
+              id: row.event_id,
+              name: row.event_name,
+            },
+            user: {
+              id: row.user_id,
+              name: row.user_name,
+              email: row.user_email,
+            },
+          },
+        };
+      }),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getAllPayouts(filters: { page: number; limit: number; status?: string; userId?: string }) {
+    // Payouts não implementados ainda - retorna lista vazia
+    return {
+      payouts: [],
+      total: 0,
+      page: filters.page,
+      limit: filters.limit,
+      totalPages: 0,
+    };
+  }
+
+  async approvePayout(payoutId: string) {
+    throw new AppError(501, 'Funcionalidade de pagamentos ainda não implementada');
+  }
+
+  async rejectPayout(payoutId: string, reason: string) {
+    throw new AppError(501, 'Funcionalidade de pagamentos ainda não implementada');
+  }
+
+  async exportReport(filters: {
+    type: 'orders' | 'sales' | 'revenue';
+    format: 'csv' | 'xlsx';
+    startDate?: string;
+    endDate?: string;
+    eventId?: string;
+    userId?: string;
+  }) {
+    const { type, startDate, endDate, eventId, userId } = filters;
+
+    let data: any;
+    if (type === 'orders') {
+      data = await this.getAllOrders({ page: 1, limit: 10000, startDate, endDate, eventId, userId });
+    } else {
+      data = await this.getSalesReport({ startDate, endDate, eventId, userId });
+    }
+
+    let csvContent: string;
+    let filename: string;
+
+    if (type === 'orders') {
+      const headers = ['ID', 'Cliente', 'Email', 'Evento', 'Total', 'Status', 'Pagamento', 'Data'];
+      const rows = data.orders.map((o: any) => [
+        o.id,
+        o.user.name,
+        o.user.email,
+        o.event.name,
+        o.total,
+        o.status,
+        o.paymentStatus,
+        new Date(o.createdAt).toLocaleDateString('pt-BR'),
+      ]);
+      csvContent = [headers.join(','), ...rows.map((r: any[]) => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n');
+      filename = `pedidos_${new Date().toISOString().split('T')[0]}.csv`;
+    } else {
+      const headers = ['Data', 'Receita', 'Ingressos', 'Pedidos'];
+      const rows = data.salesByPeriod.map((s: any) => [s.date, s.revenue, s.tickets, s.orders]);
+      csvContent = [headers.join(','), ...rows.map((r: any[]) => r.join(','))].join('\n');
+      filename = `vendas_${new Date().toISOString().split('T')[0]}.csv`;
+    }
+
+    return {
+      data: csvContent,
+      filename,
+      contentType: 'text/csv; charset=utf-8',
+    };
+  }
 }
