@@ -10,6 +10,7 @@ import venueRoutes from './venue.routes.js';
 import adminRoutes from './admin.routes.js';
 import webhookRoutes from './webhook.routes.js';
 import uploadRoutes from './upload.routes.js';
+import payoutRoutes from './payout.routes.js';
 import { getConnectionStatus, query } from '../config/database.js';
 
 const router = Router();
@@ -45,6 +46,7 @@ router.use('/venues', venueRoutes);
 router.use('/admin', adminRoutes);
 router.use('/webhooks', webhookRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/payouts', payoutRoutes);
 
 // Test endpoint - ONLY FOR DEVELOPMENT
 if (process.env.NODE_ENV !== 'production') {

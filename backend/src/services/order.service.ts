@@ -303,7 +303,20 @@ export class OrderService {
         [pixPayment.chargeId, order.id]
       );
     } else if (data.paymentMethod === 'BOLETO') {
-      throw new AppError(400, 'Boleto payment is not available. Please use PIX or card payment.');
+      const boletoPayment = await paymentService.createBoletoPayment(
+        customerData,
+        paymentItems,
+        3, // 3 days to expire
+        'Pagar ate a data de vencimento. Apos o vencimento, multa de 2% e juros de 1% ao mes.',
+        { orderId: order.id, userId }
+      );
+
+      paymentData = { boleto: boletoPayment };
+
+      await query(
+        'UPDATE orders SET payment_id = $1 WHERE id = $2',
+        [boletoPayment.chargeId, order.id]
+      );
     }
 
     // Get full order with relations

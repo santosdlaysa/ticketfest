@@ -174,6 +174,33 @@ export const authApi = {
     const response = await api.get('/auth/profile');
     return response.data;
   },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return { message: 'Email enviado com sucesso' };
+    }
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  verifyResetToken: async (token: string): Promise<{ valid: boolean }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return { valid: true };
+    }
+    const response = await api.get(`/auth/verify-reset-token/${token}`);
+    return response.data;
+  },
+
+  resetPassword: async (token: string, password: string): Promise<{ message: string }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return { message: 'Senha redefinida com sucesso' };
+    }
+    const response = await api.post('/auth/reset-password', { token, password });
+    return response.data;
+  },
 };
 
 // Events API

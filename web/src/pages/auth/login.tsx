@@ -69,6 +69,12 @@ export default function Login() {
               error={errors.password?.message}
             />
 
+            <div className="text-right">
+              <Link href="/auth/forgot-password" className="text-sm text-primary-500 hover:text-primary-600 hover:underline">
+                Esqueci minha senha
+              </Link>
+            </div>
+
             <Button type="submit" className="w-full" isLoading={loading}>
               Entrar
             </Button>

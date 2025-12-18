@@ -3,6 +3,7 @@ import { AppError } from '../middlewares/errorHandler.js';
 import { PaymentService } from './payment.service.js';
 import { EmailService } from './email.service.js';
 import { OrderService } from './order.service.js';
+import { payoutService } from './payout.service.js';
 
 const paymentService = new PaymentService();
 const emailService = new EmailService();
@@ -954,23 +955,22 @@ export class AdminService {
     };
   }
 
-  async getAllPayouts(filters: { page: number; limit: number; status?: string; userId?: string }) {
-    // Payouts não implementados ainda - retorna lista vazia
-    return {
-      payouts: [],
-      total: 0,
+  async getAllPayouts(filters: { page: number; limit: number; status?: string; startDate?: string; endDate?: string; userId?: string }) {
+    return payoutService.getAllPayouts({
       page: filters.page,
       limit: filters.limit,
-      totalPages: 0,
-    };
+      status: filters.status,
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+    });
   }
 
-  async approvePayout(payoutId: string) {
-    throw new AppError(501, 'Funcionalidade de pagamentos ainda não implementada');
+  async approvePayout(payoutId: string, adminId: string) {
+    return payoutService.approvePayout(payoutId, adminId);
   }
 
-  async rejectPayout(payoutId: string, reason: string) {
-    throw new AppError(501, 'Funcionalidade de pagamentos ainda não implementada');
+  async rejectPayout(payoutId: string, adminId: string, reason: string) {
+    return payoutService.rejectPayout(payoutId, adminId, reason);
   }
 
   async exportReport(filters: {

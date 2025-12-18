@@ -58,4 +58,49 @@ export class AuthController {
 
     res.status(200).json(user);
   }
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: 'Email é obrigatório' });
+      }
+
+      const result = await authService.forgotPassword(email);
+      res.status(200).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async verifyResetToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token } = req.params;
+
+      if (!token) {
+        return res.status(400).json({ error: 'Token é obrigatório' });
+      }
+
+      const result = await authService.verifyResetToken(token);
+      res.status(200).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+      }
+
+      const result = await authService.resetPassword(token, password);
+      res.status(200).json(result);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }

@@ -23,6 +23,17 @@ export interface CardPaymentData {
   amount: number;
 }
 
+export interface BoletoPaymentData {
+  orderId: string;
+  chargeId: string;
+  boletoUrl: string;
+  boletoPdf: string;
+  barcode: string;
+  linhaDigitavel: string;
+  dueDate: Date;
+  amount: number;
+}
+
 export interface CustomerData {
   name: string;
   email: string;
@@ -176,6 +187,46 @@ export class PaymentService {
       expiresAt: new Date(transaction.expires_at || Date.now() + expiresInSeconds * 1000),
       chargeId: charge.id,
       orderId: order.id,
+    };
+  }
+
+  /**
+   * Create Boleto payment
+   */
+  async createBoletoPayment(
+    customer: CustomerData,
+    items: Array<{ name: string; quantity: number; price: number; id?: string }>,
+    daysToExpire: number = 3,
+    instructions?: string,
+    metadata?: Record<string, string>
+  ): Promise<BoletoPaymentData> {
+    const pagarmeCustomer = this.formatCustomer(customer);
+    const pagarmeItems = this.formatItems(items);
+
+    const order = await pagarmeService.createBoletoOrder(
+      pagarmeCustomer,
+      pagarmeItems,
+      daysToExpire,
+      instructions,
+      metadata
+    );
+
+    const charge = order.charges[0];
+    const transaction = charge.last_transaction;
+
+    if (!transaction?.line && !transaction?.barcode) {
+      throw new Error('Boleto data not generated');
+    }
+
+    return {
+      orderId: order.id,
+      chargeId: charge.id,
+      boletoUrl: transaction.url || '',
+      boletoPdf: transaction.pdf || '',
+      barcode: transaction.barcode || '',
+      linhaDigitavel: transaction.line || '',
+      dueDate: new Date(transaction.due_at || Date.now() + daysToExpire * 24 * 60 * 60 * 1000),
+      amount: order.amount / 100,
     };
   }
 

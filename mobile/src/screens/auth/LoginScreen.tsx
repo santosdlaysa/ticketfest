@@ -206,6 +206,16 @@ export default function LoginScreen({ navigation }: Props) {
 
               <Button
                 mode="text"
+                onPress={() => navigation.navigate('ForgotPassword')}
+                disabled={isLoading}
+                style={styles.forgotPasswordButton}
+                textColor={lumeraColors.lilasNeon}
+              >
+                Esqueci minha senha
+              </Button>
+
+              <Button
+                mode="text"
                 onPress={() => navigation.navigate('Register')}
                 disabled={isLoading}
                 style={styles.registerButton}
@@ -313,7 +323,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1.5,
   },
+  forgotPasswordButton: {
+    marginTop: spacing.md,
+  },
   registerButton: {
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
   },
 });

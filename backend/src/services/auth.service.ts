@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { query, transaction } from '../config/database.js';
 import { AppError } from '../middlewares/errorHandler.js';
 import {
@@ -7,6 +8,10 @@ import {
   verifyRefreshToken,
   type TokenPayload,
 } from '../utils/jwt.js';
+import { EmailService } from './email.service.js';
+import { env } from '../config/env.js';
+
+const emailService = new EmailService();
 
 export interface RegisterData {
   email: string;
@@ -266,5 +271,145 @@ export class AuthService {
       createdAt: user.created_at,
       updatedAt: user.updated_at,
     };
+  }
+
+  async forgotPassword(email: string) {
+    // Check if user exists
+    const userResult = await query<User>(
+      'SELECT id, email, name FROM users WHERE email = $1',
+      [email]
+    );
+
+    // Always return success to prevent email enumeration
+    if (userResult.rows.length === 0) {
+      return { message: 'Se o email existir, você receberá instruções para redefinir sua senha.' };
+    }
+
+    const user = userResult.rows[0];
+
+    // Generate secure random token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Invalidate any existing tokens for this user
+    await query(
+      'DELETE FROM password_reset_tokens WHERE user_id = $1',
+      [user.id]
+    );
+
+    // Save new token
+    await query(
+      `INSERT INTO password_reset_tokens (user_id, token, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, token, expiresAt]
+    );
+
+    // Build reset URL
+    const frontendUrl = env.FRONTEND_URL || 'http://localhost:3001';
+    const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
+
+    // Send email
+    try {
+      await emailService.sendPasswordResetEmail(user.email, {
+        userName: user.name,
+        resetUrl,
+        expiresIn: '1 hora',
+      });
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+      // Don't throw - we still want to return success
+    }
+
+    return { message: 'Se o email existir, você receberá instruções para redefinir sua senha.' };
+  }
+
+  async verifyResetToken(token: string) {
+    const result = await query<{
+      id: string;
+      user_id: string;
+      expires_at: Date;
+      used_at: Date | null;
+    }>(
+      `SELECT id, user_id, expires_at, used_at
+       FROM password_reset_tokens
+       WHERE token = $1`,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError(400, 'Token inválido ou expirado');
+    }
+
+    const resetToken = result.rows[0];
+
+    if (resetToken.used_at) {
+      throw new AppError(400, 'Este link já foi utilizado');
+    }
+
+    if (new Date(resetToken.expires_at) < new Date()) {
+      throw new AppError(400, 'Este link expirou. Solicite um novo.');
+    }
+
+    return { valid: true, userId: resetToken.user_id };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    // Verify token first
+    const tokenResult = await query<{
+      id: string;
+      user_id: string;
+      expires_at: Date;
+      used_at: Date | null;
+    }>(
+      `SELECT id, user_id, expires_at, used_at
+       FROM password_reset_tokens
+       WHERE token = $1`,
+      [token]
+    );
+
+    if (tokenResult.rows.length === 0) {
+      throw new AppError(400, 'Token inválido ou expirado');
+    }
+
+    const resetToken = tokenResult.rows[0];
+
+    if (resetToken.used_at) {
+      throw new AppError(400, 'Este link já foi utilizado');
+    }
+
+    if (new Date(resetToken.expires_at) < new Date()) {
+      throw new AppError(400, 'Este link expirou. Solicite um novo.');
+    }
+
+    // Validate password
+    if (!newPassword || newPassword.length < 6) {
+      throw new AppError(400, 'A senha deve ter pelo menos 6 caracteres');
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password and mark token as used in transaction
+    await transaction(async (client) => {
+      // Update user password
+      await client.query(
+        'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+        [passwordHash, resetToken.user_id]
+      );
+
+      // Mark token as used
+      await client.query(
+        'UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1',
+        [resetToken.id]
+      );
+
+      // Invalidate all refresh tokens for this user (logout from all devices)
+      await client.query(
+        'DELETE FROM refresh_tokens WHERE user_id = $1',
+        [resetToken.user_id]
+      );
+    });
+
+    return { message: 'Senha redefinida com sucesso!' };
   }
 }
