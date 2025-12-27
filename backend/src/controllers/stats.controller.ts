@@ -14,9 +14,9 @@ export class StatsController {
 
       const stats = await statsService.getOrganizerStats(userId);
 
-      res.json(stats);
+      return res.json(stats);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -31,9 +31,9 @@ export class StatsController {
 
       const stats = await statsService.getEventStats(eventId, userId);
 
-      res.json(stats);
+      return res.json(stats);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 }

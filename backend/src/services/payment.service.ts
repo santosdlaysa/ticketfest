@@ -355,7 +355,7 @@ export class PaymentService {
   async createPaymentIntent(
     amount: number,
     currency: string = 'brl',
-    metadata?: Record<string, string>
+    _metadata?: Record<string, string>
   ): Promise<PaymentIntent> {
     // Mock for legacy compatibility
     return {
@@ -389,7 +389,7 @@ export class PaymentService {
   async generateBoleto(
     amount: number,
     orderId: string,
-    customerData: { name: string; cpf: string; email: string }
+    _customerData: { name: string; cpf: string; email: string }
   ): Promise<{ boletoUrl: string; barcode: string; dueDate: Date }> {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 3);

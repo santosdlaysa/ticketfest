@@ -23,7 +23,7 @@ export class CheckinService {
       throw new AppError(400, validation.error || 'Invalid QR code');
     }
 
-    const { ticketId, orderId, userId } = validation.data;
+    const { ticketId, orderId: _orderId, userId: _userId } = validation.data;
 
     // Get ticket instance with all related data
     const result = await query<TicketInstance & {

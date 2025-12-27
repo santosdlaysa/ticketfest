@@ -26,9 +26,9 @@ export class CouponController {
         userId
       );
 
-      res.status(201).json(coupon);
+      return res.status(201).json(coupon);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -41,9 +41,9 @@ export class CouponController {
       }
 
       const result = await couponService.validate(code, subtotal, eventId);
-      res.json(result);
+      return res.json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -51,9 +51,9 @@ export class CouponController {
     try {
       const userId = req.user!.id;
       const coupons = await couponService.getByOrganizer(userId);
-      res.json(coupons);
+      return res.json(coupons);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -61,9 +61,9 @@ export class CouponController {
     try {
       const { eventId } = req.params;
       const coupons = await couponService.getByEvent(eventId);
-      res.json(coupons);
+      return res.json(coupons);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -72,9 +72,9 @@ export class CouponController {
       const userId = req.user!.id;
       const { couponId } = req.params;
       const coupon = await couponService.update(couponId, req.body, userId);
-      res.json(coupon);
+      return res.json(coupon);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -83,9 +83,9 @@ export class CouponController {
       const userId = req.user!.id;
       const { couponId } = req.params;
       await couponService.delete(couponId, userId);
-      res.json({ message: 'Coupon deleted' });
+      return res.json({ message: 'Coupon deleted' });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 }

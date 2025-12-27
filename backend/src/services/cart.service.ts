@@ -1,4 +1,4 @@
-import { query, transaction } from '../config/database.js';
+import { query } from '../config/database.js';
 import { AppError } from '../middlewares/errorHandler.js';
 
 interface Cart {
@@ -29,13 +29,6 @@ interface Ticket {
   sales_end: Date;
 }
 
-interface Event {
-  id: string;
-  name: string;
-  date: Date;
-  location: string;
-  images: string[];
-}
 
 export class CartService {
   private async getOrCreateCart(userId?: string, sessionId?: string) {

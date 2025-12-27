@@ -29,7 +29,7 @@ const extractToken = (req: Request): string | null => {
   return null;
 };
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
   const token = extractToken(req);
 
   if (!token) {
@@ -55,7 +55,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 };
 
 // Optional authentication - populates req.user if token is valid, but doesn't block the request
-export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction) => {
   const token = extractToken(req);
 
   if (!token) {
@@ -78,7 +78,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
 };
 
 export const authorize = (...roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new AppError(401, 'Authentication required');
     }

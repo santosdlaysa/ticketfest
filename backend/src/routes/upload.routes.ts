@@ -14,10 +14,10 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Configure multer storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_req, _file, cb) => {
     cb(null, uploadsDir);
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
     cb(null, `${uniqueSuffix}${ext}`);
@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 });
 
 // File filter for images only
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
@@ -54,14 +54,14 @@ router.post('/image', authenticate, upload.single('image'), async (req: Request,
     const host = req.get('host');
     const imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
 
-    res.json({
+    return res.json({
       success: true,
       url: imageUrl,
       filename: req.file.filename,
     });
   } catch (error: any) {
     console.error('Erro no upload:', error);
-    res.status(500).json({ error: error.message || 'Erro ao fazer upload' });
+    return res.status(500).json({ error: error.message || 'Erro ao fazer upload' });
   }
 });
 
@@ -79,14 +79,14 @@ router.post('/images', authenticate, upload.array('images', 5), async (req: Requ
     const host = req.get('host');
     const urls = files.map(file => `${protocol}://${host}/uploads/${file.filename}`);
 
-    res.json({
+    return res.json({
       success: true,
       urls,
       count: files.length,
     });
   } catch (error: any) {
     console.error('Erro no upload:', error);
-    res.status(500).json({ error: error.message || 'Erro ao fazer upload' });
+    return res.status(500).json({ error: error.message || 'Erro ao fazer upload' });
   }
 });
 
@@ -98,13 +98,13 @@ router.delete('/:filename', authenticate, async (req: Request, res: Response) =>
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      res.json({ success: true, message: 'Imagem deletada com sucesso' });
+      return res.json({ success: true, message: 'Imagem deletada com sucesso' });
     } else {
-      res.status(404).json({ error: 'Arquivo não encontrado' });
+      return res.status(404).json({ error: 'Arquivo não encontrado' });
     }
   } catch (error: any) {
     console.error('Erro ao deletar:', error);
-    res.status(500).json({ error: error.message || 'Erro ao deletar arquivo' });
+    return res.status(500).json({ error: error.message || 'Erro ao deletar arquivo' });
   }
 });
 

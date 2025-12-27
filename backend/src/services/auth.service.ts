@@ -10,7 +10,7 @@ import {
 } from '../utils/jwt.js';
 import { EmailService } from './email.service.js';
 import { env } from '../config/env.js';
-import { encryptData, decryptData, maskCPF } from '../utils/encryption.js';
+import { encryptData, decryptData } from '../utils/encryption.js';
 
 const emailService = new EmailService();
 
@@ -203,9 +203,8 @@ export class AuthService {
 
   async refreshToken(token: string) {
     // Verify token
-    let payload: TokenPayload;
     try {
-      payload = verifyRefreshToken(token);
+      verifyRefreshToken(token);
     } catch (error) {
       throw new AppError(401, 'Invalid refresh token');
     }

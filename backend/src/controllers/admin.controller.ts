@@ -172,7 +172,7 @@ export class AdminController {
   }
 
   // Reminders (manual trigger for testing)
-  async triggerReminders(req: Request, res: Response) {
+  async triggerReminders(_req: Request, res: Response) {
     const result = await triggerRemindersManually();
     res.status(200).json({
       message: 'Reminders processed successfully',
@@ -216,6 +216,6 @@ export class AdminController {
     }
 
     const result = await adminService.updateUserRole(id, role);
-    res.status(200).json(result);
+    return res.status(200).json(result);
   }
 }

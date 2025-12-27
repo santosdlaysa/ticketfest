@@ -1,9 +1,6 @@
-import { query, transaction } from '../config/database.js';
+import { query } from '../config/database.js';
 import { AppError } from '../middlewares/errorHandler.js';
 import { financialService } from './financial.service.js';
-import { EmailService } from './email.service.js';
-
-const emailService = new EmailService();
 
 interface PayoutRequest {
   amount: number;
@@ -16,7 +13,7 @@ interface PayoutRequest {
   accountType?: 'CHECKING' | 'SAVINGS';
 }
 
-interface Payout {
+export interface Payout {
   id: string;
   organizerAccountId: string;
   amount: number;
@@ -264,7 +261,7 @@ export class PayoutService {
   /**
    * Approve payout (admin)
    */
-  async approvePayout(payoutId: string, adminId: string): Promise<Payout> {
+  async approvePayout(payoutId: string, _adminId: string): Promise<Payout> {
     const payout = await this.getPayoutById(payoutId);
     if (!payout) {
       throw new AppError(404, 'Saque nao encontrado');
@@ -309,7 +306,7 @@ export class PayoutService {
   /**
    * Reject payout (admin)
    */
-  async rejectPayout(payoutId: string, adminId: string, reason: string): Promise<Payout> {
+  async rejectPayout(payoutId: string, _adminId: string, reason: string): Promise<Payout> {
     const payout = await this.getPayoutById(payoutId);
     if (!payout) {
       throw new AppError(404, 'Saque nao encontrado');

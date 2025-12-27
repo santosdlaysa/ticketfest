@@ -39,7 +39,7 @@ export class OrderController {
     }
 
     const order = await orderService.confirmPayment(id, paymentId);
-    res.status(200).json(order);
+    return res.status(200).json(order);
   }
 
   async cancelOrder(req: Request, res: Response) {
@@ -67,14 +67,14 @@ export class OrderController {
         cvv,
       });
 
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error: any) {
       console.error('Card token error:', error);
-      res.status(400).json({ error: error.message || 'Failed to create card token' });
+      return res.status(400).json({ error: error.message || 'Failed to create card token' });
     }
   }
 
-  async getPaymentConfig(req: Request, res: Response) {
+  async getPaymentConfig(_req: Request, res: Response) {
     const publicKey = paymentService.getPublicKey();
     const isConfigured = paymentService.isConfigured();
 

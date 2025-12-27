@@ -67,7 +67,7 @@ export const authRateLimiter = rateLimit({
   keyGenerator,
   standardHeaders,
   legacyHeaders,
-  handler: (req: Request, res: Response) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json({
       error: rateLimitConfigs.auth.message,
       retryAfter: Math.ceil(rateLimitConfigs.auth.windowMs / 1000),
@@ -80,7 +80,7 @@ export const passwordResetRateLimiter = rateLimit({
   keyGenerator,
   standardHeaders,
   legacyHeaders,
-  handler: (req: Request, res: Response) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json({
       error: rateLimitConfigs.passwordReset.message,
       retryAfter: Math.ceil(rateLimitConfigs.passwordReset.windowMs / 1000),
@@ -93,7 +93,7 @@ export const ordersRateLimiter = rateLimit({
   keyGenerator,
   standardHeaders,
   legacyHeaders,
-  handler: (req: Request, res: Response) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json({
       error: rateLimitConfigs.orders.message,
       retryAfter: Math.ceil(rateLimitConfigs.orders.windowMs / 1000),
@@ -106,7 +106,7 @@ export const checkinRateLimiter = rateLimit({
   keyGenerator,
   standardHeaders,
   legacyHeaders,
-  handler: (req: Request, res: Response) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json({
       error: rateLimitConfigs.checkin.message,
       retryAfter: Math.ceil(rateLimitConfigs.checkin.windowMs / 1000),
@@ -119,7 +119,7 @@ export const generalRateLimiter = rateLimit({
   keyGenerator,
   standardHeaders,
   legacyHeaders,
-  handler: (req: Request, res: Response) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json({
       error: rateLimitConfigs.general.message,
       retryAfter: Math.ceil(rateLimitConfigs.general.windowMs / 1000),
@@ -132,7 +132,7 @@ export const publicRateLimiter = rateLimit({
   keyGenerator,
   standardHeaders,
   legacyHeaders,
-  handler: (req: Request, res: Response) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json({
       error: rateLimitConfigs.public.message,
       retryAfter: Math.ceil(rateLimitConfigs.public.windowMs / 1000),
@@ -145,7 +145,7 @@ export const uploadRateLimiter = rateLimit({
   keyGenerator,
   standardHeaders,
   legacyHeaders,
-  handler: (req: Request, res: Response) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json({
       error: rateLimitConfigs.upload.message,
       retryAfter: Math.ceil(rateLimitConfigs.upload.windowMs / 1000),

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service.js';
-import { validate, registerSchema, loginSchema } from '../utils/validation.js';
+import { validate, registerSchema } from '../utils/validation.js';
 import { env } from '../config/env.js';
 
 const authService = new AuthService();
@@ -69,13 +69,13 @@ export class AuthController {
       setAuthCookies(res, result.accessToken, result.refreshToken);
 
       // Return user info (tokens are in cookies, not in response body for security)
-      res.status(200).json({
+      return res.status(200).json({
         user: result.user,
         accessToken: result.accessToken, // Keep for backwards compatibility
         refreshToken: result.refreshToken, // Keep for backwards compatibility
       });
     } catch (error: any) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -96,7 +96,7 @@ export class AuthController {
         maxAge: 15 * 60 * 1000, // 15 minutes
       });
 
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error: any) {
       // Clear cookies on refresh failure
       clearAuthCookies(res);
@@ -139,9 +139,9 @@ export class AuthController {
       }
 
       const result = await authService.forgotPassword(email);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error: any) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -154,9 +154,9 @@ export class AuthController {
       }
 
       const result = await authService.verifyResetToken(token);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error: any) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -169,9 +169,9 @@ export class AuthController {
       }
 
       const result = await authService.resetPassword(token, password);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error: any) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -197,9 +197,9 @@ export class AuthController {
       }
 
       const result = await authService.changePassword(userId, currentPassword, newPassword);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error: any) {
-      next(error);
+      return next(error);
     }
   }
 }

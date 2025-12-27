@@ -334,8 +334,6 @@ export class PagarmeService {
       return this.mockOrderResponse('credit_card', items, metadata);
     }
 
-    const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
-
     const orderRequest: PagarmeOrderRequest = {
       customer,
       items,
@@ -561,7 +559,7 @@ export class PagarmeService {
   private mockOrderResponse(
     paymentMethod: string,
     items: PagarmeItem[],
-    metadata?: Record<string, string>
+    _metadata?: Record<string, string>
   ): PagarmeOrderResponse {
     const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
     const now = new Date().toISOString();
@@ -604,7 +602,7 @@ export class PagarmeService {
   private mockPixOrderResponse(
     items: PagarmeItem[],
     expiresInSeconds: number,
-    metadata?: Record<string, string>
+    _metadata?: Record<string, string>
   ): PagarmeOrderResponse {
     const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
     const now = new Date().toISOString();
@@ -663,7 +661,7 @@ export class PagarmeService {
   private mockBoletoOrderResponse(
     items: PagarmeItem[],
     daysToExpire: number,
-    metadata?: Record<string, string>
+    _metadata?: Record<string, string>
   ): PagarmeOrderResponse {
     const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
     const now = new Date().toISOString();

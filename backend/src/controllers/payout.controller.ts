@@ -97,7 +97,8 @@ export class PayoutController {
    */
   async getPayoutById(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user!.id;
+      // User check could be added here for authorization
+      void req.user;
       const { id } = req.params;
 
       const payout = await payoutService.getPayoutById(id);
@@ -106,9 +107,9 @@ export class PayoutController {
         return res.status(404).json({ error: 'Saque nao encontrado' });
       }
 
-      res.json(payout);
+      return res.json(payout);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 

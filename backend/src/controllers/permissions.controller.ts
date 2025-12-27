@@ -5,12 +5,12 @@ const permissionsService = new PermissionsService();
 
 export class PermissionsController {
   // Run migration
-  async runMigration(req: Request, res: Response, next: NextFunction) {
+  async runMigration(_req: Request, res: Response, next: NextFunction) {
     try {
       const result = await permissionsService.runMigration();
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -19,9 +19,9 @@ export class PermissionsController {
     try {
       const userId = req.user!.id;
       const result = await permissionsService.getMyPermissions(userId);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -31,9 +31,9 @@ export class PermissionsController {
       const userId = req.user!.id;
       const { code } = req.params;
       const hasPermission = await permissionsService.checkPermission(userId, code);
-      res.status(200).json({ hasPermission });
+      return res.status(200).json({ hasPermission });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -48,9 +48,9 @@ export class PermissionsController {
       }
 
       const result = await permissionsService.checkPermissions(userId, codes);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -59,19 +59,19 @@ export class PermissionsController {
     try {
       const { module } = req.query;
       const permissions = await permissionsService.getAllPermissions(module as string);
-      res.status(200).json(permissions);
+      return res.status(200).json(permissions);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
   // Get permissions grouped by module
-  async getPermissionsByModule(req: Request, res: Response, next: NextFunction) {
+  async getPermissionsByModule(_req: Request, res: Response, next: NextFunction) {
     try {
       const grouped = await permissionsService.getPermissionsByModule();
-      res.status(200).json(grouped);
+      return res.status(200).json(grouped);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -87,9 +87,9 @@ export class PermissionsController {
         role: role as string,
       });
 
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -98,9 +98,9 @@ export class PermissionsController {
     try {
       const { userId } = req.params;
       const user = await permissionsService.getUserWithPermissions(userId);
-      res.status(200).json(user);
+      return res.status(200).json(user);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -116,9 +116,9 @@ export class PermissionsController {
       }
 
       const result = await permissionsService.setUserPermissions(userId, permissionIds, grantedBy);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -139,9 +139,9 @@ export class PermissionsController {
         grantedBy,
         !!permissionCode
       );
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -160,9 +160,9 @@ export class PermissionsController {
         permissionCode || permissionId,
         !!permissionCode
       );
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -181,9 +181,9 @@ export class PermissionsController {
         description,
         module,
       });
-      res.status(201).json(permission);
+      return res.status(201).json(permission);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -198,9 +198,9 @@ export class PermissionsController {
         description,
         module,
       });
-      res.status(200).json(permission);
+      return res.status(200).json(permission);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -209,9 +209,9 @@ export class PermissionsController {
     try {
       const { id } = req.params;
       const result = await permissionsService.deletePermission(id);
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 }

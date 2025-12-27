@@ -1,5 +1,4 @@
 import { query } from '../config/database.js';
-import { AppError } from '../middlewares/errorHandler.js';
 
 // Platform fee rate (10%)
 const PLATFORM_FEE_RATE = 0.10;
@@ -29,12 +28,6 @@ export class FinancialService {
    * Get organizer's financial balance
    */
   async getOrganizerBalance(userId: string): Promise<OrganizerBalance> {
-    // Get organizer account
-    const accountResult = await query<{ id: string }>(
-      'SELECT id FROM organizer_accounts WHERE user_id = $1',
-      [userId]
-    );
-
     // If no organizer account exists, calculate from orders directly
     // Get total earnings from paid orders (after platform fee)
     const earningsResult = await query<{ total_earnings: string; pending_orders: string }>(
