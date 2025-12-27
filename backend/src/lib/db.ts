@@ -19,13 +19,14 @@ interface PoolConfig {
 }
 
 // Pool configurations - use connectionString (DATABASE_URL) if available
+// Enable SSL when using DATABASE_URL (remote database) regardless of NODE_ENV
 const primaryConfig: PoolConfig = dbConfig.primary.url
   ? {
       connectionString: dbConfig.primary.url,
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 30000,
       max: 20,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: { rejectUnauthorized: false },
     }
   : {
       host: dbConfig.primary.host,
