@@ -10,7 +10,7 @@ const isProduction = env.NODE_ENV === 'production';
 const cookieOptions = {
   httpOnly: true,
   secure: isProduction, // Only send over HTTPS in production
-  sameSite: isProduction ? 'strict' as const : 'lax' as const,
+  sameSite: isProduction ? 'none' as const : 'lax' as const, // 'none' required for cross-origin cookies
   path: '/',
 };
 

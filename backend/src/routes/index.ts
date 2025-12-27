@@ -13,6 +13,7 @@ import uploadRoutes from './upload.routes.js';
 import payoutRoutes from './payout.routes.js';
 import couponRoutes from './coupon.routes.js';
 import permissionsRoutes from './permissions.routes.js';
+import migrateRoutes from './migrate.routes.js';
 import { getConnectionStatus, query } from '../config/database.js';
 
 const router = Router();
@@ -51,6 +52,7 @@ router.use('/upload', uploadRoutes);
 router.use('/payouts', payoutRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/permissions', permissionsRoutes);
+router.use('/migrate', migrateRoutes);
 
 // Test endpoint - ONLY FOR DEVELOPMENT
 if (process.env.NODE_ENV !== 'production') {
