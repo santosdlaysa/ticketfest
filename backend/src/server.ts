@@ -11,41 +11,56 @@ const PORT = parseInt(env.PORT) || 4000;
 
 // Função para iniciar o servidor
 const startServer = async () => {
+  let dbConnected = false;
+
+  // Tentar conectar ao banco de dados, mas não falhar se não conseguir
   try {
-    // Conectar ao banco de dados
     await DatabaseService.connect();
-
-    // Start server - listen on all interfaces (0.0.0.0) to accept connections from mobile devices
-    const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log('');
-      console.log('🎉 Lumera API Server Started');
-      console.log('================================');
-      console.log(`📡 Port: ${PORT}`);
-      console.log(`🌍 Environment: ${env.NODE_ENV}`);
-      console.log(`🔗 API URL: ${env.API_URL}`);
-      console.log(`📱 Mobile access: http://192.168.100.136:${PORT}/api`);
-      console.log(`📦 Database: ${dbConfig.database}@${dbConfig.host}:${dbConfig.port}`);
-      console.log('');
-      console.log('📚 API Endpoints:');
-      console.log(`   Docs: ${env.API_URL}/api/docs`);
-      console.log(`   Health: ${env.API_URL}/api/health`);
-      console.log(`   Auth: ${env.API_URL}/api/auth/*`);
-      console.log(`   Events: ${env.API_URL}/api/events`);
-      console.log(`   Tickets: ${env.API_URL}/api/tickets`);
-      console.log(`   Cart: ${env.API_URL}/api/cart`);
-      console.log(`   Orders: ${env.API_URL}/api/orders`);
-      console.log(`   Check-in: ${env.API_URL}/api/checkin`);
-      console.log('');
-
-      // Initialize scheduled jobs
-      initializeScheduler();
-    });
-
-    return server;
+    dbConnected = true;
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
+    console.error('❌ Database connection failed:', error);
+    console.log('⚠️  Server will start without database. Some features may be unavailable.');
+
+    // Tentar reconectar em background
+    setTimeout(async () => {
+      console.log('🔄 Retrying database connection...');
+      try {
+        await DatabaseService.connect();
+        console.log('✅ Database connected on retry');
+      } catch (retryError) {
+        console.error('❌ Database retry failed:', retryError);
+      }
+    }, 10000);
   }
+
+  // Start server - listen on all interfaces (0.0.0.0) to accept connections from mobile devices
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log('');
+    console.log('🎉 Lumera API Server Started');
+    console.log('================================');
+    console.log(`📡 Port: ${PORT}`);
+    console.log(`🌍 Environment: ${env.NODE_ENV}`);
+    console.log(`🔗 API URL: ${env.API_URL}`);
+    console.log(`📦 Database: ${dbConnected ? 'Connected' : 'Not connected'} (${dbConfig.database}@${dbConfig.host}:${dbConfig.port})`);
+    console.log('');
+    console.log('📚 API Endpoints:');
+    console.log(`   Docs: ${env.API_URL}/api/docs`);
+    console.log(`   Health: ${env.API_URL}/api/health`);
+    console.log(`   Auth: ${env.API_URL}/api/auth/*`);
+    console.log(`   Events: ${env.API_URL}/api/events`);
+    console.log(`   Tickets: ${env.API_URL}/api/tickets`);
+    console.log(`   Cart: ${env.API_URL}/api/cart`);
+    console.log(`   Orders: ${env.API_URL}/api/orders`);
+    console.log(`   Check-in: ${env.API_URL}/api/checkin`);
+    console.log('');
+
+    // Initialize scheduled jobs only if DB is connected
+    if (dbConnected) {
+      initializeScheduler();
+    }
+  });
+
+  return server;
 };
 
 // Iniciar servidor e configurar handlers
