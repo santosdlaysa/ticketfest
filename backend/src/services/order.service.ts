@@ -218,6 +218,11 @@ export class OrderService {
 
     const user = userResult.rows[0];
 
+    // Validate CPF for payment methods that require it
+    if ((data.paymentMethod === 'PIX' || data.paymentMethod === 'BOLETO') && !user.cpf) {
+      throw new AppError(400, 'CPF é obrigatório para pagamento via PIX ou Boleto. Atualize seu perfil.');
+    }
+
     // Prepare customer data for Pagar.me
     const customerData = {
       name: user.name,
@@ -237,86 +242,118 @@ export class OrderService {
     // Process payment
     let paymentData: any = {};
 
-    if (data.paymentMethod === 'CREDIT_CARD') {
-      if (!data.cardToken) {
-        throw new AppError(400, 'Card token is required for credit card payment');
-      }
+    try {
+      if (data.paymentMethod === 'CREDIT_CARD') {
+        if (!data.cardToken) {
+          throw new AppError(400, 'Card token is required for credit card payment');
+        }
 
-      const cardPayment = await paymentService.createCreditCardPayment(
-        customerData,
-        paymentItems,
-        data.cardToken,
-        data.installments || 1,
-        { orderId: order.id, userId }
-      );
+        const cardPayment = await paymentService.createCreditCardPayment(
+          customerData,
+          paymentItems,
+          data.cardToken,
+          data.installments || 1,
+          { orderId: order.id, userId }
+        );
 
-      paymentData = { card: cardPayment };
+        paymentData = { card: cardPayment };
 
-      await query(
-        'UPDATE orders SET payment_id = $1 WHERE id = $2',
-        [cardPayment.chargeId, order.id]
-      );
-
-      if (cardPayment.status === 'paid') {
         await query(
-          "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
-          [order.id]
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [cardPayment.chargeId, order.id]
+        );
+
+        if (cardPayment.status === 'paid') {
+          await query(
+            "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+            [order.id]
+          );
+        }
+      } else if (data.paymentMethod === 'DEBIT_CARD') {
+        if (!data.cardToken) {
+          throw new AppError(400, 'Card token is required for debit card payment');
+        }
+
+        const cardPayment = await paymentService.createDebitCardPayment(
+          customerData,
+          paymentItems,
+          data.cardToken,
+          { orderId: order.id, userId }
+        );
+
+        paymentData = { card: cardPayment };
+
+        await query(
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [cardPayment.chargeId, order.id]
+        );
+
+        if (cardPayment.status === 'paid') {
+          await query(
+            "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+            [order.id]
+          );
+        }
+      } else if (data.paymentMethod === 'PIX') {
+        const pixPayment = await paymentService.createPixPayment(
+          customerData,
+          paymentItems,
+          3600,
+          { orderId: order.id, userId }
+        );
+
+        paymentData = { pix: pixPayment };
+
+        await query(
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [pixPayment.chargeId, order.id]
+        );
+      } else if (data.paymentMethod === 'BOLETO') {
+        const boletoPayment = await paymentService.createBoletoPayment(
+          customerData,
+          paymentItems,
+          3, // 3 days to expire
+          'Pagar ate a data de vencimento. Apos o vencimento, multa de 2% e juros de 1% ao mes.',
+          { orderId: order.id, userId }
+        );
+
+        paymentData = { boleto: boletoPayment };
+
+        await query(
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [boletoPayment.chargeId, order.id]
         );
       }
-    } else if (data.paymentMethod === 'DEBIT_CARD') {
-      if (!data.cardToken) {
-        throw new AppError(400, 'Card token is required for debit card payment');
-      }
+    } catch (paymentError) {
+      // Payment failed - cancel the order and restore ticket counts
+      console.error('Payment failed, cancelling order:', paymentError);
 
-      const cardPayment = await paymentService.createDebitCardPayment(
-        customerData,
-        paymentItems,
-        data.cardToken,
-        { orderId: order.id, userId }
-      );
-
-      paymentData = { card: cardPayment };
-
-      await query(
-        'UPDATE orders SET payment_id = $1 WHERE id = $2',
-        [cardPayment.chargeId, order.id]
-      );
-
-      if (cardPayment.status === 'paid') {
-        await query(
-          "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+      await transaction(async (client) => {
+        // Update order status to CANCELLED
+        await client.query(
+          `UPDATE orders SET status = 'CANCELLED', payment_status = 'FAILED' WHERE id = $1`,
           [order.id]
         );
-      }
-    } else if (data.paymentMethod === 'PIX') {
-      const pixPayment = await paymentService.createPixPayment(
-        customerData,
-        paymentItems,
-        3600,
-        { orderId: order.id, userId }
-      );
 
-      paymentData = { pix: pixPayment };
+        // Restore ticket counts
+        for (const { ticket, quantity } of tickets) {
+          await client.query(
+            'UPDATE tickets SET sold = sold - $1 WHERE id = $2',
+            [quantity, ticket.id]
+          );
+        }
 
-      await query(
-        'UPDATE orders SET payment_id = $1 WHERE id = $2',
-        [pixPayment.chargeId, order.id]
-      );
-    } else if (data.paymentMethod === 'BOLETO') {
-      const boletoPayment = await paymentService.createBoletoPayment(
-        customerData,
-        paymentItems,
-        3, // 3 days to expire
-        'Pagar ate a data de vencimento. Apos o vencimento, multa de 2% e juros de 1% ao mes.',
-        { orderId: order.id, userId }
-      );
+        // Restore coupon usage if applied
+        if (data.couponCode) {
+          await client.query(
+            'UPDATE coupons SET used_count = used_count - 1 WHERE code = $1',
+            [data.couponCode]
+          );
+        }
+      });
 
-      paymentData = { boleto: boletoPayment };
-
-      await query(
-        'UPDATE orders SET payment_id = $1 WHERE id = $2',
-        [boletoPayment.chargeId, order.id]
-      );
+      // Re-throw the error
+      throw paymentError;
     }
 
     // Get full order with relations
@@ -503,20 +540,26 @@ export class OrderService {
       [orderItemIds]
     ) : { rows: [] };
 
-    // Group instances by order item
+    // Group instances by order item and generate QR code images
     const instancesByOrderItem = new Map<string, any[]>();
-    instancesResult.rows.forEach((instance) => {
-      if (!instancesByOrderItem.has(instance.order_item_id)) {
-        instancesByOrderItem.set(instance.order_item_id, []);
-      }
-      instancesByOrderItem.get(instance.order_item_id)!.push({
-        id: instance.id,
-        qrCode: instance.qr_code,
-        qrCodeData: instance.qr_code_data,
-        checkedIn: instance.checked_in,
-        checkedInAt: instance.checked_in_at,
-      });
-    });
+
+    // Generate QR code images for all instances
+    await Promise.all(
+      instancesResult.rows.map(async (instance) => {
+        const qrCodeImage = await qrCodeService.generateQRCodeImage(instance.qr_code_data);
+
+        if (!instancesByOrderItem.has(instance.order_item_id)) {
+          instancesByOrderItem.set(instance.order_item_id, []);
+        }
+        instancesByOrderItem.get(instance.order_item_id)!.push({
+          id: instance.id,
+          qrCode: qrCodeImage,
+          qrCodeData: instance.qr_code_data,
+          checkedIn: instance.checked_in,
+          checkedInAt: instance.checked_in_at,
+        });
+      })
+    );
 
     // Group items by order
     const itemsByOrder = new Map<string, any[]>();

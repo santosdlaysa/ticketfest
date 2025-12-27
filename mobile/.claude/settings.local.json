@@ -6,7 +6,11 @@
       "Bash(npx expo start --clear)",
       "Bash(npx expo start:*)",
       "Bash(npx expo install:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(cat:*)",
+      "Bash(PGPASSWORD=220798 psql:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

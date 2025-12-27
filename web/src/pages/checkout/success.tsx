@@ -91,7 +91,7 @@ export default function CheckoutSuccess() {
         // Refresh order data
         fetchOrder(orderId);
       } else {
-        toast.info(result.message);
+        toast(result.message, { icon: 'ℹ️' });
       }
     } catch (error: any) {
       console.error('Error checking payment:', error);

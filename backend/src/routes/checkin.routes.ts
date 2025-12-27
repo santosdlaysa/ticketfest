@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import { CheckinController } from '../controllers/checkin.controller.js';
 import { authenticate, authorize } from '../middlewares/auth.js';
+import { checkinRateLimiter } from '../middlewares/rateLimiter.js';
 
 const router = Router();
 const checkinController = new CheckinController();
 
 router.use(authenticate);
 
-// Validate and check-in a ticket
-router.post('/validate', (req, res) => checkinController.validateTicket(req, res));
+// Validate and check-in a ticket (rate limited to prevent scanning abuse)
+router.post('/validate', checkinRateLimiter, (req, res) => checkinController.validateTicket(req, res));
 
 // Get event check-in statistics (organizers/admins only)
 router.get(

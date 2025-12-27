@@ -23,10 +23,18 @@ interface CheckoutForm {
 export default function Checkout() {
   const router = useRouter();
   const { cart, clearCart, fetchCart } = useCartStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState<CheckoutForm | null>(null);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      toast.error('Faca login para finalizar a compra');
+      router.push('/auth/login?redirect=/checkout');
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   const {
     register,
@@ -52,18 +60,24 @@ export default function Checkout() {
     }
   }, [user, setValue]);
 
+  const [cartLoaded, setCartLoaded] = useState(false);
+
   // Fetch cart
   useEffect(() => {
-    fetchCart();
+    const loadCart = async () => {
+      await fetchCart();
+      setCartLoaded(true);
+    };
+    loadCart();
   }, [fetchCart]);
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (only after cart has been loaded)
   useEffect(() => {
-    if (cart && cart.items.length === 0) {
+    if (cartLoaded && cart && cart.items.length === 0) {
       toast.error('Seu carrinho esta vazio');
       router.push('/events');
     }
-  }, [cart, router]);
+  }, [cart, router, cartLoaded]);
 
   const onSubmit = async (data: CheckoutForm) => {
     if (!cart || cart.items.length === 0) {
@@ -180,8 +194,18 @@ export default function Checkout() {
       .replace(/(-\d{4})\d+?$/, '$1');
   };
 
+  // Show loading while checking auth or cart
+  if (authLoading || !cartLoaded || !isAuthenticated) {
+    return (
+      <div className="container-custom py-16 text-center">
+        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Carregando...</p>
+      </div>
+    );
+  }
+
   if (!cart) {
-    return null; // Loading
+    return null;
   }
 
   return (

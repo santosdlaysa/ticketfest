@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import Sentry from '../config/sentry.js';
+import logger from '../config/logger.js';
 
 export class AppError extends Error {
   constructor(
@@ -16,21 +18,41 @@ export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   // Zod validation errors
   if (err instanceof ZodError) {
+    // Erros de validação não são enviados ao Sentry (são erros do cliente)
+    const details = err.errors.map((e) => ({
+      field: e.path.join('.'),
+      message: e.message,
+    }));
+    // Return the first error message as main error for better UX
+    const mainError = details[0]?.message || 'Erro de validação';
     return res.status(400).json({
-      error: 'Validation Error',
-      details: err.errors.map((e) => ({
-        field: e.path.join('.'),
-        message: e.message,
-      })),
+      error: mainError,
+      details,
     });
   }
 
   // Custom AppError
   if (err instanceof AppError) {
+    // Apenas captura no Sentry erros operacionais críticos (>= 500)
+    if (err.statusCode >= 500) {
+      Sentry.captureException(err, {
+        tags: {
+          errorType: 'AppError',
+          statusCode: err.statusCode.toString(),
+        },
+        level: 'error',
+        extra: {
+          isOperational: err.isOperational,
+          url: req.url,
+          method: req.method,
+        },
+      });
+    }
+
     return res.status(err.statusCode).json({
       error: err.message,
     });
@@ -61,10 +83,44 @@ export const errorHandler = (
         error: `Missing required field: ${pgError.column}`,
       });
     }
+
+    // Outros erros do PostgreSQL são críticos
+    Sentry.captureException(err, {
+      tags: {
+        errorType: 'PostgreSQL',
+        pgCode: pgError.code,
+      },
+      level: 'error',
+      extra: {
+        detail: pgError.detail,
+        hint: pgError.hint,
+        url: req.url,
+        method: req.method,
+      },
+    });
   }
 
   // Log unexpected errors
-  console.error('❌ Unexpected error:', err);
+  logger.error('Unexpected error', {
+    type: 'error',
+    message: err.message,
+    stack: err.stack,
+  });
+
+  // Captura erros inesperados no Sentry
+  Sentry.captureException(err, {
+    tags: {
+      errorType: 'UnexpectedError',
+    },
+    level: 'error',
+    extra: {
+      url: req.url,
+      method: req.method,
+      body: req.body,
+      query: req.query,
+      params: req.params,
+    },
+  });
 
   // Default error response
   return res.status(500).json({

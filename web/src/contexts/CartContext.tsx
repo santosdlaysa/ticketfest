@@ -39,9 +39,14 @@ export const useCartStore = create<CartState>()(
           // Ensure session ID exists for guest users
           get().getSessionId();
           const cart = await cartApi.get();
-          set({ cart });
+
+          // Only update if we got a valid response
+          if (cart) {
+            set({ cart });
+          }
         } catch (error) {
           console.error('Error fetching cart:', error);
+          // Don't clear local cart on error - keep what we have
         } finally {
           set({ isLoading: false });
         }

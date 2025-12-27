@@ -15,7 +15,18 @@
       "Bash(npm uninstall:*)",
       "Bash(rm:*)",
       "Bash(npm run dev:*)",
-      "Bash(timeout 10 npm run dev)"
+      "Bash(timeout 10 npm run dev)",
+      "Bash(npm run test:e2e:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node --experimental-vm-modules node_modules/jest/bin/jest.js:*)",
+      "Bash(wc:*)",
+      "Bash(PGPASSWORD=220798 psql:*)",
+      "Bash(where:*)",
+      "Bash(\"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\" -h localhost -U postgres -d lumera -c \"\\\\dt\")",
+      "Bash(cmd /c \"set PGPASSWORD=220798 && \"\"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\"\" -h localhost -U postgres -d lumera -c \"\"\\\\dt\"\"\")",
+      "Bash(node check-db.js:*)",
+      "Bash(node run-migration.cjs:*)",
+      "Bash(test:*)"
     ]
   }
 }

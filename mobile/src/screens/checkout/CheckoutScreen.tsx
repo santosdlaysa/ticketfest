@@ -7,6 +7,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import {
   Text,
@@ -19,25 +20,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import QRCode from 'react-native-qrcode-svg';
+// QRCode não é mais necessário - usamos a imagem do Pagar.me
 import * as Clipboard from 'expo-clipboard';
 import { theme, spacing, fontSize } from '../../theme';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/authStore';
 import { ordersApi } from '../../services/api';
 import {
-  processCardPayment,
-  generatePixPayment,
-  confirmPixPayment,
   formatCardNumber,
-  CardData,
   PaymentResult,
 } from '../../services/paymentService';
 import type { HomeStackParamList } from '../../navigation/types';
 
 type NavigationProp = NativeStackNavigationProp<HomeStackParamList>;
 type PaymentMethod = 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD';
-type CheckoutStep = 'review' | 'card_form' | 'pix_qr' | 'processing' | 'success';
+type CheckoutStep = 'review' | 'card_form' | 'pix_qr' | 'processing' | 'success' | 'failed';
 
 const PAYMENT_METHODS = [
   {
@@ -88,8 +85,10 @@ export default function CheckoutScreen() {
   const [pixCode, setPixCode] = useState('');
   const [pixQrData, setPixQrData] = useState('');
   const [pixPaymentId, setPixPaymentId] = useState('');
+  const [orderId, setOrderId] = useState('');
 
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Buscar o carrinho ao montar a tela
   useEffect(() => {
@@ -172,52 +171,89 @@ export default function CheckoutScreen() {
       return;
     }
 
+    if (!cart || !cart.items.length) return;
+
     setStep('processing');
     setLoading(true);
 
     try {
-      const cardData: CardData = {
-        number: cardNumber,
+      // 1. Tokenizar o cartão via backend (que chama Pagar.me)
+      const tokenResponse = await ordersApi.createCardToken({
+        number: cardNumber.replace(/\s/g, ''),
         holderName: cardHolder,
-        expiryMonth,
-        expiryYear,
+        expMonth: parseInt(expiryMonth),
+        expYear: parseInt(expiryYear),
         cvv,
+      });
+
+      // 2. Criar o pedido com o token
+      const orderData = {
+        items: cart.items.map((item) => ({
+          ticketId: item.ticket.id,
+          quantity: item.quantity,
+        })),
+        paymentMethod,
+        cardToken: tokenResponse.token,
+        installments: 1,
+        couponCode: couponApplied ? couponCode : undefined,
       };
 
-      const result = await processCardPayment(total, cardData, `order-${Date.now()}`);
+      const response = await ordersApi.create(orderData);
 
-      if (result.success) {
-        await createOrder(result);
+      if (response.payment?.card?.status === 'paid') {
+        await clearCart();
+        setStep('success');
+      } else if (response.payment?.card?.status === 'pending') {
+        await clearCart();
+        setStep('success');
       } else {
-        Alert.alert('Pagamento recusado', result.message);
-        setStep('card_form');
+        setErrorMessage('Pagamento recusado. Verifique os dados do cartão e tente novamente.');
+        setStep('failed');
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao processar pagamento');
-      setStep('card_form');
+    } catch (error: any) {
+      console.error('Erro no pagamento com cartão:', error);
+      const message = error.response?.data?.error || 'Falha ao processar pagamento. Tente novamente.';
+      setErrorMessage(message);
+      setStep('failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handlePixPayment = async () => {
+    if (!cart || !cart.items.length) return;
+
     setStep('processing');
     setLoading(true);
 
     try {
-      const result = await generatePixPayment(total, `order-${Date.now()}`);
+      // Criar pedido no backend - isso gera o PIX real do Pagar.me
+      const orderData = {
+        items: cart.items.map((item) => ({
+          ticketId: item.ticket.id,
+          quantity: item.quantity,
+        })),
+        paymentMethod: 'PIX' as const,
+        couponCode: couponApplied ? couponCode : undefined,
+      };
 
-      if (result.success && result.pixCode && result.pixQrCode) {
-        setPixCode(result.pixCode);
-        setPixQrData(result.pixQrCode);
-        setPixPaymentId(result.paymentId);
+      const response = await ordersApi.create(orderData);
+
+      if (response.payment?.pix) {
+        // Usar o PIX real do Pagar.me
+        // qrCode é o código copia-cola, qrCodeUrl é a URL da imagem
+        setPixCode(response.payment.pix.qrCode);
+        setPixQrData(response.payment.pix.qrCodeUrl); // URL da imagem do QR code
+        setPixPaymentId(response.payment.pix.chargeId);
+        setOrderId(response.order.id);
         setStep('pix_qr');
       } else {
         Alert.alert('Erro', 'Falha ao gerar PIX');
         setStep('review');
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao gerar PIX');
+    } catch (error: any) {
+      console.error('Erro ao criar pedido PIX:', error);
+      Alert.alert('Erro', error.response?.data?.error || 'Falha ao gerar PIX');
       setStep('review');
     } finally {
       setLoading(false);
@@ -228,15 +264,20 @@ export default function CheckoutScreen() {
     setLoading(true);
 
     try {
-      const result = await confirmPixPayment(pixPaymentId);
+      // Verificar status do pedido no backend
+      const order = await ordersApi.getById(orderId);
 
-      if (result.success) {
-        await createOrder(result);
+      if (order.paymentStatus === 'PAID') {
+        await clearCart();
+        setStep('success');
       } else {
-        Alert.alert('Erro', 'Pagamento não confirmado');
+        Alert.alert(
+          'Aguardando pagamento',
+          'O pagamento PIX ainda não foi confirmado. Após pagar, aguarde alguns segundos e tente novamente.'
+        );
       }
     } catch (error) {
-      Alert.alert('Erro', 'Falha ao confirmar pagamento');
+      Alert.alert('Erro', 'Falha ao verificar pagamento');
     } finally {
       setLoading(false);
     }
@@ -322,6 +363,9 @@ export default function CheckoutScreen() {
             setStep('review');
           } else if (step === 'pix_qr') {
             setStep('review');
+          } else if (step === 'failed') {
+            setStep('card_form');
+            setErrorMessage('');
           } else if (step === 'success') {
             navigation.reset({
               index: 0,
@@ -345,6 +389,7 @@ export default function CheckoutScreen() {
           {step === 'pix_qr' && 'Pagamento PIX'}
           {step === 'processing' && 'Processando'}
           {step === 'success' && 'Sucesso!'}
+          {step === 'failed' && 'Pagamento Recusado'}
         </Text>
       </View>
 
@@ -353,7 +398,7 @@ export default function CheckoutScreen() {
   );
 
   const renderProgressSteps = () => {
-    if (step === 'processing' || step === 'success') return null;
+    if (step === 'processing' || step === 'success' || step === 'failed') return null;
 
     const currentStep = getStepNumber();
 
@@ -643,7 +688,11 @@ export default function CheckoutScreen() {
         </View>
 
         <View style={styles.qrContainer}>
-          <QRCode value={pixQrData} size={180} />
+          <Image
+            source={{ uri: pixQrData }}
+            style={{ width: 180, height: 180 }}
+            resizeMode="contain"
+          />
         </View>
 
         <View style={styles.pixAmountContainer}>
@@ -658,7 +707,7 @@ export default function CheckoutScreen() {
 
         <View style={styles.pixTimer}>
           <MaterialCommunityIcons name="clock-outline" size={16} color="#666" />
-          <Text style={styles.pixTimerText}>O código expira em 30 minutos</Text>
+          <Text style={styles.pixTimerText}>O código expira em 1 hora</Text>
         </View>
       </Surface>
 
@@ -736,8 +785,69 @@ export default function CheckoutScreen() {
     </View>
   );
 
+  const renderFailed = () => (
+    <View style={styles.failedContainer}>
+      <View style={styles.failedIconContainer}>
+        <MaterialCommunityIcons name="close" size={64} color="#fff" />
+      </View>
+      <Text style={styles.failedTitle}>Pagamento recusado</Text>
+      <Text style={styles.failedSubtitle}>
+        {errorMessage || 'Não foi possível processar seu pagamento.'}
+      </Text>
+
+      <Surface style={styles.failedCard}>
+        <View style={styles.failedTipRow}>
+          <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#FF9800" />
+          <Text style={styles.failedTipTitle}>Dicas para tentar novamente:</Text>
+        </View>
+        <View style={styles.failedTipItem}>
+          <MaterialCommunityIcons name="check" size={16} color="#666" />
+          <Text style={styles.failedTipText}>Verifique o número do cartão</Text>
+        </View>
+        <View style={styles.failedTipItem}>
+          <MaterialCommunityIcons name="check" size={16} color="#666" />
+          <Text style={styles.failedTipText}>Confira a data de validade</Text>
+        </View>
+        <View style={styles.failedTipItem}>
+          <MaterialCommunityIcons name="check" size={16} color="#666" />
+          <Text style={styles.failedTipText}>Verifique se há limite disponível</Text>
+        </View>
+        <View style={styles.failedTipItem}>
+          <MaterialCommunityIcons name="check" size={16} color="#666" />
+          <Text style={styles.failedTipText}>Tente outro cartão ou forma de pagamento</Text>
+        </View>
+      </Surface>
+
+      <Button
+        mode="contained"
+        onPress={() => {
+          setStep('card_form');
+          setErrorMessage('');
+        }}
+        style={styles.retryButton}
+        contentStyle={styles.retryButtonContent}
+        icon="refresh"
+      >
+        Tentar novamente
+      </Button>
+
+      <Button
+        mode="outlined"
+        onPress={() => {
+          setStep('review');
+          setErrorMessage('');
+        }}
+        style={styles.changeMethodButton}
+        contentStyle={styles.changeMethodButtonContent}
+        icon="credit-card-multiple"
+      >
+        Escolher outra forma de pagamento
+      </Button>
+    </View>
+  );
+
   const renderSummaryFooter = () => {
-    if (step === 'processing' || step === 'success' || step === 'pix_qr') return null;
+    if (step === 'processing' || step === 'success' || step === 'pix_qr' || step === 'failed') return null;
 
     return (
       <Surface style={[styles.summaryContainer, { paddingBottom: insets.bottom + spacing.md }]}>
@@ -800,6 +910,7 @@ export default function CheckoutScreen() {
         {step === 'pix_qr' && renderPixQr()}
         {step === 'processing' && renderProcessing()}
         {step === 'success' && renderSuccess()}
+        {step === 'failed' && renderFailed()}
       </ScrollView>
 
       {renderSummaryFooter()}
@@ -1345,6 +1456,81 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   successButtonContent: {
+    paddingVertical: spacing.sm,
+  },
+
+  // Failed
+  failedContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  failedIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#F44336',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  failedTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#F44336',
+  },
+  failedSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
+  },
+  failedCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: spacing.lg,
+    width: '100%',
+    marginBottom: spacing.xl,
+    elevation: 2,
+  },
+  failedTipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  failedTipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF9800',
+  },
+  failedTipItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  failedTipText: {
+    fontSize: 13,
+    color: '#666',
+  },
+  retryButton: {
+    borderRadius: 12,
+    width: '100%',
+    backgroundColor: theme.colors.primary,
+  },
+  retryButtonContent: {
+    paddingVertical: spacing.sm,
+  },
+  changeMethodButton: {
+    borderRadius: 12,
+    width: '100%',
+    marginTop: spacing.sm,
+    borderColor: theme.colors.primary,
+  },
+  changeMethodButtonContent: {
     paddingVertical: spacing.sm,
   },
 

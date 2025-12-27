@@ -2,16 +2,16 @@ import { z } from 'zod';
 
 // Auth validation schemas
 export const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  cpf: z.string().regex(/^\d{11}$/, 'CPF must have 11 digits').optional(),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
+  name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres'),
+  cpf: z.string().regex(/^\d{11}$/, 'CPF deve ter 11 dígitos').optional(),
   phone: z.string().optional(),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(1, 'Senha é obrigatória'),
 });
 
 // Event validation schemas

@@ -47,15 +47,20 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   addToCart: async (ticketId: string, quantity: number) => {
+    console.log('[CartStore] addToCart iniciado', { ticketId, quantity });
     try {
       set({ loading: true, error: null });
+      console.log('[CartStore] Chamando API...');
       const cart = await cartApi.add(ticketId, quantity);
+      console.log('[CartStore] API retornou:', cart);
       set({
         cart,
         itemCount: cart.itemCount || cart.items?.length || 0,
         loading: false,
       });
+      console.log('[CartStore] Estado atualizado, itemCount:', cart.itemCount || cart.items?.length || 0);
     } catch (error: any) {
+      console.log('[CartStore] Erro na API:', error.response?.data || error.message);
       set({
         error: error.response?.data?.error || 'Erro ao adicionar ao carrinho',
         loading: false,

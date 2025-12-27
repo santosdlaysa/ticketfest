@@ -41,6 +41,8 @@ export type HomeStackParamList = {
   Cart: undefined;
   Checkout: undefined;
   Payment: undefined;
+  OrderDetails: { orderId: string };
+  Orders: undefined;
 };
 
 // Stack dentro da tab Ingressos
@@ -76,4 +78,14 @@ export type ListsStackParamList = {
 // Stack dentro da tab Perfil
 export type ProfileStackParamList = {
   ProfileMain: undefined;
+  EditProfile: undefined;
+  ChangePassword: undefined;
+  PaymentMethods: undefined;
+  LocationSettings: undefined;
+  HelpCenter: undefined;
+  About: undefined;
+  Favorites: undefined;
+  ApiLogs: undefined;
+  PrivacyPolicy: undefined;
+  TermsOfService: undefined;
 };

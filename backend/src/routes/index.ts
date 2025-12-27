@@ -11,12 +11,14 @@ import adminRoutes from './admin.routes.js';
 import webhookRoutes from './webhook.routes.js';
 import uploadRoutes from './upload.routes.js';
 import payoutRoutes from './payout.routes.js';
+import couponRoutes from './coupon.routes.js';
+import permissionsRoutes from './permissions.routes.js';
 import { getConnectionStatus, query } from '../config/database.js';
 
 const router = Router();
 
 // Health check
-router.get('/health', (req, res) => {
+router.get('/health', (_req, res) => {
   const dbStatus = getConnectionStatus();
 
   res.status(200).json({
@@ -47,6 +49,8 @@ router.use('/admin', adminRoutes);
 router.use('/webhooks', webhookRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/payouts', payoutRoutes);
+router.use('/coupons', couponRoutes);
+router.use('/permissions', permissionsRoutes);
 
 // Test endpoint - ONLY FOR DEVELOPMENT
 if (process.env.NODE_ENV !== 'production') {
@@ -68,13 +72,13 @@ if (process.env.NODE_ENV !== 'production') {
       }
 
       console.log(`[TEST] Simulated payment for order ${orderId}`);
-      res.json({
+      return res.json({
         message: 'Payment simulated successfully',
         order: result.rows[0]
       });
     } catch (error: any) {
       console.error('Test simulate payment error:', error);
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   });
 }

@@ -6,6 +6,9 @@ import { adminApi } from '@/services/api';
 import type { FinancialSummary, RevenueReport } from '@/types';
 import { Button } from '@/components/common/Button';
 import { StatCard } from '@/components/admin/StatCard';
+import { ProtectedPage } from '@/components/common/ProtectedPage';
+import { PermissionGate } from '@/components/common/PermissionGate';
+import { PERMISSION_CODES } from '@/hooks/usePermissions';
 
 export default function AdminFinancialsPage() {
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
@@ -49,7 +52,7 @@ export default function AdminFinancialsPage() {
   };
 
   return (
-    <>
+    <ProtectedPage permission={PERMISSION_CODES.FINANCE_VIEW} pageTitle="Dashboard Financeiro">
       <Head><title>Dashboard Financeiro - Lumera</title></Head>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
@@ -59,12 +62,16 @@ export default function AdminFinancialsPage() {
             <p className="text-gray-600 mt-1">Visao geral das financas da plataforma</p>
           </div>
           <div className="mt-4 md:mt-0 flex gap-3">
-            <Link href="/admin/transactions">
-              <Button variant="outline">Ver Transacoes</Button>
-            </Link>
-            <Link href="/admin/payouts">
-              <Button variant="outline">Ver Repasses</Button>
-            </Link>
+            <PermissionGate permission={PERMISSION_CODES.FINANCE_TRANSACTIONS}>
+              <Link href="/admin/transactions">
+                <Button variant="outline">Ver Transacoes</Button>
+              </Link>
+            </PermissionGate>
+            <PermissionGate permission={PERMISSION_CODES.PAYOUTS_VIEW}>
+              <Link href="/admin/payouts">
+                <Button variant="outline">Ver Repasses</Button>
+              </Link>
+            </PermissionGate>
           </div>
         </div>
 
@@ -301,6 +308,6 @@ export default function AdminFinancialsPage() {
           </div>
         )}
       </div>
-    </>
+    </ProtectedPage>
   );
 }

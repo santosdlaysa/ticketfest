@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { payoutController } from '../controllers/payout.controller.js';
-import { authenticateToken } from '../middlewares/auth.js';
+import { authenticate } from '../middlewares/auth.js';
 
 const router = Router();
 
 // All routes require authentication
-router.use(authenticateToken);
+router.use(authenticate);
 
 // Get organizer's financial balance
 router.get('/balance', (req, res, next) => payoutController.getBalance(req, res, next));

@@ -172,6 +172,11 @@ export interface PagarmeCharge {
     // Common
     created_at: string;
     updated_at: string;
+    // Error response
+    gateway_response?: {
+      code: string;
+      errors?: Array<{ message: string }>;
+    };
   };
 }
 
@@ -261,14 +266,14 @@ export class PagarmeService {
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    const data = await response.json();
+    const data = await response.json() as T & { message?: string };
 
     if (!response.ok) {
       console.error('Pagar.me API Error:', data);
       throw new Error(data.message || `Pagar.me API error: ${response.status}`);
     }
 
-    return data;
+    return data as T;
   }
 
   /**
@@ -305,14 +310,14 @@ export class PagarmeService {
       body: JSON.stringify({ type: 'card', card: cardData }),
     });
 
-    const data = await response.json();
+    const data = await response.json() as PagarmeTokenResponse & { message?: string };
 
     if (!response.ok) {
       console.error('Pagar.me Token Error:', data);
       throw new Error(data.message || 'Failed to create card token');
     }
 
-    return data;
+    return data as PagarmeTokenResponse;
   }
 
   /**
@@ -411,7 +416,22 @@ export class PagarmeService {
       metadata,
     };
 
-    return this.request<PagarmeOrderResponse>('/orders', 'POST', orderRequest);
+    console.log('Creating PIX order with Pagar.me:', JSON.stringify(orderRequest, null, 2));
+    const response = await this.request<PagarmeOrderResponse>('/orders', 'POST', orderRequest);
+    console.log('Pagar.me PIX order response:', JSON.stringify(response, null, 2));
+
+    // Log detalhado da transação PIX
+    const charge = response.charges?.[0];
+    const transaction = charge?.last_transaction;
+    console.log('PIX Transaction details:', {
+      qr_code: transaction?.qr_code,
+      qr_code_url: transaction?.qr_code_url,
+      pix_provider_tid: (transaction as any)?.pix_provider_tid,
+      end_to_end_id: (transaction as any)?.end_to_end_id,
+      all_keys: transaction ? Object.keys(transaction) : [],
+    });
+
+    return response;
   }
 
   /**

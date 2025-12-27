@@ -96,7 +96,7 @@ export class PayoutService {
     const { fee, netAmount } = financialService.calculatePayoutFee(data.amount);
 
     // Create payout request
-    const payoutResult = await query<Payout>(
+    const payoutResult = await query<any>(
       `INSERT INTO payouts (
         organizer_account_id, amount, fee, net_amount, status, payout_method,
         bank_code, account_number, agency_number

@@ -6,6 +6,7 @@ import {
   Alert,
   TouchableOpacity,
   Linking,
+  Platform,
 } from 'react-native';
 import {
   Text,
@@ -16,9 +17,15 @@ import {
 } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '../../stores/authStore';
 import { useThemeStore } from '../../stores/themeStore';
+import { useLogStore } from '../../stores/logStore';
 import { lightColors, darkColors, spacing, fontSize, lumeraColors } from '../../theme';
+import type { ProfileStackParamList } from '../../navigation/types';
+
+type NavigationProp = NativeStackNavigationProp<ProfileStackParamList>;
 
 type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
@@ -75,8 +82,10 @@ const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<NavigationProp>();
   const { user, logout } = useAuthStore();
   const { isDark, toggleTheme } = useThemeStore();
+  const { logs } = useLogStore();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
   const colors = isDark ? darkColors : lightColors;
@@ -138,7 +147,7 @@ export default function ProfileScreen() {
       [
         {
           text: 'WhatsApp',
-          onPress: () => Linking.openURL('https://wa.me/5511999999999'),
+          onPress: () => Linking.openURL('https://wa.me/5595991371313'),
         },
         {
           text: 'E-mail',
@@ -149,7 +158,15 @@ export default function ProfileScreen() {
     );
   };
 
-  const comingSoon = () => Alert.alert('Em breve', 'Esta funcionalidade estará disponível em breve!');
+  const handleRateApp = () => {
+    // TODO: Substituir pela URL real da loja
+    const storeUrl = Platform.OS === 'ios'
+      ? 'https://apps.apple.com/app/lumera/id000000000'
+      : 'https://play.google.com/store/apps/details?id=com.lumera.app';
+    Linking.openURL(storeUrl).catch(() => {
+      Alert.alert('Erro', 'Nao foi possivel abrir a loja de aplicativos.');
+    });
+  };
 
   const gradientColors: [string, string] = isDark
     ? [lumeraColors.pretoObsidian, lumeraColors.roxoLumera + '80']
@@ -175,7 +192,7 @@ export default function ProfileScreen() {
               style={styles.avatar}
               labelStyle={styles.avatarLabel}
             />
-            <TouchableOpacity style={[styles.editAvatarButton, { backgroundColor: colors.secondary }]} onPress={comingSoon}>
+            <TouchableOpacity style={[styles.editAvatarButton, { backgroundColor: colors.secondary }]} onPress={() => navigation.navigate('EditProfile')}>
               <MaterialCommunityIcons name="camera" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -192,7 +209,7 @@ export default function ProfileScreen() {
 
       {/* Quick Stats */}
       <Surface style={[styles.statsContainer, { backgroundColor: colors.surface }]}>
-        <TouchableOpacity style={styles.statItem} onPress={comingSoon}>
+        <TouchableOpacity style={styles.statItem} onPress={() => navigation.getParent()?.navigate('MyTickets')}>
           <View style={[styles.statIcon, { backgroundColor: isDark ? '#1b4332' : '#e8f5e9' }]}>
             <MaterialCommunityIcons name="ticket-confirmation" size={20} color="#4caf50" />
           </View>
@@ -202,7 +219,7 @@ export default function ProfileScreen() {
 
         <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
 
-        <TouchableOpacity style={styles.statItem} onPress={comingSoon}>
+        <TouchableOpacity style={styles.statItem} onPress={() => navigation.getParent()?.navigate('MyTickets')}>
           <View style={[styles.statIcon, { backgroundColor: isDark ? '#3d2608' : '#fff3e0' }]}>
             <MaterialCommunityIcons name="calendar-check" size={20} color="#ff9800" />
           </View>
@@ -212,7 +229,7 @@ export default function ProfileScreen() {
 
         <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
 
-        <TouchableOpacity style={styles.statItem} onPress={comingSoon}>
+        <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('Favorites')}>
           <View style={[styles.statIcon, { backgroundColor: isDark ? '#4a1942' : '#fce4ec' }]}>
             <MaterialCommunityIcons name="heart" size={20} color="#e91e63" />
           </View>
@@ -267,7 +284,7 @@ export default function ProfileScreen() {
             icon="account-edit-outline"
             title="Editar perfil"
             subtitle="Alterar suas informações"
-            onPress={comingSoon}
+            onPress={() => navigation.navigate('EditProfile')}
             isDark={isDark}
           />
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
@@ -275,7 +292,7 @@ export default function ProfileScreen() {
             icon="lock-outline"
             title="Alterar senha"
             subtitle="Atualizar senha de acesso"
-            onPress={comingSoon}
+            onPress={() => navigation.navigate('ChangePassword')}
             isDark={isDark}
           />
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
@@ -283,8 +300,7 @@ export default function ProfileScreen() {
             icon="credit-card-outline"
             title="Formas de pagamento"
             subtitle="Gerenciar cartões salvos"
-            onPress={comingSoon}
-            badge="Novo"
+            onPress={() => navigation.navigate('PaymentMethods')}
             isDark={isDark}
           />
         </Surface>
@@ -328,7 +344,7 @@ export default function ProfileScreen() {
             icon="map-marker-outline"
             title="Localização"
             subtitle="Permitir acesso à localização"
-            onPress={comingSoon}
+            onPress={() => navigation.navigate('LocationSettings')}
             isDark={isDark}
           />
         </Surface>
@@ -342,7 +358,7 @@ export default function ProfileScreen() {
             icon="help-circle-outline"
             title="Central de ajuda"
             subtitle="Dúvidas frequentes"
-            onPress={comingSoon}
+            onPress={() => navigation.navigate('HelpCenter')}
             iconColor="#2196f3"
             isDark={isDark}
           />
@@ -360,7 +376,7 @@ export default function ProfileScreen() {
             icon="star-outline"
             title="Avaliar o app"
             subtitle="Deixe sua opinião"
-            onPress={comingSoon}
+            onPress={handleRateApp}
             iconColor="#ff9800"
             isDark={isDark}
           />
@@ -374,14 +390,14 @@ export default function ProfileScreen() {
           <MenuItem
             icon="file-document-outline"
             title="Termos de uso"
-            onPress={comingSoon}
+            onPress={() => navigation.navigate('TermsOfService')}
             isDark={isDark}
           />
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
           <MenuItem
             icon="shield-check-outline"
             title="Política de privacidade"
-            onPress={comingSoon}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
             isDark={isDark}
           />
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
@@ -389,11 +405,28 @@ export default function ProfileScreen() {
             icon="information-outline"
             title="Sobre o Lumera"
             subtitle="Versão 1.0.0"
-            onPress={comingSoon}
+            onPress={() => navigation.navigate('About')}
             isDark={isDark}
           />
         </Surface>
       </View>
+
+      {/* Developer Tools - Only show in DEV mode */}
+      {__DEV__ && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Desenvolvedor</Text>
+          <Surface style={[styles.sectionContent, { backgroundColor: colors.surface }]}>
+            <MenuItem
+              icon="api"
+              title="API Logs"
+              subtitle={`${logs.length} requisições capturadas`}
+              onPress={() => navigation.navigate('ApiLogs')}
+              iconColor="#9C27B0"
+              isDark={isDark}
+            />
+          </Surface>
+        </View>
+      )}
 
       {/* Logout Button */}
       <TouchableOpacity
@@ -528,7 +561,6 @@ const styles = StyleSheet.create({
   },
   sectionContent: {
     borderRadius: 16,
-    overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

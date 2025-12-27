@@ -173,8 +173,8 @@ initializePools();
 
 // Export current pool for backward compatibility
 export const pool = {
-  query: <T = any>(text: string, params?: any[]): Promise<pg.QueryResult<T>> => {
-    return getActivePool().query(text, params);
+  query: <T extends pg.QueryResultRow = any>(text: string, params?: any[]): Promise<pg.QueryResult<T>> => {
+    return getActivePool().query<T>(text, params);
   },
   connect: () => getActivePool().connect(),
   end: async () => {
@@ -185,9 +185,9 @@ export const pool = {
 };
 
 // Helper para queries simples com retry
-export const query = async <T = any>(text: string, params?: any[]): Promise<pg.QueryResult<T>> => {
+export const query = async <T extends pg.QueryResultRow = any>(text: string, params?: any[]): Promise<pg.QueryResult<T>> => {
   try {
-    return await getActivePool().query(text, params);
+    return await getActivePool().query<T>(text, params);
   } catch (error) {
     // If primary fails, try secondary
     if (activeConnection === 'primary' && hasSecondary && dbConfig.failover.enabled) {

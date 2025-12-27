@@ -23,18 +23,26 @@ export default function Login() {
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
+      let loggedUser;
       if (useMockAuth) {
         // Usar login mock (sem chamar API)
-        loginMock(data.email, data.password);
+        loggedUser = loginMock(data.email, data.password);
         toast.success('Login realizado com sucesso! (modo mock)');
       } else {
         // Usar login real (chama API)
-        await login(data.email, data.password);
+        loggedUser = await login(data.email, data.password);
         toast.success('Login realizado com sucesso!');
       }
-      // Redirect to the page user was trying to access, or home
+
+      // Redirect to the page user was trying to access, or based on role
       const redirect = router.query.redirect as string;
-      router.push(redirect || '/');
+      if (redirect) {
+        router.push(redirect);
+      } else if (loggedUser?.role === 'ADMIN' || loggedUser?.role === 'ORGANIZER') {
+        router.push('/admin');
+      } else {
+        router.push('/events');
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao fazer login');
     } finally {
@@ -45,28 +53,34 @@ export default function Login() {
   return (
     <>
       <Head><title>Login - Lumera</title></Head>
-      <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
+      <main className="min-h-[80vh] flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-lumera rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
+          <header className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-lumera rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow" aria-hidden="true">
               <span className="text-white font-bold text-3xl">L</span>
             </div>
             <h1 className="text-3xl font-bold text-lumera-obsidian">Bem-vindo de volta!</h1>
             <p className="text-gray-600 mt-2">Entre com sua conta para continuar</p>
-          </div>
+          </header>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-4" aria-label="Formulário de login">
             <Input
               label="Email"
               type="email"
               {...register('email', { required: 'Email obrigatório' })}
               error={errors.email?.message}
+              aria-required="true"
+              aria-invalid={errors.email ? 'true' : 'false'}
+              aria-describedby={errors.email ? 'email-error' : undefined}
             />
             <Input
               label="Senha"
               type="password"
               {...register('password', { required: 'Senha obrigatória' })}
               error={errors.password?.message}
+              aria-required="true"
+              aria-invalid={errors.password ? 'true' : 'false'}
+              aria-describedby={errors.password ? 'password-error' : undefined}
             />
 
             <div className="text-right">
@@ -75,7 +89,7 @@ export default function Login() {
               </Link>
             </div>
 
-            <Button type="submit" className="w-full" isLoading={loading}>
+            <Button type="submit" className="w-full" isLoading={loading} aria-label={loading ? 'Entrando...' : 'Entrar na conta'}>
               Entrar
             </Button>
 
@@ -87,7 +101,7 @@ export default function Login() {
             </p>
           </form>
         </div>
-      </div>
+      </main>
     </>
   );
 }

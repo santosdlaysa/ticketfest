@@ -1,0 +1,204 @@
+paths:
+  /api/checkin/validate:
+    post:
+      tags:
+        - Check-in
+      summary: Validar ingresso
+      description: Valida e realiza check-in de um ingresso via QR Code
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckinRequest'
+      responses:
+        '200':
+          description: Resultado da validacao
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckinResponse'
+        '400':
+          description: QR Code invalido ou ingresso ja utilizado
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Ingresso nao encontrado
+
+  /api/checkin/event/{eventId}/stats:
+    get:
+      tags:
+        - Check-in
+      summary: Estatisticas de check-in
+      description: Retorna estatisticas de check-in do evento
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Estatisticas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventId:
+                    type: string
+                  eventName:
+                    type: string
+                  totalTickets:
+                    type: integer
+                  checkedIn:
+                    type: integer
+                  pending:
+                    type: integer
+                  checkInRate:
+                    type: number
+                  ticketBreakdown:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        sold:
+                          type: integer
+                        checkedIn:
+                          type: integer
+                        pending:
+                          type: integer
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Sem permissao para visualizar estatisticas
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/checkin/event/{eventId}/history:
+    get:
+      tags:
+        - Check-in
+      summary: Historico de check-ins
+      description: Retorna historico de check-ins realizados no evento
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Historico de check-ins
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ticketType:
+                      type: string
+                    holderName:
+                      type: string
+                    holderEmail:
+                      type: string
+                    checkedInAt:
+                      type: string
+                      format: date-time
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Sem permissao
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/payouts:
+    get:
+      tags:
+        - Payouts
+      summary: Listar saques
+      description: Retorna lista de saques do organizador
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de saques
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payout'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Payouts
+      summary: Solicitar saque
+      description: Solicita transferencia do saldo disponivel
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - payoutMethod
+              properties:
+                amount:
+                  type: number
+                  minimum: 10
+                payoutMethod:
+                  type: string
+                  enum: [BANK_TRANSFER, PIX]
+      responses:
+        '201':
+          description: Saque solicitado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payout'
+        '400':
+          description: Saldo insuficiente ou dados bancarios incompletos
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/payouts/balance:
+    get:
+      tags:
+        - Payouts
+      summary: Obter saldo
+      description: Retorna saldo disponivel e pendente do organizador
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Saldo do organizador
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  availableBalance:
+                    type: number
+                  pendingBalance:
+                    type: number
+                  totalBalance:
+                    type: number
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'

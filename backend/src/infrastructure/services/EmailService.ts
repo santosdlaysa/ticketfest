@@ -70,7 +70,7 @@ export class EmailService {
     const ticketsList = orderData.tickets
       .map(
         (t) =>
-          `<li>${t.quantity}x ${t.name} - R$ ${t.price.toFixed(2)}</li>`
+          `<li>${t.quantity}x ${t.name} - R$ ${Number(t.price).toFixed(2)}</li>`
       )
       .join('');
 
@@ -106,7 +106,7 @@ export class EmailService {
               <h3>Ingressos</h3>
               <ul>${ticketsList}</ul>
 
-              <p class="total">Total: R$ ${orderData.total.toFixed(2)}</p>
+              <p class="total">Total: R$ ${Number(orderData.total).toFixed(2)}</p>
 
               <p>Seus ingressos com QR Code estão disponíveis no app e no site.</p>
               <p>Apresente o QR Code na entrada do evento.</p>

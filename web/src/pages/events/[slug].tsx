@@ -62,11 +62,11 @@ export default function EventDetail() {
   }, 0);
 
   if (loading) {
-    return <div className="container-custom py-8">Carregando...</div>;
+    return <div className="container-custom py-8" role="status" aria-live="polite">Carregando...</div>;
   }
 
   if (!event) {
-    return <div className="container-custom py-8">Evento não encontrado</div>;
+    return <div className="container-custom py-8" role="alert">Evento não encontrado</div>;
   }
 
   const eventDate = new Date(event.date);
@@ -80,37 +80,41 @@ export default function EventDetail() {
       <div className="container-custom py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <article className="lg:col-span-2">
             {/* Images */}
             {event.images && event.images.length > 0 && (
               <div className="relative rounded-xl overflow-hidden mb-6">
                 <img
                   src={event.images[0]}
-                  alt={event.name}
+                  alt={`Imagem do evento ${event.name}`}
                   className="w-full h-auto rounded-xl"
                 />
               </div>
             )}
 
             {/* Info */}
-            <div className="mb-6">
-              <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
+            <header className="mb-6">
+              <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium" aria-label={`Categoria: ${event.category}`}>
                 {event.category}
               </span>
               <h1 className="text-4xl font-bold mt-4 mb-4">{event.name}</h1>
 
               <div className="space-y-2 text-gray-600 mb-6">
                 <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  {format(eventDate, "dd/MM/yyyy 'às' HH:mm")}
+                  <time dateTime={event.date} aria-label={`Data: ${format(eventDate, "dd/MM/yyyy 'às' HH:mm")}`}>
+                    {format(eventDate, "dd/MM/yyyy 'às' HH:mm")}
+                  </time>
                 </div>
                 <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   </svg>
-                  {event.location} - {event.address}
+                  <span aria-label={`Local: ${event.location} - ${event.address}`}>
+                    {event.location} - {event.address}
+                  </span>
                 </div>
               </div>
 
@@ -120,9 +124,9 @@ export default function EventDetail() {
 
               {/* Organizador */}
               {event.organizer && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg" role="region" aria-label="Informações do organizador">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center" aria-hidden="true">
                       <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
@@ -134,18 +138,18 @@ export default function EventDetail() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
+            </header>
+          </article>
 
           {/* Sidebar - Tickets */}
-          <div className="lg:col-span-1">
+          <aside className="lg:col-span-1" aria-label="Seleção de ingressos">
             <div className="card p-6 sticky top-24">
               <h2 className="text-2xl font-bold mb-4">Ingressos</h2>
 
               {tickets.length > 0 ? (
                 <div className="space-y-4">
                   {tickets.map((ticket) => (
-                    <div key={ticket.id} className="border rounded-lg p-4">
+                    <div key={ticket.id} className="border rounded-lg p-4" role="group" aria-label={`Ingresso ${ticket.name}`}>
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h3 className="font-semibold">{ticket.name}</h3>
@@ -159,10 +163,10 @@ export default function EventDetail() {
                       </div>
 
                       <div className="flex items-center justify-between mt-3">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500" aria-label={`${ticket.available} ingressos disponíveis`}>
                           {ticket.available} disponíveis
                         </span>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2" role="group" aria-label={`Quantidade de ingressos ${ticket.name}`}>
                           <button
                             onClick={() =>
                               setSelectedTickets({
@@ -171,10 +175,11 @@ export default function EventDetail() {
                               })
                             }
                             className="w-8 h-8 rounded-full border hover:bg-gray-100"
+                            aria-label={`Diminuir quantidade de ${ticket.name}`}
                           >
                             -
                           </button>
-                          <span className="w-8 text-center font-medium">
+                          <span className="w-8 text-center font-medium" aria-live="polite" aria-atomic="true">
                             {selectedTickets[ticket.id] || 0}
                           </span>
                           <button
@@ -188,6 +193,7 @@ export default function EventDetail() {
                               })
                             }
                             className="w-8 h-8 rounded-full border hover:bg-gray-100"
+                            aria-label={`Aumentar quantidade de ${ticket.name}`}
                           >
                             +
                           </button>
@@ -197,10 +203,10 @@ export default function EventDetail() {
                   ))}
 
                   {totalSelected > 0 && (
-                    <div className="border-t pt-4 mt-4">
+                    <div className="border-t pt-4 mt-4" role="region" aria-label="Resumo do pedido">
                       <div className="flex justify-between mb-4">
                         <span className="font-semibold">Total ({totalSelected} ingresso{totalSelected > 1 ? 's' : ''})</span>
-                        <span className="font-bold text-xl text-primary-600">
+                        <span className="font-bold text-xl text-primary-600" aria-label={`Total: R$ ${totalPrice.toFixed(2)}`}>
                           R$ {totalPrice.toFixed(2)}
                         </span>
                       </div>
@@ -208,6 +214,7 @@ export default function EventDetail() {
                         onClick={handleAddToCart}
                         className="w-full"
                         size="lg"
+                        aria-label={`Adicionar ${totalSelected} ${totalSelected === 1 ? 'ingresso' : 'ingressos'} ao carrinho`}
                       >
                         Adicionar ao Carrinho
                       </Button>
@@ -215,10 +222,10 @@ export default function EventDetail() {
                   )}
                 </div>
               ) : (
-                <p className="text-gray-500">Nenhum ingresso disponível</p>
+                <p className="text-gray-500" role="status">Nenhum ingresso disponível</p>
               )}
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </>

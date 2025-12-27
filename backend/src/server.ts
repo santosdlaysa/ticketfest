@@ -1,7 +1,11 @@
+import { initSentry } from './config/sentry.js';
 import app from './app.js';
 import { env, dbConfig } from './config/env.js';
 import DatabaseService from './config/database.js';
 import { initializeScheduler } from './jobs/scheduler.js';
+
+// Inicializa o Sentry antes de tudo
+initSentry();
 
 const PORT = parseInt(env.PORT) || 4000;
 
@@ -23,6 +27,7 @@ const startServer = async () => {
       console.log(`📦 Database: ${dbConfig.database}@${dbConfig.host}:${dbConfig.port}`);
       console.log('');
       console.log('📚 API Endpoints:');
+      console.log(`   Docs: ${env.API_URL}/api/docs`);
       console.log(`   Health: ${env.API_URL}/api/health`);
       console.log(`   Auth: ${env.API_URL}/api/auth/*`);
       console.log(`   Events: ${env.API_URL}/api/events`);
@@ -87,9 +92,22 @@ process.on('SIGINT', shutdown);
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  // Captura promise rejections não tratadas no Sentry
+  if (reason instanceof Error) {
+    const Sentry = require('./config/sentry.js').default;
+    Sentry.captureException(reason, {
+      tags: { errorType: 'UnhandledRejection' },
+      extra: { promise },
+    });
+  }
 });
 
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
+  // Captura exceções não tratadas no Sentry
+  const Sentry = require('./config/sentry.js').default;
+  Sentry.captureException(error, {
+    tags: { errorType: 'UncaughtException' },
+  });
   shutdown();
 });

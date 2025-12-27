@@ -39,14 +39,19 @@ interface Event {
 
 export class CartService {
   private async getOrCreateCart(userId?: string, sessionId?: string) {
+    console.log('[getOrCreateCart] Looking for cart with:', { userId, sessionId });
+
     // Find existing cart - prioritize sessionId for consistency
     let cartResult;
     if (sessionId) {
       cartResult = await query<Cart>('SELECT * FROM carts WHERE session_id = $1', [sessionId]);
+      console.log('[getOrCreateCart] Found by sessionId:', cartResult.rows.length, 'carts');
     } else if (userId) {
       cartResult = await query<Cart>('SELECT * FROM carts WHERE user_id = $1', [userId]);
+      console.log('[getOrCreateCart] Found by userId:', cartResult.rows.length, 'carts');
     } else {
       cartResult = { rows: [] };
+      console.log('[getOrCreateCart] No sessionId or userId provided');
     }
 
     let cart: Cart;
@@ -114,10 +119,14 @@ export class CartService {
       [cart.id]
     );
 
-    // Clean expired items
+    console.log('[getOrCreateCart] Items found in DB:', itemsResult.rows.length);
+
+    // Renew cart expiration if expired (extend by 24 hours from now)
     if (cart.expires_at < new Date()) {
-      await query('DELETE FROM cart_items WHERE cart_id = $1', [cart.id]);
-      return { ...cart, items: [] };
+      console.log('[getOrCreateCart] Cart was expired, renewing expiration...');
+      const newExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await query('UPDATE carts SET expires_at = $1 WHERE id = $2', [newExpiration, cart.id]);
+      cart.expires_at = newExpiration;
     }
 
     const items = itemsResult.rows.map((row) => ({
@@ -180,6 +189,8 @@ export class CartService {
     userId?: string,
     sessionId?: string
   ) {
+    console.log('[CartService.addToCart] Starting...', { ticketId, quantity, userId, sessionId });
+
     // Verify ticket exists and is available
     const ticketResult = await query<Ticket>('SELECT * FROM tickets WHERE id = $1', [ticketId]);
 
@@ -188,6 +199,7 @@ export class CartService {
     }
 
     const ticket = ticketResult.rows[0];
+    console.log('[CartService.addToCart] Ticket found:', ticket.name);
 
     const available = ticket.quantity - ticket.sold;
     if (available < quantity) {
@@ -204,6 +216,7 @@ export class CartService {
     }
 
     const cart = await this.getOrCreateCart(userId, sessionId);
+    console.log('[CartService.addToCart] Cart ID:', cart.id, 'Current items:', cart.items.length);
 
     // Check if ticket already in cart
     const existingItem = cart.items.find((item: any) => item.ticketId === ticketId);
@@ -211,6 +224,7 @@ export class CartService {
     if (existingItem) {
       // Update quantity
       const newQuantity = existingItem.quantity + quantity;
+      console.log('[CartService.addToCart] Updating existing item, new quantity:', newQuantity);
 
       if (available < newQuantity) {
         throw new AppError(400, `Only ${available} tickets available`);
@@ -222,13 +236,17 @@ export class CartService {
       );
     } else {
       // Create new item
-      await query(
-        'INSERT INTO cart_items (cart_id, ticket_id, quantity) VALUES ($1, $2, $3)',
+      console.log('[CartService.addToCart] Inserting new item into cart:', cart.id);
+      const insertResult = await query(
+        'INSERT INTO cart_items (cart_id, ticket_id, quantity) VALUES ($1, $2, $3) RETURNING *',
         [cart.id, ticketId, quantity]
       );
+      console.log('[CartService.addToCart] Insert result:', insertResult.rows[0]);
     }
 
-    return this.getCart(userId, sessionId);
+    const result = await this.getCart(userId, sessionId);
+    console.log('[CartService.addToCart] Final cart:', { id: result.id, itemCount: result.itemCount, items: result.items.length });
+    return result;
   }
 
   async updateCartItem(

@@ -39,4 +39,8 @@ router.get('/events/:eventId/attendees/export', (req, res) => adminController.ex
 // Reminders (manual trigger - ADMIN only)
 router.post('/reminders/trigger', authorize('ADMIN'), (req, res) => adminController.triggerReminders(req, res));
 
+// User Management (ADMIN only)
+router.get('/users', authorize('ADMIN'), (req, res) => adminController.getAllUsers(req, res));
+router.patch('/users/:id/role', authorize('ADMIN'), (req, res) => adminController.updateUserRole(req, res));
+
 export default router;

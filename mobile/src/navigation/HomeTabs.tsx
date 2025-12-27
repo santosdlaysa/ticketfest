@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { lightColors, darkColors, lumeraColors } from '../theme';
 import { useThemeStore } from '../stores/themeStore';
+import { usePermissions, TabName } from '../hooks/usePermissions';
 
 // Import screens
 import HomeScreen from '../screens/events/HomeScreen';
@@ -21,6 +22,16 @@ import ManualValidationScreen from '../screens/validation/ManualValidationScreen
 import PromoterDashboardScreen from '../screens/promoter/PromoterDashboardScreen';
 import PromoterListScreen from '../screens/promoter/PromoterListScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
+import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import ChangePasswordScreen from '../screens/profile/ChangePasswordScreen';
+import PaymentMethodsScreen from '../screens/profile/PaymentMethodsScreen';
+import LocationSettingsScreen from '../screens/profile/LocationSettingsScreen';
+import HelpCenterScreen from '../screens/profile/HelpCenterScreen';
+import AboutScreen from '../screens/profile/AboutScreen';
+import FavoritesScreen from '../screens/profile/FavoritesScreen';
+import ApiLogsScreen from '../screens/profile/ApiLogsScreen';
+import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
+import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
 
 // Stack para aba Home/Eventos
 const HomeStack = createNativeStackNavigator();
@@ -77,15 +88,69 @@ function ProfileStackScreen() {
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
+      <ProfileStack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+      <ProfileStack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
+      <ProfileStack.Screen name="LocationSettings" component={LocationSettingsScreen} />
+      <ProfileStack.Screen name="HelpCenter" component={HelpCenterScreen} />
+      <ProfileStack.Screen name="About" component={AboutScreen} />
+      <ProfileStack.Screen name="Favorites" component={FavoritesScreen} />
+      <ProfileStack.Screen name="ApiLogs" component={ApiLogsScreen} />
+      <ProfileStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <ProfileStack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
     </ProfileStack.Navigator>
   );
 }
 
 const Tab = createBottomTabNavigator();
 
+// Configuração das tabs com seus componentes e opções
+type TabConfig = {
+  name: TabName;
+  component: React.ComponentType<any>;
+  title: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+};
+
+const TAB_CONFIG: TabConfig[] = [
+  {
+    name: 'Home',
+    component: HomeStackScreen,
+    title: 'Eventos',
+    icon: 'home',
+  },
+  {
+    name: 'MyTickets',
+    component: TicketsStackScreen,
+    title: 'Ingressos',
+    icon: 'ticket',
+  },
+  {
+    name: 'Validation',
+    component: ValidationStackScreen,
+    title: 'Validar',
+    icon: 'qrcode-scan',
+  },
+  {
+    name: 'Lists',
+    component: ListsStackScreen,
+    title: 'Listas',
+    icon: 'clipboard-list',
+  },
+  {
+    name: 'Profile',
+    component: ProfileStackScreen,
+    title: 'Perfil',
+    icon: 'account',
+  },
+];
+
 export default function HomeTabs() {
   const { isDark } = useThemeStore();
-  const colors = isDark ? darkColors : lightColors;
+  const { allowedTabs } = usePermissions();
+
+  // Filtra apenas as tabs permitidas para o role do usuário
+  const visibleTabs = TAB_CONFIG.filter((tab) => allowedTabs.includes(tab.name));
 
   return (
     <Tab.Navigator
@@ -116,56 +181,19 @@ export default function HomeTabs() {
         },
       }}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeStackScreen}
-        options={{
-          title: 'Eventos',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="MyTickets"
-        component={TicketsStackScreen}
-        options={{
-          title: 'Ingressos',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="ticket" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Validation"
-        component={ValidationStackScreen}
-        options={{
-          title: 'Validar',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="qrcode-scan" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Lists"
-        component={ListsStackScreen}
-        options={{
-          title: 'Listas',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="clipboard-list" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileStackScreen}
-        options={{
-          title: 'Perfil',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account" size={size} color={color} />
-          ),
-        }}
-      />
+      {visibleTabs.map((tab) => (
+        <Tab.Screen
+          key={tab.name}
+          name={tab.name}
+          component={tab.component}
+          options={{
+            title: tab.title,
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name={tab.icon} size={size} color={color} />
+            ),
+          }}
+        />
+      ))}
     </Tab.Navigator>
   );
 }

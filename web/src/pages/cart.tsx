@@ -34,14 +34,14 @@ export default function Cart() {
     return (
       <>
         <Head><title>Carrinho - Lumera</title></Head>
-        <div className="container-custom py-16 text-center">
+        <div className="container-custom py-16 text-center" role="status">
           <div className="max-w-md mx-auto">
-            <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <h2 className="text-2xl font-bold mb-2">Seu carrinho está vazio</h2>
+            <h1 className="text-2xl font-bold mb-2">Seu carrinho está vazio</h1>
             <p className="text-gray-600 mb-6">Adicione ingressos para continuar</p>
-            <Link href="/events"><Button>Explorar Eventos</Button></Link>
+            <Link href="/events"><Button aria-label="Explorar eventos disponíveis">Explorar Eventos</Button></Link>
           </div>
         </div>
       </>
@@ -56,60 +56,71 @@ export default function Cart() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <section className="lg:col-span-2 space-y-4" aria-label="Itens do carrinho">
             {cart.items.map((item) => (
-              <div key={item.id} className="card p-4 flex gap-4">
+              <article key={item.id} className="card p-4 flex gap-4" aria-label={`${item.ticket.event.name} - ${item.ticket.name}`}>
                 <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                   {item.ticket.event.images[0] ? (
-                    <Image src={item.ticket.event.images[0]} alt={item.ticket.event.name} fill className="object-cover" />
+                    <Image src={item.ticket.event.images[0]} alt={`Imagem do evento ${item.ticket.event.name}`} fill className="object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-primary-100" />
+                    <div className="w-full h-full bg-primary-100" aria-label="Imagem não disponível" />
                   )}
                 </div>
 
                 <div className="flex-grow">
-                  <h3 className="font-semibold text-lg">{item.ticket.event.name}</h3>
+                  <h2 className="font-semibold text-lg">{item.ticket.event.name}</h2>
                   <p className="text-sm text-gray-600">{item.ticket.name}</p>
-                  <p className="text-sm text-gray-500">{format(new Date(item.ticket.event.date), "dd/MM/yyyy 'às' HH:mm")}</p>
+                  <time className="text-sm text-gray-500" dateTime={item.ticket.event.date}>
+                    {format(new Date(item.ticket.event.date), "dd/MM/yyyy 'às' HH:mm")}
+                  </time>
 
                   <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2" role="group" aria-label={`Quantidade de ${item.ticket.name}`}>
                       <button
                         onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                         className="w-8 h-8 rounded border hover:bg-gray-100"
                         disabled={isLoading}
+                        aria-label="Diminuir quantidade"
                       >-</button>
-                      <span className="w-8 text-center">{item.quantity}</span>
+                      <span className="w-8 text-center" aria-live="polite" aria-atomic="true">{item.quantity}</span>
                       <button
                         onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                         className="w-8 h-8 rounded border hover:bg-gray-100"
                         disabled={isLoading}
+                        aria-label="Aumentar quantidade"
                       >+</button>
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <span className="font-bold text-lg">R$ {(Number(item.ticket.price) * item.quantity).toFixed(2)}</span>
-                      <button onClick={() => handleRemove(item.id)} className="text-red-600 hover:text-red-700" disabled={isLoading}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="font-bold text-lg" aria-label={`Subtotal: R$ ${(Number(item.ticket.price) * item.quantity).toFixed(2)}`}>
+                        R$ {(Number(item.ticket.price) * item.quantity).toFixed(2)}
+                      </span>
+                      <button
+                        onClick={() => handleRemove(item.id)}
+                        className="text-red-600 hover:text-red-700"
+                        disabled={isLoading}
+                        aria-label={`Remover ${item.ticket.name} do carrinho`}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
-          </div>
+          </section>
 
           {/* Summary */}
-          <div className="lg:col-span-1">
+          <aside className="lg:col-span-1" aria-label="Resumo do pedido">
             <div className="card p-6 sticky top-24">
               <h2 className="text-xl font-bold mb-4">Resumo do Pedido</h2>
 
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span>Subtotal ({cart.itemCount} item{cart.itemCount > 1 ? 's' : ''})</span>
-                  <span>R$ {Number(cart.subtotal).toFixed(2)}</span>
+                  <span aria-label={`Subtotal: R$ ${Number(cart.subtotal).toFixed(2)}`}>R$ {Number(cart.subtotal).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Taxa de serviço</span>
@@ -120,18 +131,20 @@ export default function Cart() {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-baseline">
                   <span className="font-semibold">Total</span>
-                  <span className="text-2xl font-bold text-primary-500">R$ {Number(cart.total).toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-primary-500" aria-label={`Total: R$ ${Number(cart.total).toFixed(2)}`}>
+                    R$ {Number(cart.total).toFixed(2)}
+                  </span>
                 </div>
               </div>
 
-              <Button className="w-full mb-3" size="lg" onClick={() => router.push('/checkout')}>
+              <Button className="w-full mb-3" size="lg" onClick={() => router.push('/checkout')} aria-label="Ir para finalizar compra">
                 Finalizar Compra
               </Button>
               <Link href="/events">
-                <Button variant="outline" className="w-full">Continuar Comprando</Button>
+                <Button variant="outline" className="w-full" aria-label="Continuar comprando ingressos">Continuar Comprando</Button>
               </Link>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
     </>

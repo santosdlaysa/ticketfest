@@ -1,5 +1,17 @@
-// Serviço de pagamento simulado
-// Em produção, substituir por integração real com Stripe, MercadoPago, PagSeguro, etc.
+/**
+ * Real Payment Service - Pagar.me Integration
+ *
+ * This service handles all payment operations by calling the backend API endpoints
+ * which integrate with Pagar.me payment gateway.
+ *
+ * Backend endpoints used:
+ * - POST /api/orders - Create order with payment (handles PIX, Card, Boleto)
+ * - POST /api/orders/card-token - Tokenize credit/debit card
+ * - GET /api/orders/:id/check-payment - Check payment status
+ * - POST /api/orders/:id/confirm-payment - Confirm payment
+ */
+
+import { ordersApi } from './api';
 
 export interface PaymentResult {
   success: boolean;
@@ -20,185 +32,254 @@ export interface CardData {
   cvv: string;
 }
 
-// Simula delay de processamento
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Tokenize credit/debit card using Pagar.me
+ * This is called before processing card payments to securely tokenize card data
+ */
+export const createCardToken = async (cardData: CardData): Promise<{
+  token: string;
+  brand: string;
+  lastFourDigits: string;
+}> => {
+  try {
+    const result = await ordersApi.createCardToken({
+      number: cardData.number.replace(/\s/g, ''),
+      holderName: cardData.holderName,
+      expMonth: parseInt(cardData.expiryMonth, 10),
+      expYear: parseInt(cardData.expiryYear, 10),
+      cvv: cardData.cvv,
+    });
 
-// Gera código PIX fake (copia e cola)
-const generatePixCode = (amount: number, orderId: string): string => {
-  const pixData = {
-    version: '01',
-    key: '11999999999',
-    name: 'Lumera PAGAMENTOS',
-    city: 'SAO PAULO',
-    amount: amount.toFixed(2),
-    txid: orderId.slice(0, 25),
-  };
-
-  // Simula um código PIX EMV
-  return `00020126580014br.gov.bcb.pix0136${pixData.key}5204000053039865404${pixData.amount}5802BR5925${pixData.name}6009${pixData.city}62070503***6304`;
-};
-
-// Gera dados para QR Code do PIX
-const generatePixQrCodeData = (amount: number, orderId: string): string => {
-  return JSON.stringify({
-    type: 'PIX',
-    amount,
-    orderId,
-    merchant: 'Lumera',
-    timestamp: Date.now(),
-  });
-};
-
-// Gera código de barras do boleto fake
-const generateBoletoBarcode = (): string => {
-  const random = () => Math.floor(Math.random() * 10);
-  let barcode = '23793';
-  for (let i = 0; i < 42; i++) {
-    barcode += random();
+    return result;
+  } catch (error: any) {
+    console.error('Error creating card token:', error);
+    const errorMessage = error.response?.data?.error || 'Erro ao processar dados do cartão';
+    throw new Error(errorMessage);
   }
-  return barcode;
 };
 
-// Valida número do cartão (Luhn Algorithm simplificado)
-const validateCardNumber = (number: string): boolean => {
-  const cleaned = number.replace(/\s/g, '');
-  if (cleaned.length < 13 || cleaned.length > 19) return false;
-
-  // Aceita qualquer cartão para simulação
-  return /^\d+$/.test(cleaned);
-};
-
-// Valida CVV
-const validateCvv = (cvv: string): boolean => {
-  return /^\d{3,4}$/.test(cvv);
-};
-
-// Valida data de expiração
-const validateExpiry = (month: string, year: string): boolean => {
-  const now = new Date();
-  const expiry = new Date(parseInt('20' + year), parseInt(month) - 1);
-  return expiry > now;
-};
-
-// Processa pagamento com cartão
+/**
+ * Process credit card payment
+ *
+ * Flow:
+ * 1. Tokenize the card using Pagar.me
+ * 2. Create order with card token
+ * 3. Backend processes payment with Pagar.me
+ * 4. Return payment result
+ */
 export const processCardPayment = async (
-  amount: number,
+  cartItems: Array<{ ticketId: string; quantity: number }>,
   cardData: CardData,
-  orderId: string
+  installments: number = 1,
+  paymentMethod: 'CREDIT_CARD' | 'DEBIT_CARD' = 'CREDIT_CARD'
 ): Promise<PaymentResult> => {
-  // Simula tempo de processamento
-  await delay(2000);
+  try {
+    // Step 1: Tokenize the card
+    const { token, brand, lastFourDigits } = await createCardToken(cardData);
 
-  // Validações
-  if (!validateCardNumber(cardData.number)) {
+    // Step 2: Create order with card token
+    const response = await ordersApi.create({
+      items: cartItems,
+      paymentMethod,
+      cardToken: token,
+      installments,
+    });
+
+    // Step 3: Check payment status from response
+    const { order, payment } = response;
+
+    if (payment?.card) {
+      const cardPayment = payment.card;
+
+      if (cardPayment.status === 'paid') {
+        return {
+          success: true,
+          paymentId: cardPayment.chargeId,
+          status: 'approved',
+          message: 'Pagamento aprovado com sucesso!',
+        };
+      } else if (cardPayment.status === 'pending') {
+        return {
+          success: true,
+          paymentId: cardPayment.chargeId,
+          status: 'pending',
+          message: 'Pagamento em processamento...',
+        };
+      } else {
+        return {
+          success: false,
+          paymentId: cardPayment.chargeId || '',
+          status: 'rejected',
+          message: 'Pagamento recusado. Verifique os dados do cartão.',
+        };
+      }
+    }
+
+    // Fallback
     return {
       success: false,
       paymentId: '',
       status: 'rejected',
-      message: 'Número do cartão inválido',
+      message: 'Erro ao processar pagamento',
     };
-  }
+  } catch (error: any) {
+    console.error('Card payment error:', error);
 
-  if (!validateCvv(cardData.cvv)) {
+    const errorMessage = error.response?.data?.error || error.message || 'Erro ao processar pagamento';
+
     return {
       success: false,
       paymentId: '',
       status: 'rejected',
-      message: 'CVV inválido',
+      message: errorMessage,
     };
   }
-
-  if (!validateExpiry(cardData.expiryMonth, cardData.expiryYear)) {
-    return {
-      success: false,
-      paymentId: '',
-      status: 'rejected',
-      message: 'Cartão expirado',
-    };
-  }
-
-  // Simula alguns cenários de erro baseado no número do cartão
-  const cardNumber = cardData.number.replace(/\s/g, '');
-
-  // Cartão que sempre falha (para teste)
-  if (cardNumber.startsWith('4000000000000002')) {
-    return {
-      success: false,
-      paymentId: '',
-      status: 'rejected',
-      message: 'Cartão recusado pela operadora',
-    };
-  }
-
-  // Cartão com saldo insuficiente (para teste)
-  if (cardNumber.startsWith('4000000000009995')) {
-    return {
-      success: false,
-      paymentId: '',
-      status: 'rejected',
-      message: 'Saldo insuficiente',
-    };
-  }
-
-  // Pagamento aprovado
-  return {
-    success: true,
-    paymentId: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    status: 'approved',
-    message: 'Pagamento aprovado com sucesso!',
-  };
 };
 
-// Gera pagamento PIX
+/**
+ * Generate PIX payment
+ *
+ * Flow:
+ * 1. Create order with PIX payment method
+ * 2. Backend generates PIX QR code with Pagar.me
+ * 3. Return PIX code and QR code URL
+ *
+ * Note: Payment confirmation happens via webhook when user pays
+ */
 export const generatePixPayment = async (
-  amount: number,
-  orderId: string
-): Promise<PaymentResult> => {
-  // Simula tempo de geração
-  await delay(1000);
+  cartItems: Array<{ ticketId: string; quantity: number }>
+): Promise<PaymentResult & { orderId?: string; chargeId?: string; qrCodeUrl?: string }> => {
+  try {
+    const response = await ordersApi.create({
+      items: cartItems,
+      paymentMethod: 'PIX',
+    });
 
-  const pixCode = generatePixCode(amount, orderId);
-  const pixQrCode = generatePixQrCodeData(amount, orderId);
+    const { order, payment } = response;
 
-  return {
-    success: true,
-    paymentId: `pix_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    status: 'pending',
-    message: 'PIX gerado com sucesso! Escaneie o QR Code ou copie o código.',
-    pixCode,
-    pixQrCode,
-  };
+    if (payment?.pix) {
+      const pixPayment = payment.pix;
+
+      return {
+        success: true,
+        paymentId: pixPayment.chargeId,
+        status: 'pending',
+        message: 'PIX gerado com sucesso! Escaneie o QR Code ou copie o código.',
+        pixCode: pixPayment.qrCode,
+        pixQrCode: pixPayment.qrCodeUrl, // URL da imagem do QR code
+        qrCodeUrl: pixPayment.qrCodeUrl,
+        orderId: order.id,
+        chargeId: pixPayment.chargeId,
+      };
+    }
+
+    throw new Error('PIX payment data not returned from backend');
+  } catch (error: any) {
+    console.error('PIX payment error:', error);
+
+    const errorMessage = error.response?.data?.error || error.message || 'Erro ao gerar PIX';
+
+    return {
+      success: false,
+      paymentId: '',
+      status: 'rejected',
+      message: errorMessage,
+    };
+  }
 };
 
-// Simula confirmação do PIX (em produção seria via webhook)
-export const confirmPixPayment = async (paymentId: string): Promise<PaymentResult> => {
-  await delay(1500);
+/**
+ * Check PIX payment status
+ *
+ * This is used to poll the payment status after user scans the QR code
+ */
+export const checkPixPayment = async (orderId: string): Promise<{
+  paid: boolean;
+  status: string;
+  message: string;
+}> => {
+  try {
+    const result = await ordersApi.getById(orderId);
 
+    const isPaid = result.paymentStatus === 'PAID';
+
+    return {
+      paid: isPaid,
+      status: result.paymentStatus,
+      message: isPaid ? 'Pagamento confirmado!' : 'Aguardando pagamento...',
+    };
+  } catch (error: any) {
+    console.error('Error checking PIX payment:', error);
+
+    return {
+      paid: false,
+      status: 'UNKNOWN',
+      message: 'Erro ao verificar pagamento',
+    };
+  }
+};
+
+/**
+ * Confirm PIX payment
+ *
+ * @deprecated Use checkPixPayment instead
+ */
+export const confirmPixPayment = async (paymentId: string): Promise<PaymentResult> => {
+  // This is handled by webhook in production
+  // Client should poll checkPixPayment instead
   return {
     success: true,
     paymentId,
-    status: 'approved',
-    message: 'Pagamento PIX confirmado!',
+    status: 'pending',
+    message: 'Aguardando confirmação do pagamento...',
   };
 };
 
-// Gera boleto
+/**
+ * Generate Boleto payment
+ *
+ * Flow:
+ * 1. Create order with Boleto payment method
+ * 2. Backend generates Boleto with Pagar.me
+ * 3. Return Boleto URL and barcode
+ */
 export const generateBoletoPayment = async (
-  amount: number,
-  orderId: string
+  cartItems: Array<{ ticketId: string; quantity: number }>
 ): Promise<PaymentResult> => {
-  await delay(1000);
+  try {
+    const response = await ordersApi.create({
+      items: cartItems,
+      paymentMethod: 'BOLETO',
+    });
 
-  const barcode = generateBoletoBarcode();
+    const { order, payment } = response;
 
-  return {
-    success: true,
-    paymentId: `bol_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    status: 'pending',
-    message: 'Boleto gerado com sucesso! Vencimento em 3 dias úteis.',
-    boletoBarcode: barcode,
-    boletoUrl: `https://Lumera.com/boleto/${orderId}`,
-  };
+    if (payment?.boleto) {
+      const boletoPayment = payment.boleto;
+
+      return {
+        success: true,
+        paymentId: boletoPayment.chargeId,
+        status: 'pending',
+        message: 'Boleto gerado com sucesso! Vencimento em 3 dias úteis.',
+        boletoBarcode: boletoPayment.barcode,
+        boletoUrl: boletoPayment.boletoUrl,
+      };
+    }
+
+    throw new Error('Boleto payment data not returned from backend');
+  } catch (error: any) {
+    console.error('Boleto payment error:', error);
+
+    const errorMessage = error.response?.data?.error || error.message || 'Erro ao gerar boleto';
+
+    return {
+      success: false,
+      paymentId: '',
+      status: 'rejected',
+      message: errorMessage,
+    };
+  }
 };
 
 // Formata número do cartão para exibição

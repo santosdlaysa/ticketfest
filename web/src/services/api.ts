@@ -58,6 +58,11 @@ export const authApi = {
     const response = await api.post('/auth/reset-password', { token, password });
     return response.data;
   },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await api.post('/auth/change-password', { currentPassword, newPassword });
+    return response.data;
+  },
 };
 
 // Events API
@@ -67,7 +72,8 @@ export const eventsApi = {
     search?: string;
     limit?: number;
     offset?: number;
-  }): Promise<{ events: Event[]; total: number }> => {
+    page?: number;
+  }): Promise<{ events: Event[]; total: number; limit: number; offset: number }> => {
     const response = await api.get('/events', { params });
     return response.data;
   },
@@ -464,6 +470,50 @@ export const adminApi = {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  },
+
+  // User Management
+  getUsers: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+  }): Promise<{
+    users: Array<{
+      id: string;
+      email: string;
+      name: string;
+      role: 'USER' | 'ADMIN' | 'ORGANIZER' | 'PROMOTER';
+      ordersCount: number;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> => {
+    const response = await api.get('/admin/users', { params });
+    return response.data;
+  },
+
+  updateUserRole: async (
+    userId: string,
+    role: 'USER' | 'ADMIN' | 'ORGANIZER' | 'PROMOTER'
+  ): Promise<{
+    message: string;
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      oldRole: string;
+      newRole: string;
+    };
+  }> => {
+    const response = await api.patch(`/admin/users/${userId}/role`, { role });
+    return response.data;
   },
 };
 

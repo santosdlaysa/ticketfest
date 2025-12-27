@@ -178,12 +178,30 @@ export class PaymentService {
     const transaction = charge.last_transaction;
 
     if (!transaction?.qr_code) {
-      throw new Error('PIX QR code not generated');
+      console.error('PIX payment response missing QR code:', {
+        orderId: order.id,
+        orderStatus: order.status,
+        chargeId: charge?.id,
+        chargeStatus: charge?.status,
+        transaction: transaction,
+      });
+
+      // Extract error message from gateway response
+      const gatewayErrors = transaction?.gateway_response?.errors;
+      if (gatewayErrors && gatewayErrors.length > 0) {
+        const errorMessage = gatewayErrors[0].message;
+        if (errorMessage.includes('Invalid CPF')) {
+          throw new Error('CPF inválido. Verifique o CPF cadastrado no seu perfil.');
+        }
+        throw new Error(`Erro no pagamento: ${errorMessage}`);
+      }
+
+      throw new Error(`PIX QR code não gerado. Status: ${order.status}`);
     }
 
     return {
       qrCode: transaction.qr_code,
-      qrCodeUrl: transaction.qr_code_url || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(transaction.qr_code)}`,
+      qrCodeUrl: transaction.qr_code_url || '',
       expiresAt: new Date(transaction.expires_at || Date.now() + expiresInSeconds * 1000),
       chargeId: charge.id,
       orderId: order.id,

@@ -1020,4 +1020,102 @@ export class AdminService {
       contentType: 'text/csv; charset=utf-8',
     };
   }
+
+  // User Management
+  async getAllUsers(filters: { page: number; limit: number; search?: string; role?: string }) {
+    const { page, limit, search, role } = filters;
+    const offset = (page - 1) * limit;
+
+    let conditions: string[] = [];
+    let params: any[] = [];
+    let paramIndex = 1;
+
+    if (search) {
+      conditions.push(`(u.name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`);
+      params.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    if (role) {
+      conditions.push(`u.role = $${paramIndex}`);
+      params.push(role);
+      paramIndex++;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Get total count
+    const countResult = await query(
+      `SELECT COUNT(*) as total FROM users u ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].total);
+
+    // Get users
+    const usersResult = await query(
+      `SELECT
+        u.id,
+        u.email,
+        u.name,
+        u.role,
+        u.created_at,
+        u.updated_at,
+        (SELECT COUNT(*) FROM orders WHERE user_id = u.id) as orders_count
+      FROM users u
+      ${whereClause}
+      ORDER BY u.created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      [...params, limit, offset]
+    );
+
+    return {
+      users: usersResult.rows.map(user => ({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        ordersCount: parseInt(user.orders_count),
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      })),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async updateUserRole(userId: string, newRole: string) {
+    // Check if user exists
+    const userResult = await query(
+      'SELECT id, email, name, role FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      throw new AppError(404, 'Usuário não encontrado');
+    }
+
+    const user = userResult.rows[0];
+    const oldRole = user.role;
+
+    // Update the role
+    await query(
+      'UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2',
+      [newRole, userId]
+    );
+
+    return {
+      message: 'Role atualizado com sucesso',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        oldRole,
+        newRole,
+      },
+    };
+  }
 }

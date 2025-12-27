@@ -10,6 +10,7 @@ import {
 } from '../utils/jwt.js';
 import { EmailService } from './email.service.js';
 import { env } from '../config/env.js';
+import { encryptData, decryptData, maskCPF } from '../utils/encryption.js';
 
 const emailService = new EmailService();
 
@@ -47,18 +48,24 @@ export class AuthService {
     );
 
     if (existingUser.rows.length > 0) {
-      throw new AppError(409, 'Email already registered');
+      throw new AppError(409, 'Este email já está cadastrado');
     }
 
-    // Check CPF if provided
+    // Encrypt CPF if provided
+    const encryptedCpf = data.cpf ? encryptData(data.cpf) : null;
+
+    // Check CPF if provided (need to check all existing CPFs by decrypting)
+    // For better performance in production, consider adding a cpf_hash column
     if (data.cpf) {
-      const existingCpf = await query<User>(
-        'SELECT id FROM users WHERE cpf = $1',
-        [data.cpf]
+      const allUsers = await query<User>(
+        'SELECT id, cpf FROM users WHERE cpf IS NOT NULL'
       );
 
-      if (existingCpf.rows.length > 0) {
-        throw new AppError(409, 'CPF already registered');
+      for (const existingUser of allUsers.rows) {
+        const decryptedCpf = decryptData(existingUser.cpf || '');
+        if (decryptedCpf === data.cpf) {
+          throw new AppError(409, 'Este CPF já está cadastrado');
+        }
       }
     }
 
@@ -67,12 +74,12 @@ export class AuthService {
 
     // Create user and refresh token in transaction
     const result = await transaction(async (client) => {
-      // Create user (default role: ORGANIZER)
+      // Create user (default role: USER)
       const userResult = await client.query<User>(
         `INSERT INTO users (email, password_hash, name, cpf, phone, role)
-         VALUES ($1, $2, $3, $4, $5, 'ORGANIZER')
+         VALUES ($1, $2, $3, $4, $5, 'USER')
          RETURNING id, email, name, cpf, phone, role, created_at`,
-        [data.email, passwordHash, data.name, data.cpf || null, data.phone || null]
+        [data.email, passwordHash, data.name, encryptedCpf, data.phone || null]
       );
 
       const user = userResult.rows[0];
@@ -99,7 +106,7 @@ export class AuthService {
           id: user.id,
           email: user.email,
           name: user.name,
-          cpf: user.cpf,
+          cpf: data.cpf || null, // Return original (decrypted) CPF
           phone: user.phone,
           role: user.role,
           createdAt: user.created_at,
@@ -185,7 +192,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        cpf: user.cpf,
+        cpf: user.cpf ? decryptData(user.cpf) : null, // Decrypt CPF for response
         phone: user.phone,
         role: user.role,
       },
@@ -265,7 +272,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: user.name,
-      cpf: user.cpf,
+      cpf: user.cpf ? decryptData(user.cpf) : null, // Decrypt CPF for response
       phone: user.phone,
       role: user.role,
       createdAt: user.created_at,
@@ -351,6 +358,137 @@ export class AuthService {
     }
 
     return { valid: true, userId: resetToken.user_id };
+  }
+
+  async updateProfile(
+    userId: string,
+    data: {
+      name?: string;
+      phone?: string;
+      cpf?: string;
+    }
+  ) {
+    // Check if user exists
+    const userResult = await query<User>(
+      'SELECT * FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      throw new AppError(404, 'User not found');
+    }
+
+    const currentUser = userResult.rows[0];
+    const currentDecryptedCpf = currentUser.cpf ? decryptData(currentUser.cpf) : null;
+
+    // If CPF is being updated, check for duplicates
+    if (data.cpf && data.cpf !== currentDecryptedCpf) {
+      const allUsers = await query<User>(
+        'SELECT id, cpf FROM users WHERE cpf IS NOT NULL AND id != $1',
+        [userId]
+      );
+
+      for (const existingUser of allUsers.rows) {
+        const existingDecryptedCpf = decryptData(existingUser.cpf || '');
+        if (existingDecryptedCpf === data.cpf) {
+          throw new AppError(409, 'CPF already registered by another user');
+        }
+      }
+    }
+
+    // Build update query dynamically
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (data.name !== undefined) {
+      updates.push(`name = $${paramIndex++}`);
+      values.push(data.name);
+    }
+
+    if (data.phone !== undefined) {
+      updates.push(`phone = $${paramIndex++}`);
+      values.push(data.phone);
+    }
+
+    if (data.cpf !== undefined) {
+      updates.push(`cpf = $${paramIndex++}`);
+      // Encrypt CPF before saving
+      values.push(data.cpf ? encryptData(data.cpf) : null);
+    }
+
+    if (updates.length === 0) {
+      throw new AppError(400, 'No fields to update');
+    }
+
+    updates.push(`updated_at = NOW()`);
+    values.push(userId);
+
+    const result = await query<User>(
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, name, cpf, phone, role, created_at, updated_at`,
+      values
+    );
+
+    const user = result.rows[0];
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      cpf: user.cpf ? decryptData(user.cpf) : null, // Decrypt CPF for response
+      phone: user.phone,
+      role: user.role,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
+    };
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ) {
+    // Get user with password hash
+    const userResult = await query<User>(
+      'SELECT * FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      throw new AppError(404, 'User not found');
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isValidPassword) {
+      throw new AppError(400, 'Senha atual incorreta');
+    }
+
+    // Validate new password
+    if (!newPassword || newPassword.length < 6) {
+      throw new AppError(400, 'A nova senha deve ter pelo menos 6 caracteres');
+    }
+
+    // Check if new password is different from current
+    const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+    if (isSamePassword) {
+      throw new AppError(400, 'A nova senha deve ser diferente da atual');
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await query(
+      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+      [passwordHash, userId]
+    );
+
+    // Optionally invalidate all refresh tokens except current session
+    // For now, we keep them active
+
+    return { message: 'Senha alterada com sucesso!' };
   }
 
   async resetPassword(token: string, newPassword: string) {

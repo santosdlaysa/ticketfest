@@ -8,10 +8,15 @@ const cartService = new CartService();
 function getSessionId(req: Request, res: Response): string {
   let sessionId = req.headers['x-session-id'] as string;
 
+  console.log('[Cart] Received sessionId from header:', sessionId);
+
   if (!sessionId) {
     sessionId = randomUUID();
-    res.setHeader('X-Session-Id', sessionId);
+    console.log('[Cart] Created new sessionId:', sessionId);
   }
+
+  // Always return the session ID in the response header
+  res.setHeader('X-Session-Id', sessionId);
 
   return sessionId;
 }

@@ -113,13 +113,21 @@ export default function EventDetailsScreen() {
   };
 
   const handleAddToCart = async () => {
-    if (!selectedTicket) return;
+    console.log('handleAddToCart chamado', { selectedTicket, quantity });
+    if (!selectedTicket) {
+      console.log('selectedTicket é null');
+      return;
+    }
 
     try {
+      console.log('Chamando addToCart...', { ticketId: selectedTicket.id, quantity });
       await addToCart(selectedTicket.id, quantity);
+      console.log('addToCart sucesso!');
       setModalVisible(false);
+      Alert.alert('Sucesso', 'Item adicionado ao carrinho!');
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.error || 'Erro ao adicionar ao carrinho');
+      console.log('Erro ao adicionar ao carrinho:', error);
+      Alert.alert('Erro', error.response?.data?.error || error.message || 'Erro ao adicionar ao carrinho');
     }
   };
 
