@@ -6,42 +6,63 @@ const { Pool } = pg;
 type ConnectionName = 'primary' | 'secondary';
 
 interface PoolConfig {
+  connectionString?: string;
   host?: string;
-  port: number;
+  port?: number;
   user?: string;
   password?: string;
-  database: string;
+  database?: string;
   connectionTimeoutMillis?: number;
   idleTimeoutMillis?: number;
   max?: number;
+  ssl?: boolean | { rejectUnauthorized: boolean };
 }
 
-// Pool configurations
-const primaryConfig: PoolConfig = {
-  host: dbConfig.primary.host,
-  port: dbConfig.primary.port,
-  user: dbConfig.primary.user,
-  password: dbConfig.primary.password,
-  database: dbConfig.primary.database,
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-  max: 20,
-};
+// Pool configurations - use connectionString (DATABASE_URL) if available
+const primaryConfig: PoolConfig = dbConfig.primary.url
+  ? {
+      connectionString: dbConfig.primary.url,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      max: 20,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    }
+  : {
+      host: dbConfig.primary.host,
+      port: dbConfig.primary.port,
+      user: dbConfig.primary.user,
+      password: dbConfig.primary.password,
+      database: dbConfig.primary.database,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      max: 20,
+    };
 
-const secondaryConfig: PoolConfig = {
-  host: dbConfig.secondary.host,
-  port: dbConfig.secondary.port,
-  user: dbConfig.secondary.user,
-  password: dbConfig.secondary.password,
-  database: dbConfig.secondary.database,
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 30000,
-  max: 20,
-};
+const secondaryConfig: PoolConfig = dbConfig.secondary.url
+  ? {
+      connectionString: dbConfig.secondary.url,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      max: 20,
+      ssl: { rejectUnauthorized: false },
+    }
+  : {
+      host: dbConfig.secondary.host,
+      port: dbConfig.secondary.port,
+      user: dbConfig.secondary.user,
+      password: dbConfig.secondary.password,
+      database: dbConfig.secondary.database,
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      max: 20,
+    };
+
+// Log which connection mode is being used
+console.log(`[DB] Using ${dbConfig.primary.url ? 'DATABASE_URL' : 'individual config'} for primary connection`);
 
 // Check if secondary is configured
 const hasSecondary = Boolean(
-  dbConfig.secondary.host && dbConfig.secondary.user && dbConfig.secondary.password
+  dbConfig.secondary.url || (dbConfig.secondary.host && dbConfig.secondary.user && dbConfig.secondary.password)
 );
 
 // Create pools
@@ -56,8 +77,8 @@ let healthCheckInterval: NodeJS.Timeout | null = null;
 
 // Initialize pools
 const initializePools = () => {
-  // Primary pool
-  if (dbConfig.primary.host && dbConfig.primary.user) {
+  // Primary pool - use URL or individual config
+  if (dbConfig.primary.url || (dbConfig.primary.host && dbConfig.primary.user)) {
     primaryPool = new Pool(primaryConfig);
 
     primaryPool.on('error', (err) => {
