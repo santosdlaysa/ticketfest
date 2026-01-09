@@ -129,10 +129,10 @@ export default function AdminDashboard() {
                 <p className="text-2xl font-bold text-gray-900">
                   {formatCurrency(dashboard?.summary.todayRevenue || 0)}
                 </p>
-                {dashboard?.summary.dailyGrowth !== 0 && (
-                  <p className={`text-sm ${dashboard?.summary.dailyGrowth > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {dashboard?.summary.dailyGrowth > 0 ? '+' : ''}
-                    {dashboard?.summary.dailyGrowth.toFixed(1)}% vs ontem
+                {(dashboard?.summary.dailyGrowth ?? 0) !== 0 && (
+                  <p className={`text-sm ${(dashboard?.summary.dailyGrowth ?? 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(dashboard?.summary.dailyGrowth ?? 0) > 0 ? '+' : ''}
+                    {(dashboard?.summary.dailyGrowth ?? 0).toFixed(1)}% vs ontem
                   </p>
                 )}
               </div>

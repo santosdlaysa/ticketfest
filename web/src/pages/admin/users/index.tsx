@@ -12,18 +12,21 @@ interface User {
   id: string;
   email: string;
   name: string;
-  phone: string | null;
+  phone?: string | null;
   role: 'USER' | 'ADMIN' | 'ORGANIZER' | 'PROMOTER';
   ordersCount: number;
   createdAt: string;
+  updatedAt?: string;
 }
 
 interface UsersResponse {
   users: User[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 const ROLES = [
@@ -62,8 +65,8 @@ export default function AdminUsersPage() {
       setUsers(response.users);
       setPagination((prev) => ({
         ...prev,
-        total: response.total,
-        totalPages: response.totalPages,
+        total: response.pagination.total,
+        totalPages: response.pagination.totalPages,
       }));
     } catch (error: any) {
       toast.error('Erro ao carregar usuarios');
@@ -278,6 +281,10 @@ export default function AdminUsersPage() {
                   <Pagination
                     currentPage={pagination.page}
                     totalPages={pagination.totalPages}
+                    totalItems={pagination.total}
+                    itemsPerPage={pagination.limit}
+                    showingFrom={(pagination.page - 1) * pagination.limit + 1}
+                    showingTo={Math.min(pagination.page * pagination.limit, pagination.total)}
                     onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
                   />
                 </div>
