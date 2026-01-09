@@ -56,6 +56,9 @@ const envSchema = z.object({
   DB_FAILOVER_ENABLED: z.string().default('true'),
   DB_HEALTH_CHECK_INTERVAL: z.string().default('30000'), // 30 seconds
 
+  // Auto migrate - criar tabelas automaticamente ao iniciar
+  AUTO_MIGRATE: z.string().default('false'),
+
   // JWT
   JWT_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
