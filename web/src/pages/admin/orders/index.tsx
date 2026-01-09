@@ -29,7 +29,7 @@ const paymentStatusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
   PAID: 'bg-green-100 text-green-800',
   FAILED: 'bg-red-100 text-red-800',
-  REFUNDED: 'bg-purple-100 text-purple-800',
+  REFUNDED: 'bg-accent-100 text-accent-800',
 };
 
 export default function AdminOrdersPage() {
@@ -107,6 +107,18 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const handleConfirmPayment = async (orderId: string) => {
+    if (!confirm('Confirmar o pagamento deste pedido manualmente?')) return;
+
+    try {
+      await adminApi.confirmPayment(orderId);
+      toast.success('Pagamento confirmado com sucesso!');
+      loadOrders();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao confirmar pagamento');
+    }
+  };
+
   const handleResendEmail = async (orderId: string) => {
     try {
       await adminApi.resendOrderEmail(orderId);
@@ -164,7 +176,7 @@ export default function AdminOrdersPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestao de Pedidos</h1>
+            <h1 className="text-3xl font-bold text-lumera-obsidian">Gestão de Pedidos</h1>
             <p className="text-gray-600 mt-1">
               {total} pedidos encontrados
             </p>
@@ -264,7 +276,7 @@ export default function AdminOrdersPage() {
         <div className="card overflow-hidden">
           {loading ? (
             <div className="p-8 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
               <p className="mt-4 text-gray-600">Carregando pedidos...</p>
             </div>
           ) : orders.length === 0 ? (
@@ -306,7 +318,7 @@ export default function AdminOrdersPage() {
                   {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Link href={`/admin/orders/${order.id}`} className="text-primary-600 hover:underline font-mono text-sm">
+                        <Link href={`/admin/orders/${order.id}`} className="text-primary-500 hover:text-primary-600 hover:underline font-mono text-sm">
                           {order.id.slice(0, 8)}...
                         </Link>
                       </td>
@@ -343,12 +355,22 @@ export default function AdminOrdersPage() {
                           <Link href={`/admin/orders/${order.id}`}>
                             <Button variant="ghost" size="sm">Ver</Button>
                           </Link>
+                          {order.paymentStatus === 'PENDING' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-green-600 hover:bg-green-50"
+                              onClick={() => handleConfirmPayment(order.id)}
+                            >
+                              Confirmar Pgto
+                            </Button>
+                          )}
                           {order.paymentStatus === 'PAID' && order.status !== 'CANCELLED' && (
                             <>
                               <Button variant="ghost" size="sm" onClick={() => handleResendEmail(order.id)}>
                                 Email
                               </Button>
-                              <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleRefund(order.id)}>
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => handleRefund(order.id)}>
                                 Reembolsar
                               </Button>
                             </>

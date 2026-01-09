@@ -51,6 +51,12 @@ export class AdminController {
     res.status(200).json(result);
   }
 
+  async confirmPaymentManual(req: Request, res: Response) {
+    const { id } = req.params;
+    const result = await adminService.confirmPaymentManual(id);
+    res.status(200).json(result);
+  }
+
   // Reports
   async getSalesReport(req: Request, res: Response) {
     const { startDate, endDate, groupBy = 'day', eventId } = req.query;
@@ -140,14 +146,14 @@ export class AdminController {
 
   async approvePayout(req: Request, res: Response) {
     const { id } = req.params;
-    const result = await adminService.approvePayout(id);
+    const result = await adminService.approvePayout(id, req.user!.id);
     res.status(200).json(result);
   }
 
   async rejectPayout(req: Request, res: Response) {
     const { id } = req.params;
     const { reason } = req.body;
-    const result = await adminService.rejectPayout(id, reason);
+    const result = await adminService.rejectPayout(id, req.user!.id, reason);
     res.status(200).json(result);
   }
 
@@ -166,7 +172,7 @@ export class AdminController {
   }
 
   // Reminders (manual trigger for testing)
-  async triggerReminders(req: Request, res: Response) {
+  async triggerReminders(_req: Request, res: Response) {
     const result = await triggerRemindersManually();
     res.status(200).json({
       message: 'Reminders processed successfully',
@@ -180,5 +186,36 @@ export class AdminController {
     const userId = req.user!.role === 'ORGANIZER' ? req.user!.id : undefined;
     const result = await adminService.getDashboardData(userId);
     res.status(200).json(result);
+  }
+
+  // User Management (ADMIN only)
+  async getAllUsers(req: Request, res: Response) {
+    const { page = '1', limit = '20', search, role } = req.query;
+
+    const result = await adminService.getAllUsers({
+      page: parseInt(page as string),
+      limit: parseInt(limit as string),
+      search: search as string,
+      role: role as string,
+    });
+
+    res.status(200).json(result);
+  }
+
+  async updateUserRole(req: Request, res: Response) {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!role || !['USER', 'ADMIN', 'ORGANIZER', 'PROMOTER'].includes(role)) {
+      return res.status(400).json({ error: 'Role inválido' });
+    }
+
+    // Prevent changing own role
+    if (id === req.user!.id) {
+      return res.status(400).json({ error: 'Você não pode alterar seu próprio role' });
+    }
+
+    const result = await adminService.updateUserRole(id, role);
+    return res.status(200).json(result);
   }
 }

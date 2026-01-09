@@ -7,20 +7,31 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable sending cookies with requests
 });
 
-// Request interceptor to add auth token
+// Helper to get or create session ID
+const getOrCreateSessionId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+
+  let sessionId = localStorage.getItem('sessionId');
+  if (!sessionId) {
+    sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('sessionId', sessionId);
+  }
+  return sessionId;
+};
+
+// Request interceptor to add session ID
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      // Note: Auth tokens are now sent automatically via httpOnly cookies
+      // No need to manually add Authorization header
 
-      // Add session ID for guest carts
-      const sessionId = localStorage.getItem('sessionId');
-      if (sessionId && !token) {
+      // Always add session ID for cart operations (allows merging guest cart after login)
+      const sessionId = getOrCreateSessionId();
+      if (sessionId) {
         config.headers['X-Session-ID'] = sessionId;
       }
     }
@@ -41,29 +52,35 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      if (typeof window !== 'undefined') {
-        const refreshToken = localStorage.getItem('refreshToken');
+      // Don't try to refresh if we're on auth pages or if the request was for auth endpoints
+      const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+      const isOnAuthPage = typeof window !== 'undefined' &&
+        (window.location.pathname.startsWith('/auth/') || window.location.pathname === '/auth');
 
-        if (refreshToken) {
-          try {
-            const response = await axios.post(`${API_URL}/auth/refresh-token`, {
-              refreshToken,
-            });
+      if (isAuthEndpoint || isOnAuthPage) {
+        // Don't try to refresh or redirect - just reject the error
+        return Promise.reject(error);
+      }
 
-            const { accessToken } = response.data;
-            localStorage.setItem('accessToken', accessToken);
-
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return api(originalRequest);
-          } catch (refreshError) {
-            // Refresh token failed, logout user
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
-            window.location.href = '/auth/login';
-            return Promise.reject(refreshError);
+      try {
+        // Try to refresh the token using the httpOnly refresh token cookie
+        // The backend will read the refresh token from the cookie and set a new access token cookie
+        await axios.post(
+          `${API_URL}/auth/refresh-token`,
+          {},
+          {
+            withCredentials: true, // Send cookies with the request
           }
+        );
+
+        // Retry the original request (the new access token cookie will be sent automatically)
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh token failed, redirect to login (only if not already on auth page)
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+          window.location.href = '/auth/login';
         }
+        return Promise.reject(refreshError);
       }
     }
 

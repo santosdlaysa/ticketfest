@@ -12,7 +12,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-lumera-obsidian mb-1">
             {label}
             {props.required && <span className="text-red-500 ml-1">*</span>}
           </label>
@@ -20,12 +20,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={clsx(
-            'w-full px-4 py-2 border rounded-lg transition-all',
+            'w-full px-4 py-2 border rounded-lg transition-all bg-white',
             'focus:ring-2 focus:ring-primary-500 focus:border-transparent',
-            'disabled:bg-gray-100 disabled:cursor-not-allowed',
+            'disabled:bg-lumera-surface disabled:cursor-not-allowed',
             {
               'border-red-500 focus:ring-red-500': error,
-              'border-gray-300': !error,
+              'border-lumera-border': !error,
             },
             className
           )}

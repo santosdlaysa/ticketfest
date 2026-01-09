@@ -6,6 +6,7 @@ import { useAuthStore } from '@/contexts/AuthContext';
 import { ordersApi } from '@/services/api';
 import type { Order, TicketInstance } from '@/types';
 import { Button } from '@/components/common/Button';
+import { UserLayout } from '@/components/layout/UserLayout';
 
 interface TicketWithOrder extends TicketInstance {
   order: Order;
@@ -66,22 +67,22 @@ export default function MyTickets() {
 
   if (loading) {
     return (
-      <>
+      <UserLayout>
         <Head><title>Meus Ingressos - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
+        <div className="py-12">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-gray-600">Carregando ingressos...</p>
           </div>
         </div>
-      </>
+      </UserLayout>
     );
   }
 
   return (
-    <>
+    <UserLayout>
       <Head><title>Meus Ingressos - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-12">
+      <div className="space-y-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Meus Ingressos</h1>
           <p className="text-gray-600 mt-2">
@@ -228,6 +229,6 @@ export default function MyTickets() {
           </div>
         )}
       </div>
-    </>
+    </UserLayout>
   );
 }

@@ -23,6 +23,17 @@ export interface CardPaymentData {
   amount: number;
 }
 
+export interface BoletoPaymentData {
+  orderId: string;
+  chargeId: string;
+  boletoUrl: string;
+  boletoPdf: string;
+  barcode: string;
+  linhaDigitavel: string;
+  dueDate: Date;
+  amount: number;
+}
+
 export interface CustomerData {
   name: string;
   email: string;
@@ -167,15 +178,73 @@ export class PaymentService {
     const transaction = charge.last_transaction;
 
     if (!transaction?.qr_code) {
-      throw new Error('PIX QR code not generated');
+      console.error('PIX payment response missing QR code:', {
+        orderId: order.id,
+        orderStatus: order.status,
+        chargeId: charge?.id,
+        chargeStatus: charge?.status,
+        transaction: transaction,
+      });
+
+      // Extract error message from gateway response
+      const gatewayErrors = transaction?.gateway_response?.errors;
+      if (gatewayErrors && gatewayErrors.length > 0) {
+        const errorMessage = gatewayErrors[0].message;
+        if (errorMessage.includes('Invalid CPF')) {
+          throw new Error('CPF inválido. Verifique o CPF cadastrado no seu perfil.');
+        }
+        throw new Error(`Erro no pagamento: ${errorMessage}`);
+      }
+
+      throw new Error(`PIX QR code não gerado. Status: ${order.status}`);
     }
 
     return {
       qrCode: transaction.qr_code,
-      qrCodeUrl: transaction.qr_code_url || `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(transaction.qr_code)}`,
+      qrCodeUrl: transaction.qr_code_url || '',
       expiresAt: new Date(transaction.expires_at || Date.now() + expiresInSeconds * 1000),
       chargeId: charge.id,
       orderId: order.id,
+    };
+  }
+
+  /**
+   * Create Boleto payment
+   */
+  async createBoletoPayment(
+    customer: CustomerData,
+    items: Array<{ name: string; quantity: number; price: number; id?: string }>,
+    daysToExpire: number = 3,
+    instructions?: string,
+    metadata?: Record<string, string>
+  ): Promise<BoletoPaymentData> {
+    const pagarmeCustomer = this.formatCustomer(customer);
+    const pagarmeItems = this.formatItems(items);
+
+    const order = await pagarmeService.createBoletoOrder(
+      pagarmeCustomer,
+      pagarmeItems,
+      daysToExpire,
+      instructions,
+      metadata
+    );
+
+    const charge = order.charges[0];
+    const transaction = charge.last_transaction;
+
+    if (!transaction?.line && !transaction?.barcode) {
+      throw new Error('Boleto data not generated');
+    }
+
+    return {
+      orderId: order.id,
+      chargeId: charge.id,
+      boletoUrl: transaction.url || '',
+      boletoPdf: transaction.pdf || '',
+      barcode: transaction.barcode || '',
+      linhaDigitavel: transaction.line || '',
+      dueDate: new Date(transaction.due_at || Date.now() + daysToExpire * 24 * 60 * 60 * 1000),
+      amount: order.amount / 100,
     };
   }
 
@@ -286,7 +355,7 @@ export class PaymentService {
   async createPaymentIntent(
     amount: number,
     currency: string = 'brl',
-    metadata?: Record<string, string>
+    _metadata?: Record<string, string>
   ): Promise<PaymentIntent> {
     // Mock for legacy compatibility
     return {
@@ -320,7 +389,7 @@ export class PaymentService {
   async generateBoleto(
     amount: number,
     orderId: string,
-    customerData: { name: string; cpf: string; email: string }
+    _customerData: { name: string; cpf: string; email: string }
   ): Promise<{ boletoUrl: string; barcode: string; dueDate: Date }> {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 3);

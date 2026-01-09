@@ -107,7 +107,29 @@ export interface PagarmePixPayment {
   };
 }
 
-export type PagarmePayment = PagarmeCreditCardPayment | PagarmeDebitCardPayment | PagarmePixPayment;
+export interface PagarmeBoletoPayment {
+  payment_method: 'boleto';
+  boleto: {
+    bank: string; // '001' = Banco do Brasil, '104' = Caixa, '237' = Bradesco, '341' = Itau, '033' = Santander
+    instructions: string;
+    due_at: string; // ISO date
+    nosso_numero?: string;
+    type?: 'DM' | 'DS' | 'NP' | 'RC';
+    document_number?: string;
+    interest?: {
+      type: 'flat' | 'percentage';
+      days: number;
+      amount?: number;
+    };
+    fine?: {
+      type: 'flat' | 'percentage';
+      days: number;
+      amount?: number;
+    };
+  };
+}
+
+export type PagarmePayment = PagarmeCreditCardPayment | PagarmeDebitCardPayment | PagarmePixPayment | PagarmeBoletoPayment;
 
 export interface PagarmeOrderRequest {
   customer: PagarmeCustomer;
@@ -136,11 +158,25 @@ export interface PagarmeCharge {
     amount: number;
     status: string;
     success: boolean;
+    // PIX fields
     qr_code?: string;
     qr_code_url?: string;
     expires_at?: string;
+    // Boleto fields
+    url?: string;
+    pdf?: string;
+    line?: string;
+    barcode?: string;
+    due_at?: string;
+    nosso_numero?: string;
+    // Common
     created_at: string;
     updated_at: string;
+    // Error response
+    gateway_response?: {
+      code: string;
+      errors?: Array<{ message: string }>;
+    };
   };
 }
 
@@ -230,14 +266,14 @@ export class PagarmeService {
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    const data = await response.json();
+    const data = await response.json() as T & { message?: string };
 
     if (!response.ok) {
       console.error('Pagar.me API Error:', data);
       throw new Error(data.message || `Pagar.me API error: ${response.status}`);
     }
 
-    return data;
+    return data as T;
   }
 
   /**
@@ -274,14 +310,14 @@ export class PagarmeService {
       body: JSON.stringify({ type: 'card', card: cardData }),
     });
 
-    const data = await response.json();
+    const data = await response.json() as PagarmeTokenResponse & { message?: string };
 
     if (!response.ok) {
       console.error('Pagar.me Token Error:', data);
       throw new Error(data.message || 'Failed to create card token');
     }
 
-    return data;
+    return data as PagarmeTokenResponse;
   }
 
   /**
@@ -297,8 +333,6 @@ export class PagarmeService {
     if (!this.secretKey) {
       return this.mockOrderResponse('credit_card', items, metadata);
     }
-
-    const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
 
     const orderRequest: PagarmeOrderRequest = {
       customer,
@@ -376,6 +410,70 @@ export class PagarmeService {
             ],
           },
         },
+      ],
+      metadata,
+    };
+
+    console.log('Creating PIX order with Pagar.me:', JSON.stringify(orderRequest, null, 2));
+    const response = await this.request<PagarmeOrderResponse>('/orders', 'POST', orderRequest);
+    console.log('Pagar.me PIX order response:', JSON.stringify(response, null, 2));
+
+    // Log detalhado da transação PIX
+    const charge = response.charges?.[0];
+    const transaction = charge?.last_transaction;
+    console.log('PIX Transaction details:', {
+      qr_code: transaction?.qr_code,
+      qr_code_url: transaction?.qr_code_url,
+      pix_provider_tid: (transaction as any)?.pix_provider_tid,
+      end_to_end_id: (transaction as any)?.end_to_end_id,
+      all_keys: transaction ? Object.keys(transaction) : [],
+    });
+
+    return response;
+  }
+
+  /**
+   * Create an order with Boleto payment
+   */
+  async createBoletoOrder(
+    customer: PagarmeCustomer,
+    items: PagarmeItem[],
+    daysToExpire: number = 3,
+    instructions?: string,
+    metadata?: Record<string, string>
+  ): Promise<PagarmeOrderResponse> {
+    if (!this.secretKey) {
+      return this.mockBoletoOrderResponse(items, daysToExpire, metadata);
+    }
+
+    // Calculate due date
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + daysToExpire);
+    const dueAt = dueDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    const orderRequest: PagarmeOrderRequest = {
+      customer,
+      items,
+      payments: [
+        {
+          payment_method: 'boleto',
+          boleto: {
+            bank: '104', // Caixa - commonly used for boletos
+            instructions: instructions || 'Pagar ate a data de vencimento. Apos o vencimento, multa de 2% e juros de 1% ao mes.',
+            due_at: dueAt,
+            type: 'DM', // Duplicata Mercantil
+            interest: {
+              type: 'percentage',
+              days: 1,
+              amount: 100, // 1% per month = 100 basis points
+            },
+            fine: {
+              type: 'percentage',
+              days: 1,
+              amount: 200, // 2% fine = 200 basis points
+            },
+          },
+        } as PagarmeBoletoPayment,
       ],
       metadata,
     };
@@ -461,7 +559,7 @@ export class PagarmeService {
   private mockOrderResponse(
     paymentMethod: string,
     items: PagarmeItem[],
-    metadata?: Record<string, string>
+    _metadata?: Record<string, string>
   ): PagarmeOrderResponse {
     const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
     const now = new Date().toISOString();
@@ -504,7 +602,7 @@ export class PagarmeService {
   private mockPixOrderResponse(
     items: PagarmeItem[],
     expiresInSeconds: number,
-    metadata?: Record<string, string>
+    _metadata?: Record<string, string>
   ): PagarmeOrderResponse {
     const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
     const now = new Date().toISOString();
@@ -552,6 +650,79 @@ export class PagarmeService {
             qr_code: mockPixCode,
             qr_code_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mockPixCode)}`,
             expires_at: expiresAt,
+            created_at: now,
+            updated_at: now,
+          },
+        },
+      ],
+    };
+  }
+
+  private mockBoletoOrderResponse(
+    items: PagarmeItem[],
+    daysToExpire: number,
+    _metadata?: Record<string, string>
+  ): PagarmeOrderResponse {
+    const totalAmount = items.reduce((sum, item) => sum + item.amount * item.quantity, 0);
+    const now = new Date().toISOString();
+    const orderId = `mock_boleto_${Date.now()}`;
+    const chargeId = `mock_boleto_charge_${Date.now()}`;
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + daysToExpire);
+    const dueAt = dueDate.toISOString();
+
+    // Generate mock boleto barcode (47 digits for Linha Digitavel)
+    const bankCode = '104'; // Caixa
+    const currency = '9'; // Real
+    const checkDigit = '1';
+    const dueDateFactor = Math.floor((dueDate.getTime() - new Date('1997-10-07').getTime()) / (1000 * 60 * 60 * 24));
+    const amountStr = Math.round(totalAmount).toString().padStart(10, '0');
+    const randomField = Date.now().toString().slice(-15).padStart(25, '0');
+
+    const mockBarcode = `${bankCode}${currency}${checkDigit}${dueDateFactor.toString().padStart(4, '0')}${amountStr}${randomField}`;
+    const mockLinhaDigitavel = `${bankCode}.${mockBarcode.slice(3, 8)} ${mockBarcode.slice(8, 18)}.${mockBarcode.slice(18, 19)} ${mockBarcode.slice(19, 29)}.${mockBarcode.slice(29, 30)} ${mockBarcode.slice(30, 31)} ${mockBarcode.slice(31)}`;
+
+    return {
+      id: orderId,
+      code: orderId,
+      amount: totalAmount,
+      currency: 'BRL',
+      closed: true,
+      status: 'pending',
+      created_at: now,
+      updated_at: now,
+      customer: {
+        id: 'mock_customer',
+        name: 'Mock Customer',
+        email: 'mock@example.com',
+        document: '00000000000',
+        type: 'individual',
+      },
+      charges: [
+        {
+          id: chargeId,
+          code: chargeId,
+          gateway_id: 'mock_gateway',
+          amount: totalAmount,
+          status: 'waiting_payment',
+          currency: 'BRL',
+          payment_method: 'boleto',
+          created_at: now,
+          updated_at: now,
+          last_transaction: {
+            id: `mock_tx_${Date.now()}`,
+            transaction_type: 'boleto',
+            gateway_id: 'mock',
+            amount: totalAmount,
+            status: 'waiting_payment',
+            success: true,
+            url: `https://lumera.com/boleto/${orderId}`,
+            pdf: `https://lumera.com/boleto/${orderId}.pdf`,
+            line: mockLinhaDigitavel,
+            barcode: mockBarcode,
+            due_at: dueAt,
+            nosso_numero: orderId.slice(-10),
             created_at: now,
             updated_at: now,
           },

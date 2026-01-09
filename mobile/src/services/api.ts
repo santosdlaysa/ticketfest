@@ -1,5 +1,6 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { secureStorage } from './secureStorage';
 import type {
   User,
   AuthResponse,
@@ -20,13 +21,14 @@ import {
   mockOrderOperations,
   mockPromoterOperations,
 } from './mockData';
+import { useLogStore } from '../stores/logStore';
 
 // Flag para usar dados mock (true = mock, false = API real)
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // API URL - use localhost for development (change to production URL when deploying)
 const API_URL = __DEV__
-  ? 'http://localhost:4000/api'  // For Android emulator use: 10.0.2.2:4000
+  ? 'http://192.168.100.136:3000/api'  // IP local da máquina (localhost não funciona em dispositivos reais)
   : 'https://api.Lumera.com/api'; // Production URL
 
 // Create axios instance
@@ -37,18 +39,38 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Extend config to include our custom properties
+interface CustomAxiosConfig extends InternalAxiosRequestConfig {
+  _logId?: string;
+  _startTime?: number;
+}
+
+// Request interceptor to add auth token and logging
 api.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem('accessToken');
+  async (config: CustomAxiosConfig) => {
+    // Retrieve access token from secure storage
+    const token = await secureStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Add session ID for guest carts
+    // Always add session ID for cart consistency (non-sensitive, use AsyncStorage)
     const sessionId = await AsyncStorage.getItem('sessionId');
-    if (sessionId && !token) {
+    if (sessionId) {
       config.headers['X-Session-ID'] = sessionId;
+    }
+
+    // Log the request
+    const logStore = useLogStore.getState();
+    if (logStore.isEnabled) {
+      const logId = logStore.addLog({
+        method: (config.method?.toUpperCase() || 'GET') as any,
+        url: `${config.baseURL}${config.url}`,
+        requestHeaders: config.headers as Record<string, string>,
+        requestBody: config.data,
+      });
+      config._logId = logId;
+      config._startTime = Date.now();
     }
 
     return config;
@@ -58,17 +80,58 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle token refresh, session ID, and logging
 api.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    const config = response.config as CustomAxiosConfig;
+
+    // Log the response
+    const logStore = useLogStore.getState();
+    if (logStore.isEnabled && config._logId) {
+      const duration = config._startTime ? Date.now() - config._startTime : undefined;
+      logStore.updateLog(config._logId, {
+        responseStatus: response.status,
+        responseHeaders: response.headers as Record<string, string>,
+        responseBody: response.data,
+        duration,
+        status: 'success',
+      });
+    }
+
+    // Capture session ID from response headers for guest carts
+    const sessionId = response.headers['x-session-id']
+      || response.headers['X-Session-Id']
+      || response.headers['X-Session-ID'];
+    if (sessionId) {
+      await AsyncStorage.setItem('sessionId', sessionId);
+    }
+    return response;
+  },
   async (error) => {
+    const config = error.config as CustomAxiosConfig;
+
+    // Log the error
+    const logStore = useLogStore.getState();
+    if (logStore.isEnabled && config?._logId) {
+      const duration = config._startTime ? Date.now() - config._startTime : undefined;
+      logStore.updateLog(config._logId, {
+        responseStatus: error.response?.status,
+        responseHeaders: error.response?.headers as Record<string, string>,
+        responseBody: error.response?.data,
+        duration,
+        error: error.message,
+        status: 'error',
+      });
+    }
+
     const originalRequest = error.config;
 
     // If error is 401 and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshToken = await AsyncStorage.getItem('refreshToken');
+      // Retrieve refresh token from secure storage
+      const refreshToken = await secureStorage.getItem('refreshToken');
 
       if (refreshToken) {
         try {
@@ -77,13 +140,14 @@ api.interceptors.response.use(
           });
 
           const { accessToken } = response.data;
-          await AsyncStorage.setItem('accessToken', accessToken);
+          // Store new access token securely
+          await secureStorage.setItem('accessToken', accessToken);
 
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return api(originalRequest);
         } catch (refreshError) {
-          // Refresh token failed, logout user
-          await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+          // Refresh token failed, logout user - clear secure storage
+          await secureStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
           // Navigation to login will be handled by auth store
           return Promise.reject(refreshError);
         }
@@ -96,6 +160,55 @@ api.interceptors.response.use(
 
 // Simula delay de rede
 const simulateDelay = (ms: number = 300) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Extract error message from API error response
+ * Handles Axios errors and extracts the actual message from the backend
+ */
+export const getApiErrorMessage = (error: any, defaultMessage: string = 'Ocorreu um erro inesperado.'): string => {
+  // Main error field (used by AppError and Zod errors)
+  if (error.response?.data?.error) {
+    return error.response.data.error;
+  }
+  // Alternative message field
+  if (error.response?.data?.message) {
+    return error.response.data.message;
+  }
+  // Zod validation details array
+  if (error.response?.data?.details && Array.isArray(error.response.data.details)) {
+    const firstError = error.response.data.details[0];
+    if (firstError?.message) {
+      return firstError.message;
+    }
+  }
+  // Generic errors array
+  if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+    return error.response.data.errors.map((e: any) => e.message || e).join(', ');
+  }
+  // Axios error message (skip generic status code messages)
+  if (error.message && !error.message.includes('status code')) {
+    return error.message;
+  }
+  return defaultMessage;
+};
+
+/**
+ * Get field-specific errors from API validation response
+ * Returns a map of field names to error messages
+ */
+export const getFieldErrors = (error: any): Record<string, string> => {
+  const fieldErrors: Record<string, string> = {};
+
+  if (error.response?.data?.details && Array.isArray(error.response.data.details)) {
+    for (const detail of error.response.data.details) {
+      if (detail.field && detail.message) {
+        fieldErrors[detail.field] = detail.message;
+      }
+    }
+  }
+
+  return fieldErrors;
+};
 
 // Auth API
 export const authApi = {
@@ -165,6 +278,66 @@ export const authApi = {
       };
     }
     const response = await api.get('/auth/profile');
+    return response.data;
+  },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return { message: 'Email enviado com sucesso' };
+    }
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  verifyResetToken: async (token: string): Promise<{ valid: boolean }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return { valid: true };
+    }
+    const response = await api.get(`/auth/verify-reset-token/${token}`);
+    return response.data;
+  },
+
+  resetPassword: async (token: string, password: string): Promise<{ message: string }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return { message: 'Senha redefinida com sucesso' };
+    }
+    const response = await api.post('/auth/reset-password', { token, password });
+    return response.data;
+  },
+
+  updateProfile: async (data: {
+    name?: string;
+    phone?: string;
+    cpf?: string;
+  }): Promise<User> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return {
+        id: 'user-1',
+        email: 'demo@lumera.com',
+        name: data.name || 'Usuario Demo',
+        phone: data.phone,
+        cpf: data.cpf,
+        role: 'USER',
+        createdAt: new Date().toISOString(),
+      };
+    }
+    const response = await api.put('/auth/profile', data);
+    return response.data;
+  },
+
+  changePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ message: string }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay();
+      return { message: 'Senha alterada com sucesso' };
+    }
+    const response = await api.post('/auth/change-password', data);
     return response.data;
   },
 };
@@ -312,12 +485,20 @@ export const cartApi = {
   },
 
   add: async (ticketId: string, quantity: number): Promise<Cart> => {
+    console.log('[cartApi.add] Iniciando requisição', { ticketId, quantity });
     if (USE_MOCK_DATA) {
       await simulateDelay();
       return mockCartOperations.addToCart(ticketId, quantity);
     }
-    const response = await api.post('/cart/add', { ticketId, quantity });
-    return response.data;
+    try {
+      console.log('[cartApi.add] Fazendo POST para /cart/add');
+      const response = await api.post('/cart/add', { ticketId, quantity });
+      console.log('[cartApi.add] Resposta:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.log('[cartApi.add] Erro:', error.response?.status, error.response?.data || error.message);
+      throw error;
+    }
   },
 
   updateItem: async (itemId: string, quantity: number): Promise<Cart> => {
@@ -354,12 +535,33 @@ export const ordersApi = {
     items: Array<{ ticketId: string; quantity: number }>;
     couponCode?: string;
     paymentMethod: 'CREDIT_CARD' | 'DEBIT_CARD' | 'PIX' | 'BOLETO';
+    cardToken?: string;
+    installments?: number;
   }): Promise<{ order: Order; payment: any }> => {
     if (USE_MOCK_DATA) {
       await simulateDelay(800); // Simula processamento de pagamento
       return mockOrderOperations.createOrder(data);
     }
     const response = await api.post('/orders', data);
+    return response.data;
+  },
+
+  createCardToken: async (cardData: {
+    number: string;
+    holderName: string;
+    expMonth: number;
+    expYear: number;
+    cvv: string;
+  }): Promise<{ token: string; brand: string; lastFourDigits: string }> => {
+    if (USE_MOCK_DATA) {
+      await simulateDelay(500);
+      return {
+        token: `mock_token_${Date.now()}`,
+        brand: 'visa',
+        lastFourDigits: cardData.number.slice(-4),
+      };
+    }
+    const response = await api.post('/orders/card-token', cardData);
     return response.data;
   },
 

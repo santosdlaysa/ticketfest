@@ -406,10 +406,12 @@ export class EventService {
   }
 
   async getFeaturedEvents() {
-    const eventsResult = await query<Event>(
-      `SELECT * FROM events
-       WHERE status = 'PUBLISHED' AND date >= NOW()
-       ORDER BY date ASC
+    const eventsResult = await query<Event & { organizer_name: string }>(
+      `SELECT e.*, u.name as organizer_name
+       FROM events e
+       JOIN users u ON e.organizer_id = u.id
+       WHERE e.status = 'PUBLISHED' AND e.date >= NOW()
+       ORDER BY e.date ASC
        LIMIT 10`
     );
 
@@ -438,15 +440,18 @@ export class EventService {
       organizerId: event.organizer_id,
       createdAt: event.created_at,
       updatedAt: event.updated_at,
+      organizer: { id: event.organizer_id, name: event.organizer_name },
       tickets: ticketPrices.has(event.id) ? [{ price: ticketPrices.get(event.id) }] : [],
     }));
   }
 
   async getEventsByCategory(category: string) {
-    const eventsResult = await query<Event>(
-      `SELECT * FROM events
-       WHERE category = $1 AND status = 'PUBLISHED' AND date >= NOW()
-       ORDER BY date ASC`,
+    const eventsResult = await query<Event & { organizer_name: string }>(
+      `SELECT e.*, u.name as organizer_name
+       FROM events e
+       JOIN users u ON e.organizer_id = u.id
+       WHERE e.category = $1 AND e.status = 'PUBLISHED' AND e.date >= NOW()
+       ORDER BY e.date ASC`,
       [category]
     );
 
@@ -475,6 +480,7 @@ export class EventService {
       organizerId: event.organizer_id,
       createdAt: event.created_at,
       updatedAt: event.updated_at,
+      organizer: { id: event.organizer_id, name: event.organizer_name },
       tickets: ticketPrices.has(event.id) ? [{ price: ticketPrices.get(event.id) }] : [],
     }));
   }

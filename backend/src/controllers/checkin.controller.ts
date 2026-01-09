@@ -12,7 +12,7 @@ export class CheckinController {
     }
 
     const result = await checkinService.validateTicket(qrCodeData, eventId);
-    res.status(200).json(result);
+    return res.status(200).json(result);
   }
 
   async getEventStats(req: Request, res: Response) {

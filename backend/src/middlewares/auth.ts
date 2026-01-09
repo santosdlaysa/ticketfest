@@ -9,17 +9,31 @@ interface JWTPayload {
   role: string;
 }
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    throw new AppError(401, 'Authentication token required');
+// Helper to extract token from cookies or Authorization header
+const extractToken = (req: Request): string | null => {
+  // First try to get from httpOnly cookie
+  const cookieToken = req.cookies?.accessToken;
+  if (cookieToken) {
+    return cookieToken;
   }
 
-  const [bearer, token] = authHeader.split(' ');
+  // Fallback to Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const [bearer, token] = authHeader.split(' ');
+    if (bearer === 'Bearer' && token) {
+      return token;
+    }
+  }
 
-  if (bearer !== 'Bearer' || !token) {
-    throw new AppError(401, 'Invalid authentication token format');
+  return null;
+};
+
+export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
+  const token = extractToken(req);
+
+  if (!token) {
+    throw new AppError(401, 'Authentication token required');
   }
 
   try {
@@ -40,8 +54,31 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
+// Optional authentication - populates req.user if token is valid, but doesn't block the request
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction) => {
+  const token = extractToken(req);
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
+
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email,
+      role: decoded.role,
+    };
+  } catch (error) {
+    // Token invalid or expired, continue without user
+  }
+
+  next();
+};
+
 export const authorize = (...roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new AppError(401, 'Authentication required');
     }

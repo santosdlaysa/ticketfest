@@ -9,12 +9,17 @@ import statsRoutes from './stats.routes.js';
 import venueRoutes from './venue.routes.js';
 import adminRoutes from './admin.routes.js';
 import webhookRoutes from './webhook.routes.js';
-import { getConnectionStatus } from '../config/database.js';
+import uploadRoutes from './upload.routes.js';
+import payoutRoutes from './payout.routes.js';
+import couponRoutes from './coupon.routes.js';
+import permissionsRoutes from './permissions.routes.js';
+import migrateRoutes from './migrate.routes.js';
+import { getConnectionStatus, query } from '../config/database.js';
 
 const router = Router();
 
 // Health check
-router.get('/health', (req, res) => {
+router.get('/health', (_req, res) => {
   const dbStatus = getConnectionStatus();
 
   res.status(200).json({
@@ -43,5 +48,41 @@ router.use('/stats', statsRoutes);
 router.use('/venues', venueRoutes);
 router.use('/admin', adminRoutes);
 router.use('/webhooks', webhookRoutes);
+router.use('/upload', uploadRoutes);
+router.use('/payouts', payoutRoutes);
+router.use('/coupons', couponRoutes);
+router.use('/permissions', permissionsRoutes);
+router.use('/migrate', migrateRoutes);
+
+// Test endpoint - ONLY FOR DEVELOPMENT
+if (process.env.NODE_ENV !== 'production') {
+  router.post('/test/simulate-payment/:orderId', async (req, res) => {
+    try {
+      const { orderId } = req.params;
+
+      // Update order to paid
+      const result = await query(
+        `UPDATE orders
+         SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW()
+         WHERE id = $1
+         RETURNING id, payment_status, status`,
+        [orderId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      console.log(`[TEST] Simulated payment for order ${orderId}`);
+      return res.json({
+        message: 'Payment simulated successfully',
+        order: result.rows[0]
+      });
+    } catch (error: any) {
+      console.error('Test simulate payment error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+}
 
 export default router;

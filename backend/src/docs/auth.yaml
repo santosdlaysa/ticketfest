@@ -1,0 +1,237 @@
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Registrar novo usuario
+      description: Cria uma nova conta de usuario/organizador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Usuario criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: Email ou CPF ja cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Fazer login
+      description: Autentica usuario e retorna tokens JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciais invalidas
+
+  /api/auth/refresh-token:
+    post:
+      tags:
+        - Auth
+      summary: Renovar access token
+      description: Usa o refresh token para obter novo access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token renovado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Fazer logout
+      description: Invalida o refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Logout realizado com sucesso
+
+  /api/auth/profile:
+    get:
+      tags:
+        - Auth
+      summary: Obter perfil do usuario
+      description: Retorna dados do usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil do usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      tags:
+        - Auth
+      summary: Atualizar perfil
+      description: Atualiza dados do usuario autenticado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Perfil atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          description: CPF ja cadastrado por outro usuario
+
+  /api/auth/change-password:
+    post:
+      tags:
+        - Auth
+      summary: Alterar senha
+      description: Altera a senha do usuario autenticado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Senha alterada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          description: Senha atual incorreta ou nova senha invalida
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: Solicitar recuperacao de senha
+      description: Envia email com link para redefinir senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email enviado (se existir)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+
+  /api/auth/verify-reset-token/{token}:
+    get:
+      tags:
+        - Auth
+      summary: Verificar token de reset
+      description: Verifica se o token de recuperacao de senha e valido
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Token valido
+        '400':
+          description: Token invalido ou expirado
+
+  /api/auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: Redefinir senha
+      description: Define nova senha usando token de recuperacao
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - password
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+                  minLength: 6
+      responses:
+        '200':
+          description: Senha redefinida com sucesso
+        '400':
+          description: Token invalido ou expirado

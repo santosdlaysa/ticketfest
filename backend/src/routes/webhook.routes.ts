@@ -43,10 +43,10 @@ router.post('/pagarme', async (req: Request, res: Response) => {
         console.log('Unhandled webhook event:', event.type);
     }
 
-    res.status(200).json({ received: true });
+    return res.status(200).json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error);
-    res.status(500).json({ error: 'Webhook processing failed' });
+    return res.status(500).json({ error: 'Webhook processing failed' });
   }
 });
 
@@ -222,5 +222,54 @@ async function handleChargeRefunded(chargeData: any) {
 
   console.log(`Order ${orderId} marked as refunded`);
 }
+
+// Simular pagamento PIX (apenas para desenvolvimento)
+router.post('/simulate-payment/:orderId', async (req: Request, res: Response) => {
+  // Apenas em desenvolvimento
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Not allowed in production' });
+  }
+
+  const { orderId } = req.params;
+
+  try {
+    // Buscar pedido
+    const orderResult = await query<any>(
+      `SELECT o.*, u.email as user_email, u.name as user_name,
+              e.name as event_name, e.date as event_date, e.location as event_location
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       WHERE o.id = $1`,
+      [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
+
+    const order = orderResult.rows[0];
+
+    if (order.payment_status === 'PAID') {
+      return res.status(400).json({ error: 'Pedido já foi pago' });
+    }
+
+    // Simular o webhook de pagamento
+    await handleChargePaid({
+      id: order.payment_id,
+      order: { id: order.payment_id },
+    });
+
+    return res.json({
+      success: true,
+      message: 'Pagamento simulado com sucesso',
+      orderId: order.id,
+      status: 'PAID'
+    });
+  } catch (error) {
+    console.error('Erro ao simular pagamento:', error);
+    return res.status(500).json({ error: 'Erro ao simular pagamento' });
+  }
+});
 
 export default router;

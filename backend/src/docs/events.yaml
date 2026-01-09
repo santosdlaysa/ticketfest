@@ -1,0 +1,243 @@
+paths:
+  /api/events:
+    get:
+      tags:
+        - Events
+      summary: Listar eventos
+      description: Retorna lista de eventos publicados com paginacao
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de eventos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+
+    post:
+      tags:
+        - Events
+      summary: Criar evento
+      description: Cria novo evento (apenas organizadores/admin)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Evento criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Sem permissao para criar eventos
+
+  /api/events/featured:
+    get:
+      tags:
+        - Events
+      summary: Eventos em destaque
+      description: Retorna eventos em destaque para a home
+      responses:
+        '200':
+          description: Lista de eventos em destaque
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+
+  /api/events/{idOrSlug}:
+    get:
+      tags:
+        - Events
+      summary: Obter evento
+      description: Retorna detalhes de um evento por ID ou slug
+      parameters:
+        - name: idOrSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalhes do evento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      tags:
+        - Events
+      summary: Atualizar evento
+      description: Atualiza evento existente (apenas organizador do evento ou admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idOrSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '200':
+          description: Evento atualizado
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Sem permissao
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      tags:
+        - Events
+      summary: Excluir evento
+      description: Remove evento (apenas organizador do evento ou admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: idOrSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Evento excluido
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Sem permissao
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/events/{eventId}/tickets:
+    get:
+      tags:
+        - Tickets
+      summary: Listar ingressos do evento
+      description: Retorna todos os tipos de ingresso de um evento
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de ingressos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+    post:
+      tags:
+        - Tickets
+      summary: Criar tipo de ingresso
+      description: Cria novo tipo de ingresso para o evento
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - price
+                - quantity
+                - salesStart
+                - salesEnd
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                price:
+                  type: number
+                quantity:
+                  type: integer
+                salesStart:
+                  type: string
+                  format: date-time
+                salesEnd:
+                  type: string
+                  format: date-time
+                features:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Ingresso criado
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Sem permissao

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApi } from '../services/api';
+import { secureStorage, createSecureStorage } from '../services/secureStorage';
 import type { User, AuthResponse } from '../types';
 
 interface AuthState {
@@ -9,7 +9,8 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  isLoading: boolean;        // Loading for login/register operations
+  isHydrating: boolean;      // Initial app hydration loading
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
@@ -33,14 +34,16 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      isLoading: true,
+      isLoading: false,
+      isHydrating: true,
 
       hydrate: () => {
-        set({ isLoading: false });
+        set({ isHydrating: false });
       },
 
       setAuth: async (data: AuthResponse) => {
-        await AsyncStorage.multiSet([
+        // Store tokens securely and user data in AsyncStorage
+        await secureStorage.multiSet([
           ['accessToken', data.accessToken],
           ['refreshToken', data.refreshToken],
           ['user', JSON.stringify(data.user)],
@@ -89,7 +92,8 @@ export const useAuthStore = create<AuthState>()(
           }
         }
 
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+        // Remove tokens from secure storage
+        await secureStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
 
         set({
           user: null,
@@ -103,8 +107,9 @@ export const useAuthStore = create<AuthState>()(
         const token = get().accessToken;
 
         if (!token) {
+          // Retrieve tokens from secure storage
           const [[, storedToken], [, storedUser], [, storedRefreshToken]] =
-            await AsyncStorage.multiGet(['accessToken', 'user', 'refreshToken']);
+            await secureStorage.multiGet(['accessToken', 'user', 'refreshToken']);
 
           if (storedToken && storedUser && storedRefreshToken) {
             set({
@@ -127,7 +132,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => createSecureStorage()),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

@@ -191,7 +191,7 @@ export class OrderService {
             timestamp: Date.now(),
           };
 
-          const { code, data: encryptedData } = await qrCodeService.generateQRCode(qrData);
+          const { code, data: encryptedData } = qrCodeService.generateQRCode(qrData);
 
           await client.query(
             `INSERT INTO ticket_instances (order_item_id, ticket_id, qr_code, qr_code_data)
@@ -218,6 +218,11 @@ export class OrderService {
 
     const user = userResult.rows[0];
 
+    // Validate CPF for payment methods that require it
+    if ((data.paymentMethod === 'PIX' || data.paymentMethod === 'BOLETO') && !user.cpf) {
+      throw new AppError(400, 'CPF é obrigatório para pagamento via PIX ou Boleto. Atualize seu perfil.');
+    }
+
     // Prepare customer data for Pagar.me
     const customerData = {
       name: user.name,
@@ -237,73 +242,118 @@ export class OrderService {
     // Process payment
     let paymentData: any = {};
 
-    if (data.paymentMethod === 'CREDIT_CARD') {
-      if (!data.cardToken) {
-        throw new AppError(400, 'Card token is required for credit card payment');
-      }
+    try {
+      if (data.paymentMethod === 'CREDIT_CARD') {
+        if (!data.cardToken) {
+          throw new AppError(400, 'Card token is required for credit card payment');
+        }
 
-      const cardPayment = await paymentService.createCreditCardPayment(
-        customerData,
-        paymentItems,
-        data.cardToken,
-        data.installments || 1,
-        { orderId: order.id, userId }
-      );
+        const cardPayment = await paymentService.createCreditCardPayment(
+          customerData,
+          paymentItems,
+          data.cardToken,
+          data.installments || 1,
+          { orderId: order.id, userId }
+        );
 
-      paymentData = { card: cardPayment };
+        paymentData = { card: cardPayment };
 
-      await query(
-        'UPDATE orders SET payment_id = $1 WHERE id = $2',
-        [cardPayment.chargeId, order.id]
-      );
-
-      if (cardPayment.status === 'paid') {
         await query(
-          "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
-          [order.id]
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [cardPayment.chargeId, order.id]
+        );
+
+        if (cardPayment.status === 'paid') {
+          await query(
+            "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+            [order.id]
+          );
+        }
+      } else if (data.paymentMethod === 'DEBIT_CARD') {
+        if (!data.cardToken) {
+          throw new AppError(400, 'Card token is required for debit card payment');
+        }
+
+        const cardPayment = await paymentService.createDebitCardPayment(
+          customerData,
+          paymentItems,
+          data.cardToken,
+          { orderId: order.id, userId }
+        );
+
+        paymentData = { card: cardPayment };
+
+        await query(
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [cardPayment.chargeId, order.id]
+        );
+
+        if (cardPayment.status === 'paid') {
+          await query(
+            "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+            [order.id]
+          );
+        }
+      } else if (data.paymentMethod === 'PIX') {
+        const pixPayment = await paymentService.createPixPayment(
+          customerData,
+          paymentItems,
+          3600,
+          { orderId: order.id, userId }
+        );
+
+        paymentData = { pix: pixPayment };
+
+        await query(
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [pixPayment.chargeId, order.id]
+        );
+      } else if (data.paymentMethod === 'BOLETO') {
+        const boletoPayment = await paymentService.createBoletoPayment(
+          customerData,
+          paymentItems,
+          3, // 3 days to expire
+          'Pagar ate a data de vencimento. Apos o vencimento, multa de 2% e juros de 1% ao mes.',
+          { orderId: order.id, userId }
+        );
+
+        paymentData = { boleto: boletoPayment };
+
+        await query(
+          'UPDATE orders SET payment_id = $1 WHERE id = $2',
+          [boletoPayment.chargeId, order.id]
         );
       }
-    } else if (data.paymentMethod === 'DEBIT_CARD') {
-      if (!data.cardToken) {
-        throw new AppError(400, 'Card token is required for debit card payment');
-      }
+    } catch (paymentError) {
+      // Payment failed - cancel the order and restore ticket counts
+      console.error('Payment failed, cancelling order:', paymentError);
 
-      const cardPayment = await paymentService.createDebitCardPayment(
-        customerData,
-        paymentItems,
-        data.cardToken,
-        { orderId: order.id, userId }
-      );
-
-      paymentData = { card: cardPayment };
-
-      await query(
-        'UPDATE orders SET payment_id = $1 WHERE id = $2',
-        [cardPayment.chargeId, order.id]
-      );
-
-      if (cardPayment.status === 'paid') {
-        await query(
-          "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+      await transaction(async (client) => {
+        // Update order status to CANCELLED
+        await client.query(
+          `UPDATE orders SET status = 'CANCELLED', payment_status = 'FAILED' WHERE id = $1`,
           [order.id]
         );
-      }
-    } else if (data.paymentMethod === 'PIX') {
-      const pixPayment = await paymentService.createPixPayment(
-        customerData,
-        paymentItems,
-        3600,
-        { orderId: order.id, userId }
-      );
 
-      paymentData = { pix: pixPayment };
+        // Restore ticket counts
+        for (const { ticket, quantity } of tickets) {
+          await client.query(
+            'UPDATE tickets SET sold = sold - $1 WHERE id = $2',
+            [quantity, ticket.id]
+          );
+        }
 
-      await query(
-        'UPDATE orders SET payment_id = $1 WHERE id = $2',
-        [pixPayment.chargeId, order.id]
-      );
-    } else if (data.paymentMethod === 'BOLETO') {
-      throw new AppError(400, 'Boleto payment is not available. Please use PIX or card payment.');
+        // Restore coupon usage if applied
+        if (data.couponCode) {
+          await client.query(
+            'UPDATE coupons SET used_count = used_count - 1 WHERE code = $1',
+            [data.couponCode]
+          );
+        }
+      });
+
+      // Re-throw the error
+      throw paymentError;
     }
 
     // Get full order with relations
@@ -360,19 +410,21 @@ export class OrderService {
     );
 
     const instancesByItem = new Map<string, any[]>();
-    ticketInstancesResult.rows.forEach((instance) => {
+    for (const instance of ticketInstancesResult.rows) {
       if (!instancesByItem.has(instance.order_item_id)) {
         instancesByItem.set(instance.order_item_id, []);
       }
+      // Generate QR code image on-demand from encrypted data
+      const qrCodeImage = await qrCodeService.generateQRCodeImage(instance.qr_code_data);
       instancesByItem.get(instance.order_item_id)!.push({
         id: instance.id,
         ticketId: instance.ticket_id,
-        qrCode: instance.qr_code,
+        qrCode: qrCodeImage,
         qrCodeData: instance.qr_code_data,
         checkedIn: instance.checked_in,
         checkedInAt: instance.checked_in_at,
       });
-    });
+    }
 
     return {
       id: order.id,
@@ -454,6 +506,7 @@ export class OrderService {
     const orderIds = ordersResult.rows.map((o) => o.id);
     if (orderIds.length === 0) return [];
 
+    // Get order items
     const itemsResult = await query<{
       id: string;
       order_id: string;
@@ -469,6 +522,46 @@ export class OrderService {
       [orderIds]
     );
 
+    // Get all order item IDs
+    const orderItemIds = itemsResult.rows.map((i) => i.id);
+
+    // Get ticket instances for all order items
+    const instancesResult = orderItemIds.length > 0 ? await query<{
+      id: string;
+      order_item_id: string;
+      qr_code: string;
+      qr_code_data: string;
+      checked_in: boolean;
+      checked_in_at: Date | null;
+    }>(
+      `SELECT id, order_item_id, qr_code, qr_code_data, checked_in, checked_in_at
+       FROM ticket_instances
+       WHERE order_item_id = ANY($1)`,
+      [orderItemIds]
+    ) : { rows: [] };
+
+    // Group instances by order item and generate QR code images
+    const instancesByOrderItem = new Map<string, any[]>();
+
+    // Generate QR code images for all instances
+    await Promise.all(
+      instancesResult.rows.map(async (instance) => {
+        const qrCodeImage = await qrCodeService.generateQRCodeImage(instance.qr_code_data);
+
+        if (!instancesByOrderItem.has(instance.order_item_id)) {
+          instancesByOrderItem.set(instance.order_item_id, []);
+        }
+        instancesByOrderItem.get(instance.order_item_id)!.push({
+          id: instance.id,
+          qrCode: qrCodeImage,
+          qrCodeData: instance.qr_code_data,
+          checkedIn: instance.checked_in,
+          checkedInAt: instance.checked_in_at,
+        });
+      })
+    );
+
+    // Group items by order
     const itemsByOrder = new Map<string, any[]>();
     itemsResult.rows.forEach((item) => {
       if (!itemsByOrder.has(item.order_id)) {
@@ -484,6 +577,7 @@ export class OrderService {
           name: item.ticket_name,
           price: item.price,
         },
+        ticketInstances: instancesByOrderItem.get(item.id) || [],
       });
     });
 
@@ -629,5 +723,239 @@ export class OrderService {
     });
 
     return { message: 'Order cancelled successfully' };
+  }
+
+  async checkAndUpdatePaymentStatus(orderId: string, userId: string) {
+    // Get order
+    const orderResult = await query<Order & { user_email: string; user_name: string; event_name: string; event_date: Date }>(
+      `SELECT o.*, u.email as user_email, u.name as user_name, e.name as event_name, e.date as event_date
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       WHERE o.id = $1`,
+      [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      throw new AppError(404, 'Order not found');
+    }
+
+    const order = orderResult.rows[0];
+
+    // Check if user owns the order
+    if (order.user_id !== userId) {
+      throw new AppError(403, 'Unauthorized');
+    }
+
+    // If already paid, return current status
+    if (order.payment_status === 'PAID') {
+      return {
+        status: 'PAID',
+        orderStatus: order.status,
+        message: 'Pagamento já confirmado',
+      };
+    }
+
+    // If no payment_id, can't check
+    if (!order.payment_id) {
+      return {
+        status: order.payment_status,
+        orderStatus: order.status,
+        message: 'Aguardando pagamento',
+      };
+    }
+
+    // Check payment status with gateway
+    try {
+      const paymentStatus = await paymentService.verifyPayment(order.payment_id);
+
+      if (paymentStatus.status === 'paid') {
+        // Update order to paid
+        await query(
+          "UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', paid_at = NOW() WHERE id = $1",
+          [orderId]
+        );
+
+        // Send confirmation emails
+        const itemsResult = await query<{ ticket_name: string; quantity: number; price: number }>(
+          `SELECT t.name as ticket_name, oi.quantity, oi.price
+           FROM order_items oi
+           JOIN tickets t ON oi.ticket_id = t.id
+           WHERE oi.order_id = $1`,
+          [orderId]
+        );
+
+        await emailService.sendOrderConfirmation(order.user_email, {
+          orderId: order.id,
+          eventName: order.event_name,
+          eventDate: order.event_date.toLocaleDateString('pt-BR'),
+          tickets: itemsResult.rows.map((item) => ({
+            name: item.ticket_name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          total: order.total,
+        });
+
+        // Send tickets
+        const instancesResult = await query<{ qr_code: string; ticket_name: string }>(
+          `SELECT ti.qr_code, t.name as ticket_name
+           FROM ticket_instances ti
+           JOIN order_items oi ON ti.order_item_id = oi.id
+           JOIN tickets t ON ti.ticket_id = t.id
+           WHERE oi.order_id = $1`,
+          [orderId]
+        );
+
+        const tickets = instancesResult.rows.map((instance) => ({
+          eventName: order.event_name,
+          ticketName: instance.ticket_name,
+          qrCode: instance.qr_code,
+        }));
+
+        await emailService.sendTickets(order.user_email, tickets);
+
+        return {
+          status: 'PAID',
+          orderStatus: 'CONFIRMED',
+          message: 'Pagamento confirmado com sucesso!',
+        };
+      }
+
+      return {
+        status: paymentStatus.status.toUpperCase(),
+        orderStatus: order.status,
+        message: paymentStatus.status === 'pending' ? 'Aguardando pagamento' : `Status: ${paymentStatus.status}`,
+      };
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      return {
+        status: order.payment_status,
+        orderStatus: order.status,
+        message: 'Não foi possível verificar o status do pagamento',
+      };
+    }
+  }
+
+  async confirmPaymentManual(orderId: string) {
+    const orderResult = await query<Order & { user_email: string; user_name: string; event_name: string; event_date: Date; user_id: string; event_id: string }>(
+      `SELECT o.*, u.email as user_email, u.name as user_name, e.name as event_name, e.date as event_date
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       JOIN events e ON o.event_id = e.id
+       WHERE o.id = $1`,
+      [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      throw new AppError(404, 'Pedido não encontrado');
+    }
+
+    const order = orderResult.rows[0];
+
+    if (order.payment_status === 'PAID') {
+      throw new AppError(400, 'Pedido já está pago');
+    }
+
+    // Get order items with ticket info
+    const itemsResult = await query<{ id: string; ticket_id: string; ticket_name: string; quantity: number; price: number }>(
+      `SELECT oi.id, oi.ticket_id, t.name as ticket_name, oi.quantity, oi.price
+       FROM order_items oi
+       JOIN tickets t ON oi.ticket_id = t.id
+       WHERE oi.order_id = $1`,
+      [orderId]
+    );
+
+    // Check if ticket instances exist, create them if not
+    for (const item of itemsResult.rows) {
+      const existingInstances = await query<{ count: string }>(
+        'SELECT COUNT(*) as count FROM ticket_instances WHERE order_item_id = $1',
+        [item.id]
+      );
+
+      const instanceCount = parseInt(existingInstances.rows[0].count, 10);
+
+      if (instanceCount === 0) {
+        // Create ticket instances for this order item
+        for (let i = 0; i < item.quantity; i++) {
+          const qrData = {
+            ticketId: item.ticket_id,
+            orderId: orderId,
+            userId: order.user_id,
+            eventId: order.event_id,
+            timestamp: Date.now(),
+          };
+
+          const { code, data: encryptedData } = qrCodeService.generateQRCode(qrData);
+
+          await query(
+            `INSERT INTO ticket_instances (order_item_id, ticket_id, qr_code, qr_code_data)
+             VALUES ($1, $2, $3, $4)`,
+            [item.id, item.ticket_id, code, encryptedData]
+          );
+        }
+
+        // Update ticket sold count
+        await query(
+          'UPDATE tickets SET sold = sold + $1 WHERE id = $2',
+          [item.quantity, item.ticket_id]
+        );
+      }
+    }
+
+    // Update order to PAID and CONFIRMED
+    await query(
+      `UPDATE orders SET
+        payment_status = 'PAID',
+        status = 'CONFIRMED',
+        payment_id = $2,
+        paid_at = NOW()
+       WHERE id = $1`,
+      [orderId, `MANUAL_${Date.now()}`]
+    );
+
+    // Send confirmation email
+    try {
+      await emailService.sendOrderConfirmation(order.user_email, {
+        orderId: order.id,
+        eventName: order.event_name,
+        eventDate: order.event_date.toLocaleDateString('pt-BR'),
+        tickets: itemsResult.rows.map((item) => ({
+          name: item.ticket_name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        total: order.total,
+      });
+
+      // Get ticket instances for email
+      const instancesResult = await query<{ qr_code: string; ticket_name: string }>(
+        `SELECT ti.qr_code, t.name as ticket_name
+         FROM ticket_instances ti
+         JOIN order_items oi ON ti.order_item_id = oi.id
+         JOIN tickets t ON ti.ticket_id = t.id
+         WHERE oi.order_id = $1`,
+        [orderId]
+      );
+
+      const tickets = instancesResult.rows.map((instance) => ({
+        eventName: order.event_name,
+        ticketName: instance.ticket_name,
+        qrCode: instance.qr_code,
+      }));
+
+      await emailService.sendTickets(order.user_email, tickets);
+    } catch (emailError) {
+      console.error('Erro ao enviar emails:', emailError);
+      // Continue mesmo se o email falhar
+    }
+
+    return {
+      ...order,
+      payment_status: 'PAID',
+      status: 'CONFIRMED',
+      paid_at: new Date(),
+      message: 'Pagamento confirmado manualmente com sucesso!'
+    };
   }
 }

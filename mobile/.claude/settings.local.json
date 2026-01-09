@@ -5,7 +5,14 @@
       "Bash(npm install:*)",
       "Bash(npx expo start --clear)",
       "Bash(npx expo start:*)",
-      "Bash(npx expo install:*)"
+      "Bash(npx expo install:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(cat:*)",
+      "Bash(PGPASSWORD=220798 psql:*)",
+      "Bash(node -e:*)",
+      "Bash(npm run build:*)",
+      "Bash(PGPASSWORD=6Ql9SRKmrpl7mZvFtMnp0UZrWSVEIM92 psql:*)"
     ]
   }
 }

@@ -49,23 +49,33 @@ export class QRCodeService {
   }
 
   /**
-   * Generate QR code for a ticket
+   * Generate QR code data for a ticket
+   * Returns a short unique code and encrypted data
+   * The actual QR image is generated on-demand via generateQRCodeImage()
    */
-  async generateQRCode(data: QRCodeData): Promise<{ code: string; data: string }> {
+  generateQRCode(data: QRCodeData): { code: string; data: string } {
     const jsonData = JSON.stringify(data);
     const encryptedData = this.encrypt(jsonData);
 
-    // Generate QR code as Data URL
-    const qrCode = await QRCode.toDataURL(encryptedData, {
+    // Generate a short unique code for database storage
+    const shortCode = `TKT-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+
+    return {
+      code: shortCode, // Short unique code for DB index
+      data: encryptedData, // Encrypted string for validation
+    };
+  }
+
+  /**
+   * Generate QR code image as Base64 Data URL
+   * Call this on-demand when displaying the QR code to users
+   */
+  async generateQRCodeImage(encryptedData: string): Promise<string> {
+    return QRCode.toDataURL(encryptedData, {
       errorCorrectionLevel: 'H',
       width: 300,
       margin: 2,
     });
-
-    return {
-      code: qrCode, // Base64 Data URL
-      data: encryptedData, // Encrypted string for validation
-    };
   }
 
   /**

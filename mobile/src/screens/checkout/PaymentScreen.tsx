@@ -6,6 +6,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import {
   Text,
@@ -19,7 +20,7 @@ import {
 } from 'react-native-paper';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import QRCode from 'react-native-qrcode-svg';
+// QRCode não é mais necessário - usamos a imagem do Pagar.me
 import * as Clipboard from 'expo-clipboard';
 import { theme, spacing, fontSize } from '../../theme';
 import { useCartStore } from '../../stores/cartStore';
@@ -27,8 +28,8 @@ import { ordersApi } from '../../services/api';
 import {
   processCardPayment,
   generatePixPayment,
-  confirmPixPayment,
   generateBoletoPayment,
+  checkPixPayment,
   formatCardNumber,
   getCardBrand,
   CardData,
@@ -62,6 +63,7 @@ export default function PaymentScreen() {
   const [pixCode, setPixCode] = useState('');
   const [pixQrData, setPixQrData] = useState('');
   const [pixPaymentId, setPixPaymentId] = useState('');
+  const [orderId, setOrderId] = useState('');
 
   // Boleto state
   const [boletoBarcode, setBoletoBarcode] = useState('');
@@ -91,6 +93,11 @@ export default function PaymentScreen() {
       return;
     }
 
+    if (!cart || !cart.items.length) {
+      Alert.alert('Erro', 'Carrinho vazio');
+      return;
+    }
+
     setStep('processing');
     setLoading(true);
 
@@ -103,16 +110,43 @@ export default function PaymentScreen() {
         cvv,
       };
 
-      const result = await processCardPayment(amount, cardData, `order-${Date.now()}`);
+      const cartItems = cart.items.map((item) => ({
+        ticketId: item.ticket.id,
+        quantity: item.quantity,
+      }));
 
-      if (result.success) {
-        await createOrder(result);
+      const installments = 1; // You can add UI for installment selection later
+      const result = await processCardPayment(
+        cartItems,
+        cardData,
+        installments,
+        paymentMethod as 'CREDIT_CARD' | 'DEBIT_CARD'
+      );
+
+      if (result.success && result.status === 'approved') {
+        await clearCart();
+        setStep('success');
+      } else if (result.success && result.status === 'pending') {
+        Alert.alert(
+          'Pagamento em processamento',
+          result.message,
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                await clearCart();
+                setStep('success');
+              },
+            },
+          ]
+        );
       } else {
         Alert.alert('Pagamento recusado', result.message);
         setStep('card_form');
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao processar pagamento');
+    } catch (error: any) {
+      console.error('Card payment error:', error);
+      Alert.alert('Erro', error.message || 'Falha ao processar pagamento');
       setStep('card_form');
     } finally {
       setLoading(false);
@@ -120,23 +154,34 @@ export default function PaymentScreen() {
   };
 
   const handlePixPayment = async () => {
+    if (!cart || !cart.items.length) return;
+
     setStep('processing');
     setLoading(true);
 
     try {
-      const result = await generatePixPayment(amount, `order-${Date.now()}`);
+      const cartItems = cart.items.map((item) => ({
+        ticketId: item.ticket.id,
+        quantity: item.quantity,
+      }));
 
-      if (result.success && result.pixCode && result.pixQrCode) {
+      // Generate PIX payment using the new payment service
+      const result = await generatePixPayment(cartItems);
+
+      if (result.success && result.pixCode && result.qrCodeUrl) {
+        // Set PIX data from Pagar.me response
         setPixCode(result.pixCode);
-        setPixQrData(result.pixQrCode);
-        setPixPaymentId(result.paymentId);
+        setPixQrData(result.qrCodeUrl); // URL da imagem do QR code
+        setPixPaymentId(result.chargeId || result.paymentId);
+        setOrderId(result.orderId || '');
         setStep('pix_qr');
       } else {
-        Alert.alert('Erro', 'Falha ao gerar PIX');
+        Alert.alert('Erro', result.message || 'Falha ao gerar PIX');
         setStep('method');
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao gerar PIX');
+    } catch (error: any) {
+      console.error('Erro ao criar pedido PIX:', error);
+      Alert.alert('Erro', error.message || 'Falha ao gerar PIX');
       setStep('method');
     } finally {
       setLoading(false);
@@ -144,39 +189,62 @@ export default function PaymentScreen() {
   };
 
   const handleConfirmPix = async () => {
+    if (!orderId) {
+      Alert.alert('Erro', 'ID do pedido não encontrado');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const result = await confirmPixPayment(pixPaymentId);
+      // Check PIX payment status using the payment service
+      const result = await checkPixPayment(orderId);
 
-      if (result.success) {
-        await createOrder(result);
+      if (result.paid) {
+        await clearCart();
+        setStep('success');
       } else {
-        Alert.alert('Erro', 'Pagamento não confirmado');
+        Alert.alert(
+          'Aguardando pagamento',
+          'O pagamento PIX ainda não foi confirmado. Após pagar, aguarde alguns segundos e tente novamente.'
+        );
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao confirmar pagamento');
+    } catch (error: any) {
+      console.error('Error checking PIX payment:', error);
+      Alert.alert('Erro', error.message || 'Falha ao verificar pagamento');
     } finally {
       setLoading(false);
     }
   };
 
   const handleBoletoPayment = async () => {
+    if (!cart || !cart.items.length) return;
+
     setStep('processing');
     setLoading(true);
 
     try {
-      const result = await generateBoletoPayment(amount, `order-${Date.now()}`);
+      const cartItems = cart.items.map((item) => ({
+        ticketId: item.ticket.id,
+        quantity: item.quantity,
+      }));
+
+      // Generate Boleto payment using the new payment service
+      const result = await generateBoletoPayment(cartItems);
 
       if (result.success && result.boletoBarcode) {
         setBoletoBarcode(result.boletoBarcode);
         setStep('boleto');
+        // Note: Cart will be cleared when payment is confirmed via webhook
+        // For now, we show the boleto and user can proceed
+        await clearCart();
       } else {
-        Alert.alert('Erro', 'Falha ao gerar boleto');
+        Alert.alert('Erro', result.message || 'Falha ao gerar boleto');
         setStep('method');
       }
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao gerar boleto');
+    } catch (error: any) {
+      console.error('Boleto payment error:', error);
+      Alert.alert('Erro', error.message || 'Falha ao gerar boleto');
       setStep('method');
     } finally {
       setLoading(false);
@@ -184,45 +252,10 @@ export default function PaymentScreen() {
   };
 
   const handleConfirmBoleto = async () => {
-    // Em produção, o boleto seria confirmado via webhook
-    // Aqui simulamos a confirmação
-    setLoading(true);
-
-    try {
-      const result: PaymentResult = {
-        success: true,
-        paymentId: `bol_${Date.now()}`,
-        status: 'approved',
-        message: 'Boleto pago!',
-      };
-
-      await createOrder(result);
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao confirmar pagamento');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createOrder = async (paymentResult: PaymentResult) => {
-    if (!cart || !cart.items.length) return;
-
-    try {
-      const orderData = {
-        items: cart.items.map((item) => ({
-          ticketId: item.ticket.id,
-          quantity: item.quantity,
-        })),
-        paymentMethod,
-      };
-
-      await ordersApi.create(orderData);
-      await clearCart();
-
-      setStep('success');
-    } catch (error) {
-      Alert.alert('Erro', 'Falha ao criar pedido');
-    }
+    // Boleto is confirmed via webhook in production
+    // User just needs to pay the boleto and wait for confirmation
+    // For now, we just show success after generating the boleto
+    setStep('success');
   };
 
   const copyPixCode = async () => {
@@ -398,7 +431,11 @@ export default function PaymentScreen() {
       <Text style={styles.sectionTitle}>Pague com PIX</Text>
 
       <Surface style={styles.qrContainer}>
-        <QRCode value={pixQrData} size={200} />
+        <Image
+          source={{ uri: pixQrData }}
+          style={{ width: 200, height: 200 }}
+          resizeMode="contain"
+        />
       </Surface>
 
       <Text style={styles.pixInstructions}>
@@ -484,7 +521,7 @@ export default function PaymentScreen() {
         loading={loading}
         disabled={loading}
       >
-        Simular pagamento do boleto
+        Entendi
       </Button>
 
       <Button

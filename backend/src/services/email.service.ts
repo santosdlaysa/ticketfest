@@ -70,7 +70,7 @@ export class EmailService {
     const ticketsList = orderData.tickets
       .map(
         (t) =>
-          `<li>${t.quantity}x ${t.name} - R$ ${t.price.toFixed(2)}</li>`
+          `<li>${t.quantity}x ${t.name} - R$ ${Number(t.price).toFixed(2)}</li>`
       )
       .join('');
 
@@ -106,7 +106,7 @@ export class EmailService {
               <h3>Ingressos</h3>
               <ul>${ticketsList}</ul>
 
-              <p class="total">Total: R$ ${orderData.total.toFixed(2)}</p>
+              <p class="total">Total: R$ ${Number(orderData.total).toFixed(2)}</p>
 
               <p>Seus ingressos com QR Code estão disponíveis no app e no site.</p>
               <p>Apresente o QR Code na entrada do evento.</p>
@@ -220,6 +220,81 @@ export class EmailService {
       subject: `🎫 Seus Ingressos - ${tickets[0]?.eventName || 'Lumera'}`,
       html,
       text: `Seus ingressos estao prontos! Apresente os QR Codes na entrada do evento.`,
+    });
+  }
+
+  async sendPasswordResetEmail(
+    email: string,
+    data: {
+      userName: string;
+      resetUrl: string;
+      expiresIn: string;
+    }
+  ): Promise<void> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f3f4f6; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0; }
+            .content { background: white; padding: 30px; }
+            .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; background: #f9fafb; border-radius: 0 0 12px 12px; }
+            .button { display: inline-block; background: #3B82F6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .button:hover { background: #2563EB; }
+            .warning { background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">🔐 Recuperar Senha</h1>
+            </div>
+            <div class="content">
+              <p>Ola, <strong>${data.userName}</strong>!</p>
+
+              <p>Recebemos uma solicitacao para redefinir a senha da sua conta Lumera.</p>
+
+              <p>Clique no botao abaixo para criar uma nova senha:</p>
+
+              <div style="text-align: center;">
+                <a href="${data.resetUrl}" class="button">Redefinir Minha Senha</a>
+              </div>
+
+              <p style="font-size: 14px; color: #6b7280;">
+                Ou copie e cole este link no seu navegador:<br>
+                <a href="${data.resetUrl}" style="color: #3B82F6; word-break: break-all;">${data.resetUrl}</a>
+              </p>
+
+              <div class="warning">
+                <p style="margin: 0; color: #92400e;">
+                  <strong>⚠️ Importante:</strong>
+                </p>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #92400e;">
+                  <li>Este link expira em <strong>${data.expiresIn}</strong></li>
+                  <li>Se voce nao solicitou esta alteracao, ignore este email</li>
+                  <li>Sua senha atual continuara funcionando</li>
+                </ul>
+              </div>
+            </div>
+            <div class="footer">
+              <p>Lumera - Seus eventos favoritos em um so lugar</p>
+              <p style="margin-top: 10px; font-size: 11px; color: #9ca3af;">
+                Este email foi enviado automaticamente. Por favor, nao responda.
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    await this.sendEmail({
+      to: email,
+      subject: '🔐 Redefinir sua senha - Lumera',
+      html,
+      text: `Ola ${data.userName}! Clique no link para redefinir sua senha: ${data.resetUrl}. Este link expira em ${data.expiresIn}.`,
     });
   }
 

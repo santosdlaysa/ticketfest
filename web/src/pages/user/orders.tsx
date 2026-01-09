@@ -1,281 +1,151 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
-import toast from 'react-hot-toast';
-import { useAuthStore } from '@/contexts/AuthContext';
+import { UserLayout } from '@/components/layout/UserLayout';
 import { ordersApi } from '@/services/api';
 import type { Order } from '@/types';
-import { Button } from '@/components/common/Button';
 
-export default function MyOrders() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+export default function UserOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadOrders();
+    fetchOrders();
   }, []);
 
-  const loadOrders = async () => {
+  const fetchOrders = async () => {
     try {
-      setLoading(true);
       const data = await ordersApi.getUserOrders();
       setOrders(data);
-    } catch (error: any) {
-      toast.error('Erro ao carregar pedidos');
-      console.error(error);
+    } catch (error) {
+      console.error('Erro ao buscar pedidos:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancelOrder = async (orderId: string) => {
-    if (!confirm('Tem certeza que deseja cancelar este pedido?')) {
-      return;
-    }
-
-    try {
-      setCancellingOrderId(orderId);
-      await ordersApi.cancel(orderId);
-      toast.success('Pedido cancelado com sucesso');
-      loadOrders();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao cancelar pedido');
-    } finally {
-      setCancellingOrderId(null);
-    }
-  };
-
-  const getStatusBadge = (order: Order) => {
-    if (order.status === 'CANCELLED') {
-      return <span className="badge badge-gray">Cancelado</span>;
-    }
-
-    if (order.paymentStatus === 'PAID') {
-      return <span className="badge badge-success">Pago</span>;
-    }
-
-    if (order.paymentStatus === 'PENDING') {
-      return <span className="badge badge-warning">Pendente</span>;
-    }
-
-    if (order.paymentStatus === 'FAILED') {
-      return <span className="badge badge-error">Falhou</span>;
-    }
-
-    if (order.paymentStatus === 'REFUNDED') {
-      return <span className="badge badge-gray">Reembolsado</span>;
-    }
-
-    return <span className="badge badge-gray">{order.status}</span>;
+  const getStatusBadge = (status: string) => {
+    const statuses: Record<string, { label: string; className: string }> = {
+      PENDING: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-700' },
+      CONFIRMED: { label: 'Confirmado', className: 'bg-green-100 text-green-700' },
+      CANCELLED: { label: 'Cancelado', className: 'bg-red-100 text-red-700' },
+    };
+    const statusInfo = statuses[status] || statuses.PENDING;
+    return (
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusInfo.className}`}>
+        {statusInfo.label}
+      </span>
+    );
   };
 
   const getPaymentMethodLabel = (method: string) => {
     const methods: Record<string, string> = {
-      CREDIT_CARD: 'Cartão de Crédito',
-      DEBIT_CARD: 'Cartão de Débito',
+      CREDIT_CARD: 'Cartao de Credito',
       PIX: 'PIX',
       BOLETO: 'Boleto',
     };
     return methods[method] || method;
   };
 
-  if (loading) {
-    return (
-      <>
-        <Head><title>Meus Pedidos - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando pedidos...</p>
-          </div>
-        </div>
-      </>
-    );
-  }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value);
+  };
 
   return (
-    <>
-      <Head><title>Meus Pedidos - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Meus Pedidos</h1>
-          <p className="text-gray-600 mt-2">
-            Histórico completo dos seus pedidos
-          </p>
+    <UserLayout>
+      <Head>
+        <title>Meus Pedidos - Lumera</title>
+      </Head>
+
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Meus Pedidos</h1>
+          <p className="text-gray-600">Acompanhe o historico de todas as suas compras</p>
         </div>
 
-        {orders.length === 0 ? (
-          <div className="card p-12 text-center">
-            <svg
-              className="mx-auto h-16 w-16 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              Nenhum pedido encontrado
-            </h3>
-            <p className="mt-2 text-gray-600">
-              Você ainda não fez nenhum pedido. Comece a explorar eventos!
-            </p>
-            <Button onClick={() => router.push('/events')} className="mt-6">
-              Ver Eventos
-            </Button>
+        {loading ? (
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando pedidos...</p>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum pedido encontrado</h3>
+            <p className="text-gray-600 mb-4">Voce ainda nao fez nenhuma compra</p>
+            <Link href="/events" className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600">
+              Explorar Eventos
+            </Link>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {orders.map((order) => (
-              <div key={order.id} className="card p-6">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-bold text-lg">
-                        {order.event.name}
-                      </h3>
-                      {getStatusBadge(order)}
+              <div key={order.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="p-6 border-b">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-500">Pedido #{order.id.slice(0, 8)}</span>
+                      {getStatusBadge(order.status)}
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Pedido #{order.id.substring(0, 8)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {new Date(order.createdAt).toLocaleString('pt-BR')}
-                    </p>
+                    <span className="text-sm text-gray-500">{formatDate(order.createdAt)}</span>
                   </div>
-
-                  {order.event.images[0] && (
-                    <img
-                      src={order.event.images[0]}
-                      alt={order.event.name}
-                      className="w-full md:w-32 h-24 object-cover rounded-lg"
-                    />
-                  )}
-                </div>
-
-                <div className="border-t border-gray-200 pt-4 mb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600 mb-1">
-                        <strong>Evento:</strong> {order.event.name}
-                      </p>
-                      <p className="text-gray-600 mb-1">
-                        <strong>Data:</strong>{' '}
-                        {new Date(order.event.date).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                      <p className="text-gray-600">
-                        <strong>Local:</strong> {order.event.location}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-600 mb-1">
-                        <strong>Pagamento:</strong>{' '}
-                        {getPaymentMethodLabel(order.paymentMethod)}
-                      </p>
-                      {order.paidAt && (
-                        <p className="text-gray-600 mb-1">
-                          <strong>Pago em:</strong>{' '}
-                          {new Date(order.paidAt).toLocaleString('pt-BR')}
-                        </p>
-                      )}
-                      {order.couponCode && (
-                        <p className="text-gray-600">
-                          <strong>Cupom:</strong> {order.couponCode}
-                        </p>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{getPaymentMethodLabel(order.paymentMethod)}</span>
+                    <span className="text-lg font-semibold text-gray-900">{formatCurrency(order.total)}</span>
                   </div>
                 </div>
 
-                {/* Items */}
-                <div className="border-t border-gray-200 pt-4 mb-4">
-                  <h4 className="font-semibold mb-2">Ingressos:</h4>
-                  <div className="space-y-2">
-                    {order.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex justify-between text-sm bg-gray-50 p-3 rounded"
-                      >
-                        <span>
-                          {item.quantity}x {item.ticket.name}
-                        </span>
-                        <span className="font-medium">
-                          R$ {(item.price * item.quantity).toFixed(2)}
-                        </span>
+                <div className="divide-y">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                        </svg>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Total */}
-                <div className="border-t border-gray-200 pt-4 mb-4">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Subtotal:</span>
-                    <span>R$ {order.subtotal.toFixed(2)}</span>
-                  </div>
-                  {order.discount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600 mb-1">
-                      <span>Desconto:</span>
-                      <span>- R$ {order.discount.toFixed(2)}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{order.event.name}</p>
+                        <p className="text-sm text-gray-500">{item.ticket.name} x {item.quantity}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
-                    <span>R$ {order.total.toFixed(2)}</span>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  {order.status === 'CONFIRMED' && order.paymentStatus === 'PAID' && (
-                    <Button
-                      onClick={() => router.push('/user/tickets')}
-                      className="flex-1"
+                {order.status === 'CONFIRMED' && (
+                  <div className="p-4 bg-gray-50 border-t">
+                    <Link
+                      href="/user/tickets"
+                      className="text-primary-600 hover:text-primary-700 text-sm font-medium"
                     >
-                      Ver Ingressos
-                    </Button>
-                  )}
-
-                  {order.status === 'PENDING' && order.paymentStatus === 'PENDING' && (
-                    <>
-                      <Button
-                        onClick={() => router.push(`/checkout/success?orderId=${order.id}`)}
-                        className="flex-1"
-                      >
-                        Continuar Pagamento
-                      </Button>
-                      <Button
-                        onClick={() => handleCancelOrder(order.id)}
-                        variant="outline"
-                        isLoading={cancellingOrderId === order.id}
-                        className="flex-1"
-                      >
-                        Cancelar
-                      </Button>
-                    </>
-                  )}
-                </div>
+                      Ver meus ingressos →
+                    </Link>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
-    </>
+    </UserLayout>
   );
 }

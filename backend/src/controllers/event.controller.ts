@@ -59,7 +59,7 @@ export class EventController {
     res.status(200).json(result);
   }
 
-  async getFeaturedEvents(req: Request, res: Response) {
+  async getFeaturedEvents(_req: Request, res: Response) {
     const events = await eventService.getFeaturedEvents();
     res.status(200).json(events);
   }

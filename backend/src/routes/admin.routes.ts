@@ -16,6 +16,7 @@ router.get('/dashboard', (req, res) => adminController.getDashboard(req, res));
 router.get('/orders', (req, res) => adminController.getAllOrders(req, res));
 router.get('/orders/:id', (req, res) => adminController.getOrderDetails(req, res));
 router.post('/orders/:id/refund', (req, res) => adminController.refundOrder(req, res));
+router.post('/orders/:id/confirm-payment', (req, res) => adminController.confirmPaymentManual(req, res));
 router.post('/orders/:id/resend-email', (req, res) => adminController.resendOrderEmail(req, res));
 
 // Reports
@@ -37,5 +38,9 @@ router.get('/events/:eventId/attendees/export', (req, res) => adminController.ex
 
 // Reminders (manual trigger - ADMIN only)
 router.post('/reminders/trigger', authorize('ADMIN'), (req, res) => adminController.triggerReminders(req, res));
+
+// User Management (ADMIN only)
+router.get('/users', authorize('ADMIN'), (req, res) => adminController.getAllUsers(req, res));
+router.patch('/users/:id/role', authorize('ADMIN'), (req, res) => adminController.updateUserRole(req, res));
 
 export default router;

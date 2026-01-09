@@ -1,4 +1,4 @@
-import api from '@/lib/axios';
+import api, { api as axiosInstance } from '@/lib/axios';
 import type {
   User,
   AuthResponse,
@@ -43,6 +43,26 @@ export const authApi = {
     const response = await api.get('/auth/profile');
     return response.data;
   },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  verifyResetToken: async (token: string): Promise<{ valid: boolean }> => {
+    const response = await api.get(`/auth/verify-reset-token/${token}`);
+    return response.data;
+  },
+
+  resetPassword: async (token: string, password: string): Promise<{ message: string }> => {
+    const response = await api.post('/auth/reset-password', { token, password });
+    return response.data;
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await api.post('/auth/change-password', { currentPassword, newPassword });
+    return response.data;
+  },
 };
 
 // Events API
@@ -52,7 +72,8 @@ export const eventsApi = {
     search?: string;
     limit?: number;
     offset?: number;
-  }): Promise<{ events: Event[]; total: number }> => {
+    page?: number;
+  }): Promise<{ events: Event[]; total: number; limit: number; offset: number }> => {
     const response = await api.get('/events', { params });
     return response.data;
   },
@@ -200,6 +221,15 @@ export const ordersApi = {
   cancel: async (orderId: string): Promise<void> => {
     await api.post(`/orders/${orderId}/cancel`);
   },
+
+  checkPaymentStatus: async (orderId: string): Promise<{
+    status: string;
+    orderStatus: string;
+    message: string;
+  }> => {
+    const response = await api.get(`/orders/${orderId}/check-payment`);
+    return response.data;
+  },
 };
 
 // Stats API
@@ -331,6 +361,11 @@ export const adminApi = {
     return response.data;
   },
 
+  confirmPayment: async (id: string): Promise<{ message: string }> => {
+    const response = await api.post(`/admin/orders/${id}/confirm-payment`);
+    return response.data;
+  },
+
   resendOrderEmail: async (id: string): Promise<{ message: string }> => {
     const response = await api.post(`/admin/orders/${id}/resend-email`);
     return response.data;
@@ -435,6 +470,50 @@ export const adminApi = {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  },
+
+  // User Management
+  getUsers: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+  }): Promise<{
+    users: Array<{
+      id: string;
+      email: string;
+      name: string;
+      role: 'USER' | 'ADMIN' | 'ORGANIZER' | 'PROMOTER';
+      ordersCount: number;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> => {
+    const response = await api.get('/admin/users', { params });
+    return response.data;
+  },
+
+  updateUserRole: async (
+    userId: string,
+    role: 'USER' | 'ADMIN' | 'ORGANIZER' | 'PROMOTER'
+  ): Promise<{
+    message: string;
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      oldRole: string;
+      newRole: string;
+    };
+  }> => {
+    const response = await api.patch(`/admin/users/${userId}/role`, { role });
+    return response.data;
   },
 };
 
@@ -855,6 +934,43 @@ export const permissionsApi = {
   // Admin: Run migration (create tables and seed data)
   runMigration: async (): Promise<{ message: string }> => {
     const response = await api.post('/permissions/migrate');
+    return response.data;
+  },
+};
+
+// ========================================
+// UPLOAD API - Image Upload
+// ========================================
+
+export const uploadApi = {
+  uploadImage: async (file: File): Promise<{ success: boolean; url: string; filename: string }> => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/upload/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  uploadImages: async (files: File[]): Promise<{ success: boolean; urls: string[]; count: number }> => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('images', file);
+    });
+
+    const response = await api.post('/upload/images', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteImage: async (filename: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.delete(`/upload/${filename}`);
     return response.data;
   },
 };
