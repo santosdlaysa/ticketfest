@@ -1,7 +1,35 @@
 import { pool, query, transaction, healthCheck, closePool, getClient, getConnectionStatus, startMonitoring } from '../lib/db.js';
 import { env, dbConfig } from './env.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 class DatabaseService {
+  private static async initializeSchema(): Promise<void> {
+    if (env.AUTO_MIGRATE !== 'true') {
+      return;
+    }
+
+    console.log('🔄 AUTO_MIGRATE enabled - initializing database schema...');
+
+    try {
+      // Caminho para o schema.sql (na raiz do projeto)
+      const schemaPath = join(__dirname, '..', '..', 'schema.sql');
+      const schema = readFileSync(schemaPath, 'utf-8');
+
+      // Executa o schema completo
+      await query(schema);
+
+      console.log('✅ Database schema initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize database schema:', error);
+      throw error;
+    }
+  }
+
   public static async connect(): Promise<void> {
     try {
       // Testa a conexão primária
@@ -14,6 +42,9 @@ class DatabaseService {
           console.log(`   Secondary (Supabase): ${dbConfig.secondary.database}@${dbConfig.secondary.host}:${dbConfig.secondary.port}`);
         }
       }
+
+      // Inicializa o schema se AUTO_MIGRATE estiver habilitado
+      await this.initializeSchema();
 
       // Inicia o monitoramento de saúde das conexões
       if (dbConfig.failover.enabled && dbConfig.secondary.host) {
@@ -29,6 +60,10 @@ class DatabaseService {
         try {
           await query('SELECT 1');
           console.log('✅ Connected to secondary database (Supabase)');
+
+          // Inicializa o schema no banco secundário também
+          await this.initializeSchema();
+
           startMonitoring();
         } catch (secondaryError) {
           console.error('❌ Secondary database also failed:', secondaryError);
