@@ -41,16 +41,10 @@ Sentry.init({
   // Integrações do Sentry
   integrations: [
     // Session Replay - captura interações do usuário
-    new Sentry.Replay({
+    Sentry.replayIntegration({
       // Mascara dados sensíveis (senhas, cartões de crédito, etc)
       maskAllText: true,
       blockAllMedia: true,
-    }),
-
-    // BrowserTracing - rastreamento de performance
-    new Sentry.BrowserTracing({
-      // Rastreia transições de página no Next.js
-      routingInstrumentation: Sentry.nextRouterInstrumentation,
     }),
   ],
 

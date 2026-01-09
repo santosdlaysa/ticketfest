@@ -17,7 +17,11 @@ class DatabaseService {
 
     try {
       // Caminho para o schema.sql (na raiz do projeto)
+      // Em produção: dist/config -> dist -> raiz
+      // Em desenvolvimento: src/config -> src -> raiz
       const schemaPath = join(__dirname, '..', '..', 'schema.sql');
+      console.log(`   Schema path: ${schemaPath}`);
+
       const schema = readFileSync(schemaPath, 'utf-8');
 
       // Executa o schema completo
@@ -26,7 +30,9 @@ class DatabaseService {
       console.log('✅ Database schema initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize database schema:', error);
-      throw error;
+      // Não lança erro para permitir que o servidor inicie
+      // As tabelas podem já existir ou podem ser criadas manualmente
+      console.log('⚠️  Server will continue without schema initialization');
     }
   }
 
