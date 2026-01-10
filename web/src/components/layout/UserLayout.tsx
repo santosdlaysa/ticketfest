@@ -55,6 +55,13 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     const verifyAuth = async () => {
+      // Se já está autenticado no store, não precisa verificar na API
+      if (isAuthenticated && user) {
+        setIsChecking(false);
+        return;
+      }
+
+      // Tenta verificar na API apenas se não está autenticado
       const authenticated = await checkAuth();
       setIsChecking(false);
 
@@ -63,7 +70,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
       }
     };
     verifyAuth();
-  }, []);
+  }, [isAuthenticated, user]);
 
   if (isChecking) {
     return (

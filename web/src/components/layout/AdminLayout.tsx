@@ -160,6 +160,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   useEffect(() => {
     const verifyAuth = async () => {
+      // Se já está autenticado no store, não precisa verificar na API
+      if (user) {
+        setIsAuthValid(true);
+        setIsChecking(false);
+        return;
+      }
+
+      // Tenta verificar na API apenas se não está autenticado
       const authenticated = await checkAuth();
       setIsAuthValid(authenticated);
       setIsChecking(false);
@@ -169,7 +177,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       }
     };
     verifyAuth();
-  }, []);
+  }, [user]);
 
   // Filtra itens de navegação baseado nas permissões
   const filterNavItems = (items: NavItem[]): NavItem[] => {
