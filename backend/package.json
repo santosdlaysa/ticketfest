@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc && npm run copy-migrations",
+    "copy-migrations": "node -e \"const fs=require('fs');const path=require('path');const src='src/database/migrations';const dest='dist/database/migrations';fs.mkdirSync(dest,{recursive:true});fs.readdirSync(src).filter(f=>f.endsWith('.sql')).forEach(f=>fs.copyFileSync(path.join(src,f),path.join(dest,f)));console.log('✅ Migrations copied to dist')\"",
     "start": "node dist/server.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",

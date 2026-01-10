@@ -3,6 +3,7 @@ import app from './app.js';
 import { env, dbConfig } from './config/env.js';
 import DatabaseService from './config/database.js';
 import { initializeScheduler } from './jobs/scheduler.js';
+import { runMigrations } from './config/migrations.js';
 
 // Inicializa o Sentry antes de tudo
 initSentry();
@@ -17,6 +18,9 @@ const startServer = async () => {
   try {
     await DatabaseService.connect();
     dbConnected = true;
+
+    // Run migrations automatically on startup
+    await runMigrations();
   } catch (error) {
     console.error('❌ Database connection failed:', error);
     console.log('⚠️  Server will start without database. Some features may be unavailable.');
