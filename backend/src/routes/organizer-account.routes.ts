@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import { organizerAccountController } from '../controllers/organizer-account.controller.js';
-import { authenticate } from '../middlewares/auth.js';
+import { authenticate, authorize } from '../middlewares/auth.js';
 
 const router = Router();
 
 // All routes require authentication
 router.use(authenticate);
+
+// ========================================
+// USER ROUTES - Any authenticated user
+// ========================================
 
 // Get current user's organizer account
 router.get('/me', (req, res, next) => organizerAccountController.getMyAccount(req, res, next));
@@ -25,8 +29,14 @@ router.post('/request-verification', (req, res, next) => organizerAccountControl
 // Get balance
 router.get('/balance', (req, res, next) => organizerAccountController.getBalance(req, res, next));
 
-// Admin routes
-router.get('/', (req, res, next) => organizerAccountController.listAccounts(req, res, next));
-router.post('/:accountId/verify', (req, res, next) => organizerAccountController.verifyAccount(req, res, next));
+// ========================================
+// ADMIN ROUTES - Only ADMIN role
+// ========================================
+
+// List all organizer accounts (ADMIN only)
+router.get('/', authorize('ADMIN'), (req, res, next) => organizerAccountController.listAccounts(req, res, next));
+
+// Verify an organizer account (ADMIN only)
+router.post('/:accountId/verify', authorize('ADMIN'), (req, res, next) => organizerAccountController.verifyAccount(req, res, next));
 
 export default router;

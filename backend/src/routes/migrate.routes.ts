@@ -3,20 +3,30 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { query } from '../config/database.js';
+import { authenticate, authorize } from '../middlewares/auth.js';
 
 const router = Router();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Migration endpoint - protected by secret key
-router.post('/run', async (req: Request, res: Response) => {
-  // Simple protection - require a secret key
-  const { secret } = req.body;
-  const expectedSecret = process.env.MIGRATION_SECRET || 'lumera-migrate-2024';
+// All migration routes require ADMIN authentication
+router.use(authenticate);
+router.use(authorize('ADMIN'));
 
-  if (secret !== expectedSecret) {
-    return res.status(401).json({ error: 'Unauthorized' });
+// Migration endpoint - protected by JWT + ADMIN role + secret key
+router.post('/run', async (req: Request, res: Response) => {
+  // Additional protection - require a secret key
+  const { secret } = req.body;
+  const expectedSecret = process.env.MIGRATION_SECRET;
+
+  // In production, secret is REQUIRED
+  if (process.env.NODE_ENV === 'production' && !expectedSecret) {
+    return res.status(500).json({ error: 'MIGRATION_SECRET not configured' });
+  }
+
+  if (expectedSecret && secret !== expectedSecret) {
+    return res.status(401).json({ error: 'Invalid migration secret' });
   }
 
   const migrations = [

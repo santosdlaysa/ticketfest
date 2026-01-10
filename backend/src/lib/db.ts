@@ -20,12 +20,13 @@ interface PoolConfig {
 
 // Pool configurations - use connectionString (DATABASE_URL) if available
 // Enable SSL when using DATABASE_URL (remote database) regardless of NODE_ENV
+// Increased timeouts for Render free tier (database may be sleeping)
 const primaryConfig: PoolConfig = dbConfig.primary.url
   ? {
       connectionString: dbConfig.primary.url,
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-      max: 20,
+      connectionTimeoutMillis: 30000, // 30 seconds to allow cold start
+      idleTimeoutMillis: 60000, // 60 seconds idle before closing
+      max: 10, // Reduced to avoid connection limits on free tier
       ssl: { rejectUnauthorized: false },
     }
   : {
@@ -34,17 +35,17 @@ const primaryConfig: PoolConfig = dbConfig.primary.url
       user: dbConfig.primary.user,
       password: dbConfig.primary.password,
       database: dbConfig.primary.database,
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-      max: 20,
+      connectionTimeoutMillis: 30000,
+      idleTimeoutMillis: 60000,
+      max: 10,
     };
 
 const secondaryConfig: PoolConfig = dbConfig.secondary.url
   ? {
       connectionString: dbConfig.secondary.url,
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-      max: 20,
+      connectionTimeoutMillis: 30000,
+      idleTimeoutMillis: 60000,
+      max: 10,
       ssl: { rejectUnauthorized: false },
     }
   : {
@@ -53,9 +54,9 @@ const secondaryConfig: PoolConfig = dbConfig.secondary.url
       user: dbConfig.secondary.user,
       password: dbConfig.secondary.password,
       database: dbConfig.secondary.database,
-      connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 30000,
-      max: 20,
+      connectionTimeoutMillis: 30000,
+      idleTimeoutMillis: 60000,
+      max: 10,
     };
 
 // Log which connection mode is being used
