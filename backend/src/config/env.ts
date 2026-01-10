@@ -73,6 +73,9 @@ const envSchema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
 
+  // Resend (alternative email provider - works on Render)
+  RESEND_API_KEY: z.string().optional(),
+
   // Stripe (legacy)
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),

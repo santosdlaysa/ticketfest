@@ -10,12 +10,20 @@ export interface EmailOptions {
 
 export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
+  private useResend: boolean = false;
 
   constructor() {
     this.initializeTransporter();
   }
 
   private initializeTransporter() {
+    // Priority: Resend > SMTP > Console
+    if (env.RESEND_API_KEY) {
+      this.useResend = true;
+      console.log('✅ Email service configured with Resend');
+      return;
+    }
+
     if (!env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASSWORD) {
       console.warn('⚠️  Email service not configured. Emails will be logged to console.');
       return;
@@ -30,31 +38,65 @@ export class EmailService {
         pass: env.SMTP_PASSWORD,
       },
     });
+    console.log('✅ Email service configured with SMTP');
   }
 
   async sendEmail(options: EmailOptions): Promise<void> {
-    if (!this.transporter) {
-      console.log('📧 Email (would be sent):');
-      console.log(`   To: ${options.to}`);
-      console.log(`   Subject: ${options.subject}`);
-      console.log(`   Text: ${options.text || 'No text content'}`);
-      return;
+    // Use Resend if configured
+    if (this.useResend && env.RESEND_API_KEY) {
+      try {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: env.EMAIL_FROM || 'onboarding@resend.dev',
+            to: options.to,
+            subject: options.subject,
+            html: options.html,
+            text: options.text,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json() as { message?: string };
+          throw new Error(errorData.message || 'Resend API error');
+        }
+
+        console.log(`✅ Email sent via Resend to ${options.to}`);
+        return;
+      } catch (error) {
+        console.error('❌ Error sending email via Resend:', error);
+        throw error;
+      }
     }
 
-    try {
-      await this.transporter.sendMail({
-        from: env.EMAIL_FROM || 'noreply@Lumera.com',
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      });
+    // Use SMTP if configured
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: env.EMAIL_FROM || 'noreply@Lumera.com',
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
 
-      console.log(`✅ Email sent to ${options.to}`);
-    } catch (error) {
-      console.error('❌ Error sending email:', error);
-      throw error;
+        console.log(`✅ Email sent via SMTP to ${options.to}`);
+        return;
+      } catch (error) {
+        console.error('❌ Error sending email via SMTP:', error);
+        throw error;
+      }
     }
+
+    // Fallback: log to console
+    console.log('📧 Email (would be sent):');
+    console.log(`   To: ${options.to}`);
+    console.log(`   Subject: ${options.subject}`);
+    console.log(`   Text: ${options.text || 'No text content'}`);
   }
 
   async sendOrderConfirmation(
