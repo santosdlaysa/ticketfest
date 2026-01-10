@@ -50,7 +50,7 @@ export class OrganizerAccountController {
       const account = result.rows[0];
       return res.json(this.formatAccount(account));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -138,7 +138,7 @@ export class OrganizerAccountController {
 
       return res.status(201).json(this.formatAccount(result.rows[0]));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -186,7 +186,7 @@ export class OrganizerAccountController {
 
       return res.json(this.formatAccount(result.rows[0]));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -241,7 +241,7 @@ export class OrganizerAccountController {
 
       return res.json(this.formatAccount(result.rows[0]));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -275,7 +275,7 @@ export class OrganizerAccountController {
         status: 'pending_verification'
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -307,7 +307,7 @@ export class OrganizerAccountController {
 
       return res.json(this.formatAccount(result.rows[0]));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -359,7 +359,7 @@ export class OrganizerAccountController {
         offset: Number(offset)
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -387,7 +387,7 @@ export class OrganizerAccountController {
         totalBalance: available_balance + pending_balance
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 

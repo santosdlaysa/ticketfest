@@ -44,7 +44,7 @@ export class SplitController {
 
       return res.json(this.formatSplitRule(result.rows[0]));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -128,7 +128,7 @@ export class SplitController {
 
       return res.status(201).json(this.formatSplitRule(result.rows[0]));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -192,7 +192,7 @@ export class SplitController {
 
       return res.json(this.formatSplitRule(result.rows[0]));
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -240,7 +240,7 @@ export class SplitController {
         hasCustomRule: result.rows.length > 0,
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -322,7 +322,7 @@ export class SplitController {
         offset: Number(offset),
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -337,7 +337,7 @@ export class SplitController {
         platformFixedFee: DEFAULT_PLATFORM_FIXED_FEE,
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 

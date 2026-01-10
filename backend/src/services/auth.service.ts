@@ -120,50 +120,22 @@ export class AuthService {
   }
 
   async login(data: LoginData) {
-    // Determine role based on email pattern (for dev mode)
-    let role: 'USER' | 'ADMIN' | 'ORGANIZER' = 'ORGANIZER';
-    if (data.email.includes('admin')) {
-      role = 'ADMIN';
-    } else if (data.email.includes('user')) {
-      role = 'USER';
+    // Find user in database
+    const result = await query<User>(
+      'SELECT * FROM users WHERE email = $1',
+      [data.email]
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError(401, 'Email ou senha incorretos');
     }
 
-    // Create a mock user object (no database needed)
-    const mockUser = {
-      id: `mock-${Date.now()}`,
-      email: data.email,
-      name: data.email.split('@')[0],
-      cpf: null,
-      phone: null,
-      role: role,
-    };
+    const user = result.rows[0];
 
-    // Try to use database, but fallback to mock if unavailable
-    let user: any = mockUser;
-
-    try {
-      // Try to find user in database
-      const dbResult = await query<User>(
-        'SELECT * FROM users WHERE email = $1',
-        [data.email]
-      );
-
-      if (dbResult.rows.length > 0) {
-        user = dbResult.rows[0];
-      } else {
-        // Try to create user
-        const passwordHash = await bcrypt.hash(data.password || '123456', 10);
-        const newUserResult = await query<User>(
-          `INSERT INTO users (email, password_hash, name, role)
-           VALUES ($1, $2, $3, $4)
-           RETURNING *`,
-          [data.email, passwordHash, data.email.split('@')[0], role]
-        );
-        user = newUserResult.rows[0];
-      }
-    } catch (dbError) {
-      // Database unavailable - use mock user
-      console.warn('Database unavailable, using mock user:', dbError);
+    // Verify password
+    const isValidPassword = await bcrypt.compare(data.password, user.password_hash);
+    if (!isValidPassword) {
+      throw new AppError(401, 'Email ou senha incorretos');
     }
 
     // Generate tokens
@@ -176,23 +148,19 @@ export class AuthService {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
-    // Try to save refresh token (ignore errors)
-    try {
-      await query(
-        `INSERT INTO refresh_tokens (token, user_id, expires_at)
-         VALUES ($1, $2, $3)`,
-        [refreshToken, user.id, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)]
-      );
-    } catch (tokenError) {
-      // Ignore - mock mode
-    }
+    // Save refresh token
+    await query(
+      `INSERT INTO refresh_tokens (token, user_id, expires_at)
+       VALUES ($1, $2, $3)`,
+      [refreshToken, user.id, new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)]
+    );
 
     return {
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        cpf: user.cpf ? decryptData(user.cpf) : null, // Decrypt CPF for response
+        cpf: user.cpf ? decryptData(user.cpf) : null,
         phone: user.phone,
         role: user.role,
       },

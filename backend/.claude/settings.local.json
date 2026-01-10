@@ -26,7 +26,8 @@
       "Bash(cmd /c \"set PGPASSWORD=220798 && \"\"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\"\" -h localhost -U postgres -d lumera -c \"\"\\\\dt\"\"\")",
       "Bash(node check-db.js:*)",
       "Bash(node run-migration.cjs:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }
