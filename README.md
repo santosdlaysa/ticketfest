@@ -86,6 +86,16 @@ Lumera/
 - ✅ Confirmação de pagamento
 - ✅ Cancelamento e reembolso
 
+### Split Payment (Divisão de Pagamentos)
+- ✅ Divisão automática entre plataforma e organizador
+- ✅ Taxa da plataforma configurável (padrão: 8%)
+- ✅ Contas de organizador com dados bancários
+- ✅ Verificação de contas pelo admin
+- ✅ Saldo disponível e pendente
+- ✅ Histórico de transações de split
+- ✅ Cálculo de preview do split
+- ✅ Criação automática de regra de split ao criar evento
+
 ### QR Codes e Ingressos
 - ✅ Geração automática de QR codes únicos
 - ✅ Criptografia de dados dos QR codes
@@ -189,15 +199,42 @@ npm run android
 ## 📚 Endpoints Principais
 
 ```
+# Autenticação
 POST   /api/auth/register          # Registrar usuário
 POST   /api/auth/login             # Login
+
+# Eventos
 GET    /api/events                 # Listar eventos
 GET    /api/events/:id             # Detalhes do evento
+
+# Carrinho e Pedidos
 POST   /api/cart/add               # Adicionar ao carrinho
 POST   /api/orders                 # Criar pedido
 POST   /api/orders/:id/confirm     # Confirmar pagamento
+
+# Check-in
 POST   /api/checkin/validate       # Validar ingresso
 GET    /api/checkin/event/:id/stats # Estatísticas
+
+# Conta de Organizador (Split Payment)
+GET    /api/organizer-accounts/me           # Minha conta de organizador
+POST   /api/organizer-accounts              # Criar conta de organizador
+PUT    /api/organizer-accounts/company      # Atualizar dados da empresa
+PUT    /api/organizer-accounts/bank         # Atualizar dados bancários
+POST   /api/organizer-accounts/request-verification  # Solicitar verificação
+GET    /api/organizer-accounts/balance      # Ver saldo
+
+# Split Payment
+GET    /api/split/defaults                  # Ver taxas padrão da plataforma
+GET    /api/split/events/:eventId           # Ver regra de split do evento
+POST   /api/split/events/:eventId           # Criar regra de split
+GET    /api/split/events/:eventId/calculate?amount=100  # Calcular preview
+GET    /api/split/events/:eventId/transactions  # Histórico de transações
+
+# Saques
+GET    /api/payouts/balance                 # Ver saldo para saque
+POST   /api/payouts/request                 # Solicitar saque
+GET    /api/payouts                         # Histórico de saques
 ```
 
 Ver documentação completa em `backend/README.md`
@@ -222,6 +259,23 @@ Antes de fazer deploy:
 3. Use HTTPS em produção
 4. Configure CORS adequadamente
 5. Revise permissões do banco de dados
+
+## ⚙️ Variáveis de Ambiente
+
+### Split Payment (Taxas da Plataforma)
+
+```env
+# Taxa percentual da plataforma (padrão: 8%)
+PLATFORM_FEE_PERCENTAGE=8
+
+# Taxa fixa adicional por transação em BRL (padrão: 0)
+PLATFORM_FIXED_FEE=0
+```
+
+**Exemplo de divisão com 8%:**
+- Venda: R$ 100,00
+- Plataforma: R$ 8,00 (8%)
+- Organizador: R$ 92,00 (92%)
 
 ## 🤝 Contribuindo
 
@@ -324,4 +378,50 @@ npm run dev
 
 **Status**: 🟢 Backend 100% | 🟢 Frontend 95% | 🟢 Mobile 95%
 
-**Versao Atual:** 1.2.0 | **Data:** 12 de Dezembro de 2025
+**Versao Atual:** 1.3.0 | **Data:** 09 de Janeiro de 2026
+
+---
+
+## 💰 Split Payment - Como Funciona
+
+### Fluxo Completo
+
+```
+1. Empresa se cadastra
+   └── POST /api/auth/register
+
+2. Empresa cria conta de organizador
+   └── POST /api/organizer-accounts
+       (com dados bancários e CNPJ)
+
+3. Admin verifica a conta
+   └── POST /api/organizer-accounts/:id/verify
+
+4. Empresa cria evento
+   └── POST /api/events
+       (Split rule criada automaticamente: 8% plataforma / 92% organizador)
+
+5. Cliente compra ingresso (R$ 100,00)
+   └── POST /api/orders
+       ├── Plataforma: R$ 8,00
+       └── Organizador: R$ 92,00 (saldo pendente)
+
+6. Pagamento confirmado
+   └── POST /api/orders/:id/confirm
+       └── Saldo liberado para organizador
+
+7. Organizador solicita saque
+   └── POST /api/payouts/request
+```
+
+### Configuração Personalizada
+
+Admins podem ajustar a taxa por evento:
+```bash
+PUT /api/split/events/:eventId
+{
+  "platformPercentage": 10,
+  "organizerPercentage": 90,
+  "platformFixedFee": 2.00
+}
+```

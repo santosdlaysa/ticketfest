@@ -974,3 +974,203 @@ export const uploadApi = {
     return response.data;
   },
 };
+
+// ========================================
+// ORGANIZER ACCOUNT API - Conta do Organizador
+// ========================================
+
+export interface OrganizerAccountBankDetails {
+  bankCode: string | null;
+  bankName: string | null;
+  accountType: 'CHECKING' | 'SAVINGS' | null;
+  accountNumber: string | null;
+  accountDigit: string | null;
+  agencyNumber: string | null;
+  agencyDigit: string | null;
+  holderName: string | null;
+  holderDocument: string | null;
+  holderType: 'INDIVIDUAL' | 'COMPANY' | null;
+  pixKeyType: 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM' | null;
+  pixKey: string | null;
+}
+
+export interface OrganizerAccountCompanyInfo {
+  companyName: string | null;
+  tradingName: string | null;
+  cnpj: string | null;
+  companyEmail: string | null;
+  companyPhone: string | null;
+  companyAddress: string | null;
+  companyCity: string | null;
+  companyState: string | null;
+  companyZipCode: string | null;
+  taxRegime: string | null;
+}
+
+export interface OrganizerAccount {
+  id: string;
+  userId: string;
+  verified: boolean;
+  verifiedAt: string | null;
+  companyInfo: OrganizerAccountCompanyInfo;
+  bankDetails: OrganizerAccountBankDetails;
+  balance: {
+    available: number;
+    pending: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SplitDefaults {
+  platformPercentage: number;
+  organizerPercentage: number;
+  platformFixedFee: number;
+}
+
+export interface SplitRule {
+  id: string;
+  eventId: string;
+  organizerAccountId: string;
+  platformPercentage: number;
+  organizerPercentage: number;
+  platformFixedFee: number;
+  active: boolean;
+  organizerVerified: boolean;
+  companyName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SplitCalculation {
+  totalAmount: number;
+  platformPercentage: number;
+  organizerPercentage: number;
+  platformFixedFee: number;
+  platformAmount: number;
+  organizerAmount: number;
+  hasCustomRule: boolean;
+}
+
+export const organizerAccountApi = {
+  // Get my organizer account
+  getMyAccount: async (): Promise<OrganizerAccount> => {
+    const response = await api.get('/organizer-accounts/me');
+    return response.data;
+  },
+
+  // Create organizer account
+  createAccount: async (data: {
+    companyInfo?: Partial<OrganizerAccountCompanyInfo>;
+    bankDetails?: Partial<OrganizerAccountBankDetails>;
+  }): Promise<OrganizerAccount> => {
+    const response = await api.post('/organizer-accounts', data);
+    return response.data;
+  },
+
+  // Update company info
+  updateCompanyInfo: async (data: Partial<OrganizerAccountCompanyInfo>): Promise<OrganizerAccount> => {
+    const response = await api.put('/organizer-accounts/company', data);
+    return response.data;
+  },
+
+  // Update bank details
+  updateBankDetails: async (data: Partial<OrganizerAccountBankDetails>): Promise<OrganizerAccount> => {
+    const response = await api.put('/organizer-accounts/bank', data);
+    return response.data;
+  },
+
+  // Request verification
+  requestVerification: async (): Promise<{ message: string; status: string }> => {
+    const response = await api.post('/organizer-accounts/request-verification');
+    return response.data;
+  },
+
+  // Get balance
+  getBalance: async (): Promise<{ availableBalance: number; pendingBalance: number; totalBalance: number }> => {
+    const response = await api.get('/organizer-accounts/balance');
+    return response.data;
+  },
+
+  // Admin: List all accounts
+  listAccounts: async (params?: {
+    verified?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ accounts: OrganizerAccount[]; total: number }> => {
+    const response = await api.get('/organizer-accounts', { params });
+    return response.data;
+  },
+
+  // Admin: Verify account
+  verifyAccount: async (accountId: string): Promise<OrganizerAccount> => {
+    const response = await api.post(`/organizer-accounts/${accountId}/verify`);
+    return response.data;
+  },
+};
+
+// ========================================
+// SPLIT PAYMENT API - Divisão de Pagamentos
+// ========================================
+
+export const splitApi = {
+  // Get platform default percentages
+  getDefaults: async (): Promise<SplitDefaults> => {
+    const response = await api.get('/split/defaults');
+    return response.data;
+  },
+
+  // Get split rule for an event
+  getSplitRule: async (eventId: string): Promise<SplitRule> => {
+    const response = await api.get(`/split/events/${eventId}`);
+    return response.data;
+  },
+
+  // Create split rule for an event
+  createSplitRule: async (
+    eventId: string,
+    data?: {
+      platformPercentage?: number;
+      organizerPercentage?: number;
+      platformFixedFee?: number;
+    }
+  ): Promise<SplitRule> => {
+    const response = await api.post(`/split/events/${eventId}`, data || {});
+    return response.data;
+  },
+
+  // Update split rule (admin only)
+  updateSplitRule: async (
+    eventId: string,
+    data: {
+      platformPercentage?: number;
+      organizerPercentage?: number;
+      platformFixedFee?: number;
+      active?: boolean;
+    }
+  ): Promise<SplitRule> => {
+    const response = await api.put(`/split/events/${eventId}`, data);
+    return response.data;
+  },
+
+  // Calculate split preview
+  calculateSplit: async (eventId: string, amount: number): Promise<SplitCalculation> => {
+    const response = await api.get(`/split/events/${eventId}/calculate`, {
+      params: { amount },
+    });
+    return response.data;
+  },
+
+  // Get split transactions for an event
+  getTransactions: async (
+    eventId: string,
+    params?: { limit?: number; offset?: number }
+  ): Promise<{
+    transactions: any[];
+    totals: { totalAmount: number; totalPlatform: number; totalOrganizer: number };
+    total: number;
+  }> => {
+    const response = await api.get(`/split/events/${eventId}/transactions`, { params });
+    return response.data;
+  },
+};

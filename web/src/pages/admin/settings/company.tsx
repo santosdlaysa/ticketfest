@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { companyApi, CompanySettings } from '@/services/api';
+import { organizerAccountApi } from '@/services/api';
 
 const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
@@ -37,6 +37,7 @@ interface CompanyForm {
 export default function CompanySettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [hasAccount, setHasAccount] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CompanyForm>();
 
@@ -47,22 +48,25 @@ export default function CompanySettingsPage() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const data = await companyApi.getSettings();
+      const data = await organizerAccountApi.getMyAccount();
+      setHasAccount(true);
       reset({
-        companyName: data.companySettings.companyName || '',
-        tradingName: data.companySettings.tradingName || '',
-        cnpj: data.companySettings.cnpj || '',
-        companyEmail: data.companySettings.companyEmail || '',
-        companyPhone: data.companySettings.companyPhone || '',
-        companyAddress: data.companySettings.companyAddress || '',
-        companyCity: data.companySettings.companyCity || '',
-        companyState: data.companySettings.companyState || 'SP',
-        companyZipCode: data.companySettings.companyZipCode || '',
-        taxRegime: data.companySettings.taxRegime || '',
+        companyName: data.companyInfo.companyName || '',
+        tradingName: data.companyInfo.tradingName || '',
+        cnpj: data.companyInfo.cnpj || '',
+        companyEmail: data.companyInfo.companyEmail || '',
+        companyPhone: data.companyInfo.companyPhone || '',
+        companyAddress: data.companyInfo.companyAddress || '',
+        companyCity: data.companyInfo.companyCity || '',
+        companyState: data.companyInfo.companyState || 'SP',
+        companyZipCode: data.companyInfo.companyZipCode || '',
+        taxRegime: data.companyInfo.taxRegime || '',
       });
     } catch (error: any) {
-      if (error.response?.status !== 404) {
-        toast.error('Erro ao carregar configurações');
+      if (error.response?.status === 404) {
+        setHasAccount(false);
+      } else {
+        toast.error('Erro ao carregar configuracoes');
       }
     } finally {
       setLoading(false);
@@ -72,10 +76,32 @@ export default function CompanySettingsPage() {
   const onSubmit = async (data: CompanyForm) => {
     try {
       setSaving(true);
-      await companyApi.updateSettings(data);
-      toast.success('Configurações salvas com sucesso!');
+
+      const companyInfo = {
+        companyName: data.companyName,
+        tradingName: data.tradingName || null,
+        cnpj: data.cnpj.replace(/\D/g, ''),
+        companyEmail: data.companyEmail || null,
+        companyPhone: data.companyPhone || null,
+        companyAddress: data.companyAddress || null,
+        companyCity: data.companyCity || null,
+        companyState: data.companyState || null,
+        companyZipCode: data.companyZipCode || null,
+        taxRegime: data.taxRegime || null,
+      };
+
+      if (!hasAccount) {
+        await organizerAccountApi.createAccount({ companyInfo });
+        setHasAccount(true);
+        toast.success('Conta de organizador criada com sucesso!');
+      } else {
+        await organizerAccountApi.updateCompanyInfo(companyInfo);
+        toast.success('Dados da empresa atualizados com sucesso!');
+      }
+
+      await loadSettings();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao salvar configurações');
+      toast.error(error.response?.data?.error || 'Erro ao salvar configuracoes');
     } finally {
       setSaving(false);
     }
@@ -132,24 +158,41 @@ export default function CompanySettingsPage() {
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Voltar para Configurações
+            Voltar para Configuracoes
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Dados da Empresa</h1>
           <p className="text-gray-600 mt-2">
-            Configure as informações da sua empresa para emissão de notas e recebimento
+            Configure as informacoes da sua empresa para emissao de notas e recebimento
           </p>
         </div>
 
+        {/* No Account Message */}
+        {!hasAccount && (
+          <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
+            <div className="flex items-center gap-3">
+              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <div className="font-medium text-blue-800">Crie sua conta de organizador</div>
+                <div className="text-sm text-blue-700">
+                  Preencha os dados abaixo para comecar a receber os repasses das vendas dos seus eventos
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-6">
-          {/* Identificação */}
+          {/* Identificacao */}
           <div>
-            <h2 className="text-lg font-semibold mb-4">Identificação</h2>
+            <h2 className="text-lg font-semibold mb-4">Identificacao</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Razão Social *"
+                label="Razao Social *"
                 placeholder="Nome oficial da empresa"
                 error={errors.companyName?.message}
-                {...register('companyName', { required: 'Razão social é obrigatória' })}
+                {...register('companyName', { required: 'Razao social e obrigatoria' })}
               />
               <Input
                 label="Nome Fantasia"
@@ -161,7 +204,7 @@ export default function CompanySettingsPage() {
                 placeholder="00.000.000/0000-00"
                 error={errors.cnpj?.message}
                 {...register('cnpj', {
-                  required: 'CNPJ é obrigatório',
+                  required: 'CNPJ e obrigatorio',
                   onChange: (e) => {
                     e.target.value = formatCNPJ(e.target.value);
                   },
@@ -169,7 +212,7 @@ export default function CompanySettingsPage() {
               />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Regime Tributário
+                  Regime Tributario
                 </label>
                 <select
                   className="input w-full"
@@ -191,15 +234,14 @@ export default function CompanySettingsPage() {
             <h2 className="text-lg font-semibold mb-4">Contato</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Email da Empresa *"
+                label="Email da Empresa"
                 type="email"
                 placeholder="contato@empresa.com.br"
                 error={errors.companyEmail?.message}
                 {...register('companyEmail', {
-                  required: 'Email é obrigatório',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Email inválido',
+                    message: 'Email invalido',
                   },
                 })}
               />
@@ -215,30 +257,28 @@ export default function CompanySettingsPage() {
             </div>
           </div>
 
-          {/* Endereço */}
+          {/* Endereco */}
           <div>
-            <h2 className="text-lg font-semibold mb-4">Endereço</h2>
+            <h2 className="text-lg font-semibold mb-4">Endereco</h2>
             <div className="space-y-4">
               <Input
-                label="Endereço Completo *"
-                placeholder="Rua, número, complemento, bairro"
-                error={errors.companyAddress?.message}
-                {...register('companyAddress', { required: 'Endereço é obrigatório' })}
+                label="Endereco Completo"
+                placeholder="Rua, numero, complemento, bairro"
+                {...register('companyAddress')}
               />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
-                  label="Cidade *"
-                  placeholder="São Paulo"
-                  error={errors.companyCity?.message}
-                  {...register('companyCity', { required: 'Cidade é obrigatória' })}
+                  label="Cidade"
+                  placeholder="Sao Paulo"
+                  {...register('companyCity')}
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Estado *
+                    Estado
                   </label>
                   <select
                     className="input w-full"
-                    {...register('companyState', { required: 'Estado é obrigatório' })}
+                    {...register('companyState')}
                   >
                     {BRAZILIAN_STATES.map((state) => (
                       <option key={state} value={state}>
@@ -268,7 +308,7 @@ export default function CompanySettingsPage() {
               </Button>
             </Link>
             <Button type="submit" isLoading={saving} className="flex-1">
-              Salvar Alterações
+              {hasAccount ? 'Salvar Alteracoes' : 'Criar Conta de Organizador'}
             </Button>
           </div>
         </form>
