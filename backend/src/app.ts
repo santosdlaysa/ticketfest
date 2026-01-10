@@ -15,6 +15,10 @@ import { csrfProtection } from './middlewares/csrfProtection.js';
 
 const app = express();
 
+// Trust proxy - required for Render, Heroku, AWS, etc. (reverse proxy environments)
+// This allows express-rate-limit to correctly identify users by X-Forwarded-For header
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
