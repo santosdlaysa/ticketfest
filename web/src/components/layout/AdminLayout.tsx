@@ -152,13 +152,16 @@ const otherNavigation: NavItem[] = [
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const router = useRouter();
-  const { user, logout, checkAuth } = useAuthStore();
+  const { user, logout, checkAuth, _hasHydrated } = useAuthStore();
   const { hasPermission, canAccessAdmin, isLoading: permissionsLoading } = usePermissions();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthValid, setIsAuthValid] = useState(false);
 
   useEffect(() => {
+    // Espera a hidratação do estado do localStorage
+    if (!_hasHydrated) return;
+
     const verifyAuth = async () => {
       // Se já está autenticado no store, não precisa verificar na API
       if (user) {
@@ -177,7 +180,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       }
     };
     verifyAuth();
-  }, [user]);
+  }, [_hasHydrated, user]);
 
   // Filtra itens de navegação baseado nas permissões
   const filterNavItems = (items: NavItem[]): NavItem[] => {
@@ -191,8 +194,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const filteredSalesNavigation = filterNavItems(salesNavigation);
   const filteredOtherNavigation = filterNavItems(otherNavigation);
 
-  // Show loading while checking authentication
-  if (isChecking || permissionsLoading) {
+  // Show loading while checking authentication or waiting for hydration
+  if (!_hasHydrated || isChecking || permissionsLoading) {
     return (
       <div className="min-h-screen bg-lumera-luminoso flex items-center justify-center" role="status" aria-live="polite">
         <div className="text-center">

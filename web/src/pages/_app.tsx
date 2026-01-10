@@ -11,13 +11,16 @@ import '@/styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const { checkAuth, isAuthenticated } = useAuthStore();
+  const { checkAuth, isAuthenticated, _hasHydrated } = useAuthStore();
   const { fetchCart } = useCartStore();
   const hasCheckedAuth = useRef(false);
 
   const isAuthPage = router.pathname.startsWith('/auth');
 
   useEffect(() => {
+    // Espera a hidratação do estado do localStorage
+    if (!_hasHydrated) return;
+
     // Only check auth once on initial load, and only if not already authenticated
     // This prevents overwriting the auth state after a successful login
     if (!hasCheckedAuth.current && !isAuthPage && !isAuthenticated) {
@@ -25,7 +28,7 @@ export default function App({ Component, pageProps }: AppProps) {
       checkAuth();
     }
     fetchCart();
-  }, [isAuthPage, isAuthenticated]);
+  }, [_hasHydrated, isAuthPage, isAuthenticated]);
 
   const isAdminPage = router.pathname.startsWith('/admin');
   const isUserPage = router.pathname.startsWith('/user');

@@ -5,10 +5,11 @@ import { useAuthStore } from '@/contexts/AuthContext';
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (isLoading) return;
+    // Espera a hidratação do estado do localStorage
+    if (!_hasHydrated || isLoading) return;
 
     if (!isAuthenticated) {
       // Usuário não logado vai para a lista de eventos
@@ -20,7 +21,7 @@ export default function Home() {
       // Usuário comum vai para a lista de eventos
       router.replace('/events');
     }
-  }, [router, user, isAuthenticated, isLoading]);
+  }, [router, user, isAuthenticated, isLoading, _hasHydrated]);
 
   return (
     <main className="min-h-screen flex items-center justify-center" role="status" aria-live="polite">

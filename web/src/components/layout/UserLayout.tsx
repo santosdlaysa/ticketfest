@@ -50,10 +50,13 @@ const userNavigation = [
 
 export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
   const router = useRouter();
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const { user, isAuthenticated, checkAuth, _hasHydrated } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    // Espera a hidratação do estado do localStorage
+    if (!_hasHydrated) return;
+
     const verifyAuth = async () => {
       // Se já está autenticado no store, não precisa verificar na API
       if (isAuthenticated && user) {
@@ -70,9 +73,10 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
       }
     };
     verifyAuth();
-  }, [isAuthenticated, user]);
+  }, [_hasHydrated, isAuthenticated, user]);
 
-  if (isChecking) {
+  // Aguarda hidratação ou verificação
+  if (!_hasHydrated || isChecking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

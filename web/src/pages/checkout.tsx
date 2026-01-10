@@ -23,18 +23,21 @@ interface CheckoutForm {
 export default function Checkout() {
   const router = useRouter();
   const { cart, clearCart, fetchCart } = useCartStore();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading: authLoading, _hasHydrated } = useAuthStore();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState<CheckoutForm | null>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
+    // Espera a hidratação do estado do localStorage
+    if (!_hasHydrated) return;
+
     if (!authLoading && !isAuthenticated) {
       toast.error('Faca login para finalizar a compra');
       router.push('/auth/login?redirect=/checkout');
     }
-  }, [authLoading, isAuthenticated, router]);
+  }, [_hasHydrated, authLoading, isAuthenticated, router]);
 
   const {
     register,
@@ -195,7 +198,7 @@ export default function Checkout() {
   };
 
   // Show loading while checking auth or cart
-  if (authLoading || !cartLoaded || !isAuthenticated) {
+  if (!_hasHydrated || authLoading || !cartLoaded || !isAuthenticated) {
     return (
       <div className="container-custom py-16 text-center">
         <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
