@@ -6,23 +6,26 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '@/contexts/AuthContext';
 import { useCartStore } from '@/contexts/CartContext';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import '@/styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const { checkAuth } = useAuthStore();
+  const { checkAuth, isAuthenticated } = useAuthStore();
   const { fetchCart } = useCartStore();
+  const hasCheckedAuth = useRef(false);
 
   const isAuthPage = router.pathname.startsWith('/auth');
 
   useEffect(() => {
-    // Don't try to check auth on auth pages to avoid loops
-    if (!isAuthPage) {
+    // Only check auth once on initial load, and only if not already authenticated
+    // This prevents overwriting the auth state after a successful login
+    if (!hasCheckedAuth.current && !isAuthPage && !isAuthenticated) {
+      hasCheckedAuth.current = true;
       checkAuth();
     }
     fetchCart();
-  }, [isAuthPage]);
+  }, [isAuthPage, isAuthenticated]);
 
   const isAdminPage = router.pathname.startsWith('/admin');
   const isUserPage = router.pathname.startsWith('/user');
