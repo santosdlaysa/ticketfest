@@ -2,6 +2,10 @@ import { query } from '../config/database.js';
 import { AppError } from '../middlewares/errorHandler.js';
 import { slugify, generateUniqueSlug } from '../utils/slugify.js';
 
+// Default platform fee percentage
+const DEFAULT_PLATFORM_PERCENTAGE = parseFloat(process.env.PLATFORM_FEE_PERCENTAGE || '8');
+const DEFAULT_PLATFORM_FIXED_FEE = parseFloat(process.env.PLATFORM_FIXED_FEE || '0');
+
 export interface CreateEventData {
   name: string;
   description: string;
@@ -89,6 +93,48 @@ export class EventService {
       [organizerId]
     );
 
+    // Auto-create split rule if organizer has an organizer account
+    let splitRule = null;
+    try {
+      const organizerAccount = await query(
+        'SELECT id FROM organizer_accounts WHERE user_id = $1',
+        [organizerId]
+      );
+
+      if (organizerAccount.rows.length > 0) {
+        const splitResult = await query(
+          `INSERT INTO split_rules (
+            event_id,
+            organizer_account_id,
+            platform_percentage,
+            organizer_percentage,
+            platform_fixed_fee,
+            active
+          ) VALUES ($1, $2, $3, $4, $5, TRUE)
+          ON CONFLICT (event_id) DO NOTHING
+          RETURNING *`,
+          [
+            event.id,
+            organizerAccount.rows[0].id,
+            DEFAULT_PLATFORM_PERCENTAGE,
+            100 - DEFAULT_PLATFORM_PERCENTAGE,
+            DEFAULT_PLATFORM_FIXED_FEE,
+          ]
+        );
+
+        if (splitResult.rows.length > 0) {
+          splitRule = {
+            platformPercentage: splitResult.rows[0].platform_percentage,
+            organizerPercentage: splitResult.rows[0].organizer_percentage,
+          };
+          console.log(`[EventService] Split rule created for event ${event.id}: ${DEFAULT_PLATFORM_PERCENTAGE}% platform / ${100 - DEFAULT_PLATFORM_PERCENTAGE}% organizer`);
+        }
+      }
+    } catch (splitError) {
+      // Log but don't fail event creation if split rule fails
+      console.error('[EventService] Failed to create split rule:', splitError);
+    }
+
     return {
       ...event,
       endDate: event.end_date,
@@ -100,6 +146,7 @@ export class EventService {
       updatedAt: event.updated_at,
       organizer: organizerResult.rows[0],
       tickets: [],
+      splitRule,
     };
   }
 

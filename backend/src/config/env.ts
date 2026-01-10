@@ -95,6 +95,10 @@ const envSchema = z.object({
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.string().default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().default('100'),
+
+  // Platform Fees (Split Payment)
+  PLATFORM_FEE_PERCENTAGE: z.string().default('8'), // Default 8% for platform
+  PLATFORM_FIXED_FEE: z.string().default('0'), // Fixed fee per transaction (in BRL)
 });
 
 const parseEnv = () => {

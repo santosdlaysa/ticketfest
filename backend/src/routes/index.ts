@@ -14,6 +14,8 @@ import payoutRoutes from './payout.routes.js';
 import couponRoutes from './coupon.routes.js';
 import permissionsRoutes from './permissions.routes.js';
 import migrateRoutes from './migrate.routes.js';
+import organizerAccountRoutes from './organizer-account.routes.js';
+import splitRoutes from './split.routes.js';
 import { getConnectionStatus, query } from '../config/database.js';
 
 const router = Router();
@@ -53,6 +55,8 @@ router.use('/payouts', payoutRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/permissions', permissionsRoutes);
 router.use('/migrate', migrateRoutes);
+router.use('/organizer-accounts', organizerAccountRoutes);
+router.use('/split', splitRoutes);
 
 // Test endpoint - ONLY FOR DEVELOPMENT
 if (process.env.NODE_ENV !== 'production') {
