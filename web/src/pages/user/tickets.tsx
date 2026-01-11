@@ -16,13 +16,16 @@ interface TicketWithOrder extends TicketInstance {
 
 export default function MyTickets() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated, _hasHydrated } = useAuthStore();
   const [tickets, setTickets] = useState<TicketWithOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadTickets();
-  }, []);
+    // Só carrega tickets se estiver autenticado e hidratado
+    if (_hasHydrated && isAuthenticated) {
+      loadTickets();
+    }
+  }, [_hasHydrated, isAuthenticated]);
 
   const loadTickets = async () => {
     try {

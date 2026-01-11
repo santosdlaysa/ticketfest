@@ -107,7 +107,7 @@ export default function OrderDetailsPage() {
     return (
       <>
         <Head><title>Carregando... - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
+        <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-gray-600">Carregando pedido...</p>
@@ -121,7 +121,7 @@ export default function OrderDetailsPage() {
     return (
       <>
         <Head><title>Pedido nao encontrado - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
+        <div className="p-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900">Pedido nao encontrado</h1>
             <Link href="/admin/orders">
@@ -136,7 +136,7 @@ export default function OrderDetailsPage() {
   return (
     <>
       <Head><title>Pedido {order.id.slice(0, 8)} - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>

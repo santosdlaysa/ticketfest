@@ -209,10 +209,10 @@ npx expo start
 
 ## Recursos
 
-- 📚 [README Completo](./NOTIFICATIONS_README.md)
-- 🔧 [Integração Backend](./BACKEND_INTEGRATION.md)
-- 💡 [Exemplos de Código](./src/services/notificationExamples.ts)
-- 🎨 [Componente Demo](./src/components/NotificationDemo.tsx)
+- 📚 [README Completo](NOTIFICATIONS_README.md)
+- 🔧 [Integração Backend](BACKEND_INTEGRATION.md)
+- 💡 [Exemplos de Código](../src/services/notificationExamples.ts)
+- 🎨 [Componente Demo](../src/components/NotificationDemo.tsx)
 - 🌐 [Expo Docs](https://docs.expo.dev/versions/latest/sdk/notifications/)
 - 🔔 [Ferramenta de Teste](https://expo.dev/notifications)
 

@@ -115,7 +115,7 @@ interface UsePermissionsReturn {
 }
 
 export function usePermissions(): UsePermissionsReturn {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, _hasHydrated } = useAuthStore();
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [permissionCodes, setPermissionCodes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -123,6 +123,11 @@ export function usePermissions(): UsePermissionsReturn {
 
   // Carrega permissões da API
   const loadPermissions = useCallback(async () => {
+    // Espera hidratação do estado
+    if (!_hasHydrated) {
+      return;
+    }
+
     if (!isAuthenticated || !user) {
       setPermissions([]);
       setPermissionCodes([]);
@@ -147,7 +152,7 @@ export function usePermissions(): UsePermissionsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [_hasHydrated, isAuthenticated, user]);
 
   useEffect(() => {
     loadPermissions();

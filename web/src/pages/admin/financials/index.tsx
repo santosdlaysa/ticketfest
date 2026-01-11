@@ -54,7 +54,7 @@ export default function AdminFinancialsPage() {
   return (
     <ProtectedPage permission={PERMISSION_CODES.FINANCE_VIEW} pageTitle="Dashboard Financeiro">
       <Head><title>Dashboard Financeiro - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>

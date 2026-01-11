@@ -99,7 +99,7 @@ export default function CreateVenue() {
   return (
     <>
       <Head><title>Criar Local - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-12 max-w-3xl">
+      <div className="p-6 max-w-3xl">
         <div className="mb-8">
           <Link
             href="/admin/venues"

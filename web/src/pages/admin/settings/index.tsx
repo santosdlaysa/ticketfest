@@ -1,7 +1,6 @@
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { AdminLayout } from '@/components/layout/AdminLayout';
 
 const settingsSections = [
   {
@@ -38,12 +37,12 @@ const settingsSections = [
 
 export default function SettingsPage() {
   return (
-    <AdminLayout>
+    <>
       <Head>
         <title>Configurações - Lumera</title>
       </Head>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
           <p className="text-gray-600 mt-2">
@@ -51,7 +50,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {settingsSections.map((section) => (
             <Link key={section.href} href={section.href}>
               <div className="card p-6 hover:shadow-lg transition-shadow cursor-pointer group">
@@ -81,6 +80,6 @@ export default function SettingsPage() {
           ))}
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 }

@@ -541,8 +541,18 @@ export class PagarmeService {
    */
   verifyWebhookSignature(payload: string, signature: string): boolean {
     if (!env.PAGARME_WEBHOOK_SECRET) {
-      console.warn('Webhook secret not configured, skipping verification');
+      // In production, webhook secret is REQUIRED for security
+      if (process.env.NODE_ENV === 'production') {
+        console.error('SECURITY: Webhook secret not configured in production!');
+        return false;
+      }
+      console.warn('Webhook secret not configured, skipping verification (dev only)');
       return true;
+    }
+
+    if (!signature) {
+      console.error('SECURITY: Webhook request missing signature');
+      return false;
     }
 
     // Pagar.me uses HMAC-SHA256 for webhook signatures
@@ -552,7 +562,15 @@ export class PagarmeService {
       .update(payload)
       .digest('hex');
 
-    return signature === expectedSignature;
+    // Use timing-safe comparison to prevent timing attacks
+    try {
+      return crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature)
+      );
+    } catch {
+      return false;
+    }
   }
 
   // Mock responses for development

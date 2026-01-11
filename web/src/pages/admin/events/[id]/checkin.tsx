@@ -3,7 +3,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { eventsApi, checkinWebApi, CheckinStats, TicketForCheckin, CheckinHistoryItem } from '@/services/api';
@@ -183,22 +182,22 @@ export default function CheckinDashboard() {
 
   if (loading || !event) {
     return (
-      <AdminLayout>
+      <>
         <Head><title>Check-in - Lumera</title></Head>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <Head>
         <title>Check-in - {event.name} - Lumera</title>
       </Head>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-6">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -447,6 +446,6 @@ export default function CheckinDashboard() {
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 }

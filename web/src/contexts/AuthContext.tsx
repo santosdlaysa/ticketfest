@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authApi } from '@/services/api';
+import { saveTokens, clearTokens } from '@/lib/axios';
 import type { User, AuthResponse } from '@/types';
 
 interface AuthState {
@@ -38,6 +39,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setAuth: (data: AuthResponse) => {
+        // Save tokens to localStorage for cross-origin requests
+        if (data.accessToken && data.refreshToken) {
+          saveTokens(data.accessToken, data.refreshToken);
+        }
         set({
           user: data.user,
           isAuthenticated: true,
@@ -94,6 +99,9 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error('Logout error:', error);
         }
+
+        // Clear tokens from localStorage
+        clearTokens();
 
         set({
           user: null,

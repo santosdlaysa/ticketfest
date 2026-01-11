@@ -182,7 +182,7 @@ export default function EditEvent() {
     return (
       <>
         <Head><title>Editar Evento - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
+        <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-gray-600">Carregando evento...</p>
@@ -198,7 +198,7 @@ export default function EditEvent() {
   return (
     <>
       <Head><title>Editar {event.name} - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-12">
+      <div className="p-6">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
             <Link

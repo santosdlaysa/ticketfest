@@ -2,27 +2,31 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { adminApi, type DashboardData } from '@/services/api';
+import { useAuthReady } from '@/hooks/useAuthReady';
 import { Button } from '@/components/common/Button';
 
 export default function AdminDashboard() {
+  const isReady = useAuthReady();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
+    if (isReady) {
+      loadDashboard();
+    }
+  }, [isReady]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
-    if (!autoRefresh) return;
+    if (!autoRefresh || !isReady) return;
 
     const interval = setInterval(() => {
       loadDashboard();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [autoRefresh]);
+  }, [autoRefresh, isReady]);
 
   const loadDashboard = async () => {
     try {
@@ -79,7 +83,7 @@ export default function AdminDashboard() {
     return (
       <>
         <Head><title>Dashboard - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
+        <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-gray-600">Carregando dashboard...</p>
@@ -92,7 +96,7 @@ export default function AdminDashboard() {
   return (
     <>
       <Head><title>Dashboard - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

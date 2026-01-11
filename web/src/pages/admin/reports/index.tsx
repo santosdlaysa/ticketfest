@@ -98,7 +98,7 @@ export default function AdminReportsPage() {
   return (
     <>
       <Head><title>Relatorios de Vendas - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>

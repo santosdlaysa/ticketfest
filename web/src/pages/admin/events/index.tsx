@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { eventsApi, adminApi } from '@/services/api';
+import { useAuthReady } from '@/hooks/useAuthReady';
 import type { Event } from '@/types';
 import { Button } from '@/components/common/Button';
 
@@ -41,14 +42,17 @@ const mockEvents: Event[] = [
 ];
 
 export default function AdminEvents() {
+  const isReady = useAuthReady();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [exportingId, setExportingId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadEvents();
-  }, []);
+    if (isReady) {
+      loadEvents();
+    }
+  }, [isReady]);
 
   const loadEvents = async () => {
     try {
@@ -107,7 +111,7 @@ export default function AdminEvents() {
     return (
       <>
         <Head><title>Meus Eventos - Lumera</title></Head>
-        <div className="container mx-auto px-4 py-12">
+        <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-gray-600">Carregando eventos...</p>
@@ -120,7 +124,7 @@ export default function AdminEvents() {
   return (
     <>
       <Head><title>Meus Eventos - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-12">
+      <div className="p-6">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Meus Eventos</h1>

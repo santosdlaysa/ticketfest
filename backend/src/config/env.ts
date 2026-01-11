@@ -102,6 +102,9 @@ const envSchema = z.object({
   // Platform Fees (Split Payment)
   PLATFORM_FEE_PERCENTAGE: z.string().default('8'), // Default 8% for platform
   PLATFORM_FIXED_FEE: z.string().default('0'), // Fixed fee per transaction (in BRL)
+
+  // Security
+  MIGRATION_SECRET: z.string().optional(), // Required in production for migration endpoint
 });
 
 const parseEnv = () => {

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { adminApi, eventsApi } from '@/services/api';
+import { useAuthReady } from '@/hooks/useAuthReady';
 import type { AdminOrder, Event } from '@/types';
 import { Button } from '@/components/common/Button';
 
@@ -33,6 +34,7 @@ const paymentStatusColors: Record<string, string> = {
 };
 
 export default function AdminOrdersPage() {
+  const isReady = useAuthReady();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,12 +51,16 @@ export default function AdminOrdersPage() {
   const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
-    loadEvents();
-  }, []);
+    if (isReady) {
+      loadEvents();
+    }
+  }, [isReady]);
 
   useEffect(() => {
-    loadOrders();
-  }, [page, status, paymentStatus, eventId, startDate, endDate]);
+    if (isReady) {
+      loadOrders();
+    }
+  }, [isReady, page, status, paymentStatus, eventId, startDate, endDate]);
 
   const loadEvents = async () => {
     try {
@@ -172,7 +178,7 @@ export default function AdminOrdersPage() {
   return (
     <>
       <Head><title>Gestao de Pedidos - Lumera</title></Head>
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>

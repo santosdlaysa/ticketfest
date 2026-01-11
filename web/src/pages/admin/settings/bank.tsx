@@ -3,7 +3,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { organizerAccountApi } from '@/services/api';
@@ -161,22 +160,22 @@ export default function BankSettingsPage() {
 
   if (loading) {
     return (
-      <AdminLayout>
+      <>
         <Head><title>Dados Bancarios - Lumera</title></Head>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
-      </AdminLayout>
+      </>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <Head>
         <title>Dados Bancarios - Lumera</title>
       </Head>
 
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="p-6 max-w-3xl">
         <div className="mb-8">
           <Link
             href="/admin/settings"
@@ -425,6 +424,6 @@ export default function BankSettingsPage() {
           </div>
         </form>
       </div>
-    </AdminLayout>
+    </>
   );
 }

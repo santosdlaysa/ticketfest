@@ -2,16 +2,21 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { UserLayout } from '@/components/layout/UserLayout';
+import { useAuthStore } from '@/contexts/AuthContext';
 import { ordersApi } from '@/services/api';
 import type { Order } from '@/types';
 
 export default function UserOrdersPage() {
+  const { isAuthenticated, _hasHydrated } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    // Só carrega pedidos se estiver autenticado e hidratado
+    if (_hasHydrated && isAuthenticated) {
+      fetchOrders();
+    }
+  }, [_hasHydrated, isAuthenticated]);
 
   const fetchOrders = async () => {
     try {
