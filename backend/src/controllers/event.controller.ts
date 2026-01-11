@@ -28,6 +28,21 @@ export class EventController {
     res.status(200).json(result);
   }
 
+  async getMyEvents(req: Request, res: Response) {
+    const organizerId = req.user!.id;
+    const { status, search, limit, offset } = req.query;
+
+    const filters = {
+      status: status as string,
+      search: search as string,
+      limit: limit ? parseInt(limit as string) : undefined,
+      offset: offset ? parseInt(offset as string) : undefined,
+    };
+
+    const result = await eventService.getMyEvents(organizerId, filters);
+    res.status(200).json(result);
+  }
+
   async getEventById(req: Request, res: Response) {
     const { id } = req.params;
     const event = await eventService.getEventById(id);

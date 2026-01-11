@@ -78,6 +78,16 @@ export const eventsApi = {
     return response.data;
   },
 
+  getMyEvents: async (params?: {
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ events: Event[]; total: number; limit: number; offset: number }> => {
+    const response = await api.get('/events/my', { params });
+    return response.data;
+  },
+
   getFeatured: async (): Promise<Event[]> => {
     const response = await api.get('/events/featured');
     return response.data;

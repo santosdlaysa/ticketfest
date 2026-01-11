@@ -57,7 +57,7 @@ export default function AdminEvents() {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const data = await eventsApi.getAll();
+      const data = await eventsApi.getMyEvents();
       setEvents(data.events);
     } catch (error: any) {
       console.warn('Using mock events:', error);

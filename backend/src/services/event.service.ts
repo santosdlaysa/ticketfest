@@ -231,6 +231,87 @@ export class EventService {
     };
   }
 
+  async getMyEvents(organizerId: string, filters?: {
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const conditions: string[] = ['organizer_id = $1'];
+    const params: any[] = [organizerId];
+    let paramIndex = 2;
+
+    // Filter by status if provided, otherwise show all
+    if (filters?.status) {
+      conditions.push(`status = $${paramIndex++}`);
+      params.push(filters.status);
+    }
+
+    if (filters?.search) {
+      conditions.push(`(name ILIKE $${paramIndex} OR description ILIKE $${paramIndex} OR location ILIKE $${paramIndex})`);
+      params.push(`%${filters.search}%`);
+      paramIndex++;
+    }
+
+    const limit = filters?.limit || 50;
+    const offset = filters?.offset || 0;
+
+    // Get events
+    const eventsResult = await query<Event & { organizer_name: string }>(
+      `SELECT e.*, u.name as organizer_name
+       FROM events e
+       JOIN users u ON e.organizer_id = u.id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY e.created_at DESC
+       LIMIT ${limit} OFFSET ${offset}`,
+      params
+    );
+
+    // Get total count
+    const countResult = await query<{ count: string }>(
+      `SELECT COUNT(*) as count FROM events WHERE ${conditions.join(' AND ')}`,
+      params
+    );
+
+    // Get tickets for each event
+    const eventIds = eventsResult.rows.map((e) => e.id);
+    let ticketsMap: Map<string, Ticket[]> = new Map();
+
+    if (eventIds.length > 0) {
+      const ticketsResult = await query<Ticket & { event_id: string }>(
+        `SELECT id, event_id, name, price, quantity, sold
+         FROM tickets
+         WHERE event_id = ANY($1)`,
+        [eventIds]
+      );
+
+      ticketsResult.rows.forEach((ticket) => {
+        if (!ticketsMap.has(ticket.event_id)) {
+          ticketsMap.set(ticket.event_id, []);
+        }
+        ticketsMap.get(ticket.event_id)!.push(ticket);
+      });
+    }
+
+    const events = eventsResult.rows.map((event) => ({
+      ...event,
+      endDate: event.end_date,
+      venueId: event.venue_id,
+      organizerId: event.organizer_id,
+      createdAt: event.created_at,
+      updatedAt: event.updated_at,
+      organizer: { id: event.organizer_id, name: event.organizer_name },
+      tickets: ticketsMap.get(event.id) || [],
+    }));
+
+    return {
+      events,
+      total: parseInt(countResult.rows[0].count, 10),
+      limit,
+      offset,
+    };
+  }
+
   async getEventById(id: string) {
     const eventResult = await query<Event & { organizer_name: string; organizer_email: string }>(
       `SELECT e.*, u.name as organizer_name, u.email as organizer_email
