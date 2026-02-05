@@ -202,7 +202,7 @@ export default function CheckinDashboard() {
         <div className="mb-8">
           <Link
             href="/admin/events"
-            className="text-primary-600 hover:underline flex items-center gap-2 mb-4"
+            className="text-primary-400 hover:underline flex items-center gap-2 mb-4"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -211,8 +211,8 @@ export default function CheckinDashboard() {
           </Link>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Check-in</h1>
-              <p className="text-gray-600 mt-1">{event.name}</p>
+              <h1 className="text-3xl font-bold text-lumera-luminoso">Check-in</h1>
+              <p className="text-lumera-muted mt-1">{event.name}</p>
             </div>
             <Button
               variant={qrScanMode ? 'primary' : 'outline'}
@@ -230,23 +230,23 @@ export default function CheckinDashboard() {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="card p-4">
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">Total de Ingressos</div>
+              <div className="text-2xl font-bold text-lumera-luminoso">{stats.total}</div>
+              <div className="text-sm text-lumera-muted">Total de Ingressos</div>
             </div>
             <div className="card p-4">
-              <div className="text-2xl font-bold text-green-600">{stats.checkedIn}</div>
-              <div className="text-sm text-gray-600">Check-ins Realizados</div>
+              <div className="text-2xl font-bold text-green-400">{stats.checkedIn}</div>
+              <div className="text-sm text-lumera-muted">Check-ins Realizados</div>
             </div>
             <div className="card p-4">
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-              <div className="text-sm text-gray-600">Aguardando</div>
+              <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
+              <div className="text-sm text-lumera-muted">Aguardando</div>
             </div>
             <div className="card p-4">
-              <div className="text-2xl font-bold text-primary-600">
+              <div className="text-2xl font-bold text-primary-400">
                 {stats.percentageCheckedIn.toFixed(1)}%
               </div>
-              <div className="text-sm text-gray-600">Taxa de Check-in</div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div className="text-sm text-lumera-muted">Taxa de Check-in</div>
+              <div className="w-full bg-lumera-border rounded-full h-2 mt-2">
                 <div
                   className="bg-primary-600 h-2 rounded-full transition-all"
                   style={{ width: `${stats.percentageCheckedIn}%` }}
@@ -258,15 +258,15 @@ export default function CheckinDashboard() {
 
         {/* QR Scanner Input */}
         {qrScanMode && (
-          <div className="card p-6 mb-6 bg-primary-50 border-primary-200">
+          <div className="card p-6 mb-6 bg-primary-500/10 border-primary-500/30">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary-100 rounded-lg">
-                <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-3 bg-primary-500/20 rounded-lg">
+                <svg className="w-8 h-8 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-primary-800 mb-1">
+                <label className="block text-sm font-medium text-primary-300 mb-1">
                   Scanner de QR Code
                 </label>
                 <input
@@ -275,7 +275,7 @@ export default function CheckinDashboard() {
                   value={qrInput}
                   onChange={(e) => setQrInput(e.target.value)}
                   onKeyDown={handleQrInputKeyDown}
-                  className="w-full px-4 py-3 border-2 border-primary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
+                  className="w-full px-4 py-3 border-2 border-primary-500/30 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
                   placeholder="Escaneie ou digite o QR Code e pressione Enter"
                   autoFocus
                 />
@@ -296,7 +296,7 @@ export default function CheckinDashboard() {
           <div className="lg:col-span-2">
             <div className="card">
               {/* Search Bar */}
-              <div className="p-4 border-b">
+              <div className="p-4 border-b border-lumera-border">
                 <div className="flex gap-4 flex-wrap">
                   <div className="flex-1 min-w-[200px]">
                     <Input
@@ -320,56 +320,56 @@ export default function CheckinDashboard() {
               {/* Tickets Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-lumera-obsidian border-b border-lumera-border">
                     <tr>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="text-left px-4 py-3 text-xs font-medium text-lumera-muted uppercase">
                         Participante
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="text-left px-4 py-3 text-xs font-medium text-lumera-muted uppercase">
                         Ingresso
                       </th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="text-left px-4 py-3 text-xs font-medium text-lumera-muted uppercase">
                         Status
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-lumera-muted uppercase">
                         Ação
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-lumera-border">
                     {searching ? (
                       <tr>
-                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={4} className="px-4 py-8 text-center text-lumera-muted">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
                         </td>
                       </tr>
                     ) : tickets.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={4} className="px-4 py-8 text-center text-lumera-muted">
                           Nenhum ingresso encontrado
                         </td>
                       </tr>
                     ) : (
                       tickets.map((ticket) => (
-                        <tr key={ticket.id} className={`hover:bg-gray-50 ${ticket.checkedIn ? 'bg-green-50' : ''}`}>
+                        <tr key={ticket.id} className={`hover:bg-primary-500/10 ${ticket.checkedIn ? 'bg-green-500/10' : ''}`}>
                           <td className="px-4 py-3">
-                            <div className="font-medium text-gray-900">{ticket.attendeeName}</div>
-                            <div className="text-sm text-gray-500">{ticket.attendeeEmail}</div>
+                            <div className="font-medium text-lumera-luminoso">{ticket.attendeeName}</div>
+                            <div className="text-sm text-lumera-muted">{ticket.attendeeEmail}</div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-sm text-gray-900">{ticket.ticketName}</div>
-                            <div className="text-xs text-gray-500 font-mono">{ticket.qrCode.substring(0, 8)}...</div>
+                            <div className="text-sm text-lumera-luminoso">{ticket.ticketName}</div>
+                            <div className="text-xs text-lumera-muted font-mono">{ticket.qrCode.substring(0, 8)}...</div>
                           </td>
                           <td className="px-4 py-3">
                             {ticket.checkedIn ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                                 Check-in OK
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-300">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                                 </svg>
@@ -382,7 +382,7 @@ export default function CheckinDashboard() {
                               <button
                                 onClick={() => handleUndoCheckin(ticket.id)}
                                 disabled={processingId === ticket.id}
-                                className="text-sm text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                                className="text-sm text-red-400 hover:text-red-300 font-medium disabled:opacity-50"
                               >
                                 {processingId === ticket.id ? 'Processando...' : 'Desfazer'}
                               </button>
@@ -409,32 +409,32 @@ export default function CheckinDashboard() {
           <div className="lg:col-span-1">
             <div className="card p-4">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-lumera-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Últimos Check-ins
               </h3>
               {history.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-4">
+                <p className="text-lumera-muted text-sm text-center py-4">
                   Nenhum check-in realizado ainda
                 </p>
               ) : (
                 <div className="space-y-3">
                   {history.map((item) => (
-                    <div key={item.id} className="flex items-start gap-3 p-2 rounded hover:bg-gray-50">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div key={item.id} className="flex items-start gap-3 p-2 rounded hover:bg-primary-500/10">
+                      <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-lumera-luminoso truncate">
                           {item.attendeeName}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">
+                        <p className="text-xs text-lumera-muted truncate">
                           {item.ticketName}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-lumera-muted">
                           {new Date(item.checkedInAt).toLocaleTimeString('pt-BR')}
                         </p>
                       </div>

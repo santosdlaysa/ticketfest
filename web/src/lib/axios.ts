@@ -75,12 +75,14 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Don't try to refresh if we're on auth pages or if the request was for auth endpoints
-      const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+      // Don't try to refresh for auth mutation endpoints (login, register, refresh-token, logout)
+      // But DO allow refresh for /auth/profile since it's a protected endpoint
+      const authMutationPaths = ['/auth/login', '/auth/register', '/auth/refresh-token', '/auth/logout', '/auth/forgot-password', '/auth/reset-password'];
+      const isAuthMutationEndpoint = authMutationPaths.some(path => originalRequest.url?.includes(path));
       const isOnAuthPage = typeof window !== 'undefined' &&
         (window.location.pathname.startsWith('/auth/') || window.location.pathname === '/auth');
 
-      if (isAuthEndpoint || isOnAuthPage) {
+      if (isAuthMutationEndpoint || isOnAuthPage) {
         // Don't try to refresh or redirect - just reject the error
         return Promise.reject(error);
       }

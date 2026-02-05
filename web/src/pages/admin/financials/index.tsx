@@ -58,8 +58,8 @@ export default function AdminFinancialsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard Financeiro</h1>
-            <p className="text-gray-600 mt-1">Visao geral das financas da plataforma</p>
+            <h1 className="text-3xl font-bold text-lumera-luminoso">Dashboard Financeiro</h1>
+            <p className="text-lumera-muted mt-1">Visao geral das financas da plataforma</p>
           </div>
           <div className="mt-4 md:mt-0 flex gap-3">
             <PermissionGate permission={PERMISSION_CODES.FINANCE_TRANSACTIONS}>
@@ -79,7 +79,7 @@ export default function AdminFinancialsPage() {
         <div className="card p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
+              <label className="block text-sm font-medium text-lumera-muted mb-1">Data Inicial</label>
               <input
                 type="date"
                 value={startDate}
@@ -88,7 +88,7 @@ export default function AdminFinancialsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
+              <label className="block text-sm font-medium text-lumera-muted mb-1">Data Final</label>
               <input
                 type="date"
                 value={endDate}
@@ -102,7 +102,7 @@ export default function AdminFinancialsPage() {
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando dados financeiros...</p>
+            <p className="mt-4 text-lumera-muted">Carregando dados financeiros...</p>
           </div>
         ) : summary && revenue ? (
           <>
@@ -197,59 +197,59 @@ export default function AdminFinancialsPage() {
             {/* Revenue Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Detalhamento de Receita</h3>
+                <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Detalhamento de Receita</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Receita Bruta</span>
-                    <span className="font-medium text-gray-900">{formatCurrency(revenue.grossRevenue)}</span>
+                  <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
+                    <span className="text-lumera-muted">Receita Bruta</span>
+                    <span className="font-medium text-lumera-luminoso">{formatCurrency(revenue.grossRevenue)}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Descontos</span>
-                    <span className="font-medium text-red-600">-{formatCurrency(revenue.discounts)}</span>
+                  <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
+                    <span className="text-lumera-muted">Descontos</span>
+                    <span className="font-medium text-red-400">-{formatCurrency(revenue.discounts)}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Receita Liquida</span>
-                    <span className="font-medium text-gray-900">{formatCurrency(revenue.netRevenue)}</span>
+                  <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
+                    <span className="text-lumera-muted">Receita Liquida</span>
+                    <span className="font-medium text-lumera-luminoso">{formatCurrency(revenue.netRevenue)}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Reembolsos</span>
-                    <span className="font-medium text-red-600">-{formatCurrency(revenue.refunds)}</span>
+                  <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
+                    <span className="text-lumera-muted">Reembolsos</span>
+                    <span className="font-medium text-red-400">-{formatCurrency(revenue.refunds)}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-primary-50 rounded-lg border border-primary-200">
-                    <span className="font-semibold text-primary-900">Receita Final</span>
-                    <span className="font-bold text-primary-600">{formatCurrency(revenue.finalRevenue)}</span>
+                  <div className="flex items-center justify-between p-3 bg-primary-500/10 rounded-lg border border-primary-200">
+                    <span className="font-semibold text-primary-300">Receita Final</span>
+                    <span className="font-bold text-primary-400">{formatCurrency(revenue.finalRevenue)}</span>
                   </div>
                 </div>
               </div>
 
               <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Divisao de Receita (Split)</h3>
+                <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Divisao de Receita (Split)</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Receita da Plataforma</span>
-                    <span className="font-medium text-gray-900">{formatCurrency(summary.splits.platformRevenue)}</span>
+                  <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
+                    <span className="text-lumera-muted">Receita da Plataforma</span>
+                    <span className="font-medium text-lumera-luminoso">{formatCurrency(summary.splits.platformRevenue)}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Receita dos Organizadores</span>
-                    <span className="font-medium text-gray-900">{formatCurrency(summary.splits.organizerRevenue)}</span>
+                  <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
+                    <span className="text-lumera-muted">Receita dos Organizadores</span>
+                    <span className="font-medium text-lumera-luminoso">{formatCurrency(summary.splits.organizerRevenue)}</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <span className="text-yellow-800">Valor Pendente</span>
-                    <span className="font-medium text-yellow-600">{formatCurrency(summary.splits.pendingAmount)}</span>
+                  <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg border border-yellow-200">
+                    <span className="text-yellow-300">Valor Pendente</span>
+                    <span className="font-medium text-yellow-400">{formatCurrency(summary.splits.pendingAmount)}</span>
                   </div>
                 </div>
 
                 {summary.organizerBalance && (
                   <div className="mt-6 pt-6 border-t">
-                    <h4 className="font-medium text-gray-900 mb-3">Seu Saldo</h4>
+                    <h4 className="font-medium text-lumera-luminoso mb-3">Seu Saldo</h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Disponivel para saque</span>
-                        <span className="font-semibold text-green-600">{formatCurrency(summary.organizerBalance.availableBalance)}</span>
+                        <span className="text-lumera-muted">Disponivel para saque</span>
+                        <span className="font-semibold text-green-400">{formatCurrency(summary.organizerBalance.availableBalance)}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Saldo pendente</span>
-                        <span className="font-medium text-yellow-600">{formatCurrency(summary.organizerBalance.pendingBalance)}</span>
+                        <span className="text-lumera-muted">Saldo pendente</span>
+                        <span className="font-medium text-yellow-400">{formatCurrency(summary.organizerBalance.pendingBalance)}</span>
                       </div>
                     </div>
                   </div>
@@ -261,28 +261,28 @@ export default function AdminFinancialsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Link href="/admin/orders" className="card p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Gestao de Pedidos</h3>
-                    <p className="text-sm text-gray-500">Ver todos os pedidos</p>
+                    <h3 className="font-semibold text-lumera-luminoso">Gestao de Pedidos</h3>
+                    <p className="text-sm text-lumera-muted">Ver todos os pedidos</p>
                   </div>
                 </div>
               </Link>
 
               <Link href="/admin/transactions" className="card p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Transacoes</h3>
-                    <p className="text-sm text-gray-500">Historico de split</p>
+                    <h3 className="font-semibold text-lumera-luminoso">Transacoes</h3>
+                    <p className="text-sm text-lumera-muted">Historico de split</p>
                   </div>
                 </div>
               </Link>
@@ -295,15 +295,15 @@ export default function AdminFinancialsPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Repasses</h3>
-                    <p className="text-sm text-gray-500">Saques dos organizadores</p>
+                    <h3 className="font-semibold text-lumera-luminoso">Repasses</h3>
+                    <p className="text-sm text-lumera-muted">Saques dos organizadores</p>
                   </div>
                 </div>
               </Link>
             </div>
           </>
         ) : (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-lumera-muted">
             Nenhum dado disponivel para o periodo selecionado
           </div>
         )}

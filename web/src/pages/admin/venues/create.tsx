@@ -103,7 +103,7 @@ export default function CreateVenue() {
         <div className="mb-8">
           <Link
             href="/admin/venues"
-            className="text-primary-600 hover:underline flex items-center gap-2 mb-4"
+            className="text-primary-400 hover:underline flex items-center gap-2 mb-4"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -111,7 +111,7 @@ export default function CreateVenue() {
             Voltar para Locais
           </Link>
           <h1 className="text-3xl font-bold">Criar Novo Local</h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-lumera-muted mt-2">
             Cadastre um novo local para seus eventos
           </p>
         </div>
@@ -132,7 +132,7 @@ export default function CreateVenue() {
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Descrição
                 </label>
                 <textarea
@@ -192,7 +192,7 @@ export default function CreateVenue() {
                 />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-lumera-muted mb-1">
                     Estado *
                   </label>
                   <select
@@ -220,7 +220,7 @@ export default function CreateVenue() {
           <div>
             <h2 className="text-lg font-semibold mb-4">Imagens</h2>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-lumera-muted mb-1">
                 URLs das Imagens
               </label>
               <textarea
@@ -229,7 +229,7 @@ export default function CreateVenue() {
                 placeholder="Cole URLs de imagens separadas por vírgula"
                 {...register('images')}
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-lumera-muted mt-1">
                 Adicione URLs de imagens do local, separadas por vírgula
               </p>
             </div>

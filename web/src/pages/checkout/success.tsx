@@ -115,8 +115,8 @@ export default function CheckoutSuccess() {
   if (isLoading) {
     return (
       <div className="container-custom py-16 text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        <p className="mt-4 text-gray-600">Carregando pedido...</p>
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-400"></div>
+        <p className="mt-4 text-lumera-muted">Carregando pedido...</p>
       </div>
     );
   }
@@ -142,9 +142,9 @@ export default function CheckoutSuccess() {
         <div className="max-w-3xl mx-auto">
           {/* Success Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500/20 rounded-full mb-4">
               <svg
-                className="w-8 h-8 text-green-600"
+                className="w-8 h-8 text-green-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -158,7 +158,7 @@ export default function CheckoutSuccess() {
               </svg>
             </div>
             <h1 className="text-3xl font-bold mb-2">Pedido Realizado com Sucesso!</h1>
-            <p className="text-gray-600">
+            <p className="text-lumera-muted">
               Número do pedido: <span className="font-semibold">{order.id.slice(0, 8)}</span>
             </p>
           </div>
@@ -173,14 +173,14 @@ export default function CheckoutSuccess() {
                 Pague com PIX
               </h2>
 
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <p className="text-sm text-gray-600 mb-2">
+              <div className="bg-lumera-obsidian p-4 rounded-lg mb-4">
+                <p className="text-sm text-lumera-muted mb-2">
                   Escaneie o QR Code abaixo com o aplicativo do seu banco ou copie o codigo PIX:
                 </p>
 
                 {/* QR Code Image */}
                 <div className="flex justify-center mb-4">
-                  <div className="bg-white p-4 rounded-lg">
+                  <div className="bg-lumera-surface p-4 rounded-lg">
                     <img
                       src={pixData.qrCodeUrl}
                       alt="QR Code PIX"
@@ -192,12 +192,12 @@ export default function CheckoutSuccess() {
                 </div>
 
                 {/* Expiration info */}
-                <p className="text-sm text-center text-gray-600 mb-3">
+                <p className="text-sm text-center text-lumera-muted mb-3">
                   Valido ate: {format(new Date(pixData.expiresAt), 'dd/MM/yyyy HH:mm')}
                 </p>
 
-                <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-3 mb-3">
-                  <p className="text-xs font-mono break-all text-gray-700">{pixData.qrCode}</p>
+                <div className="bg-lumera-surface border-2 border-dashed border-lumera-border rounded-lg p-3 mb-3">
+                  <p className="text-xs font-mono break-all text-lumera-muted">{pixData.qrCode}</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -245,12 +245,12 @@ export default function CheckoutSuccess() {
               </div>
 
               {paymentConfirmed ? (
-                <div className="bg-green-50 border-l-4 border-green-500 p-4">
+                <div className="bg-green-500/10 border-l-4 border-green-500 p-4">
                   <div className="flex">
                     <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <div className="text-sm text-green-700">
+                    <div className="text-sm text-green-300">
                       <p className="font-semibold">Pagamento confirmado!</p>
                       <p>Seus ingressos foram enviados por email.</p>
                     </div>
@@ -291,14 +291,14 @@ export default function CheckoutSuccess() {
                 Boleto Bancário
               </h2>
 
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <div className="bg-lumera-obsidian p-4 rounded-lg mb-4">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-sm text-gray-600">Valor</p>
+                    <p className="text-sm text-lumera-muted">Valor</p>
                     <p className="text-lg font-bold">R$ {Number(order.total).toFixed(2)}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Vencimento</p>
+                    <p className="text-sm text-lumera-muted">Vencimento</p>
                     <p className="text-lg font-bold">
                       {format(
                         new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -360,7 +360,7 @@ export default function CheckoutSuccess() {
                 Pagamento Aprovado
               </h2>
 
-              <div className="bg-green-50 border-l-4 border-green-500 p-4">
+              <div className="bg-green-500/10 border-l-4 border-green-500 p-4">
                 <div className="flex">
                   <svg
                     className="w-5 h-5 text-green-500 mr-2 flex-shrink-0"
@@ -373,7 +373,7 @@ export default function CheckoutSuccess() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <div className="text-sm text-green-700">
+                  <div className="text-sm text-green-300">
                     <p className="font-semibold">Pagamento confirmado!</p>
                     <p>Você receberá seus ingressos por email em alguns minutos.</p>
                   </div>
@@ -391,7 +391,7 @@ export default function CheckoutSuccess() {
                 <div key={item.id} className="flex justify-between pb-3 border-b last:border-0">
                   <div>
                     <p className="font-semibold">{item.ticket.name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-lumera-muted">
                       {item.quantity}x R$ {Number(item.price).toFixed(2)}
                     </p>
                   </div>
@@ -411,7 +411,7 @@ export default function CheckoutSuccess() {
           {/* Next Steps */}
           <div className="card p-6 mb-6">
             <h2 className="text-xl font-bold mb-4">Próximos Passos</h2>
-            <ol className="list-decimal list-inside space-y-2 text-gray-700">
+            <ol className="list-decimal list-inside space-y-2 text-lumera-muted">
               <li>Confirme o pagamento usando o método selecionado</li>
               <li>Aguarde a confirmação por email (normalmente instantâneo)</li>
               <li>Acesse seus ingressos na área "Meus Ingressos"</li>
@@ -433,9 +433,9 @@ export default function CheckoutSuccess() {
 
           {/* Help */}
           <div className="text-center mt-8">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-lumera-muted">
               Problemas com o pagamento?{' '}
-              <a href="#" className="text-primary-600 hover:underline">
+              <a href="#" className="text-primary-400 hover:underline">
                 Entre em contato
               </a>
             </p>

@@ -15,10 +15,24 @@ interface LoginForm {
 
 export default function Login() {
   const router = useRouter();
-  const { login, loginMock } = useAuthStore();
+  const { login, loginMock, isAuthenticated, user, _hasHydrated } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
   const useMockAuth = process.env.NEXT_PUBLIC_MOCK_AUTH === 'true';
+
+  // Redireciona se já está autenticado (evita mostrar login para quem já logou)
+  React.useEffect(() => {
+    if (!_hasHydrated || !isAuthenticated || !user) return;
+
+    const redirect = router.query.redirect as string;
+    if (redirect) {
+      router.replace(redirect);
+    } else if (user.role === 'ADMIN' || user.role === 'ORGANIZER') {
+      router.replace('/admin');
+    } else {
+      router.replace('/events');
+    }
+  }, [_hasHydrated, isAuthenticated, user, router]);
 
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
@@ -35,13 +49,14 @@ export default function Login() {
       }
 
       // Redirect to the page user was trying to access, or based on role
+      // Usa replace para não manter a página de login no histórico do browser
       const redirect = router.query.redirect as string;
       if (redirect) {
-        router.push(redirect);
+        router.replace(redirect);
       } else if (loggedUser?.role === 'ADMIN' || loggedUser?.role === 'ORGANIZER') {
-        router.push('/admin');
+        router.replace('/admin');
       } else {
-        router.push('/events');
+        router.replace('/events');
       }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao fazer login');
@@ -59,8 +74,8 @@ export default function Login() {
             <div className="w-16 h-16 bg-gradient-lumera rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow" aria-hidden="true">
               <span className="text-white font-bold text-3xl">L</span>
             </div>
-            <h1 className="text-3xl font-bold text-lumera-obsidian">Bem-vindo de volta!</h1>
-            <p className="text-gray-600 mt-2">Entre com sua conta para continuar</p>
+            <h1 className="text-3xl font-bold text-lumera-luminoso">Bem-vindo de volta!</h1>
+            <p className="text-lumera-muted mt-2">Entre com sua conta para continuar</p>
           </header>
 
           <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-4" aria-label="Formulário de login">
@@ -84,7 +99,7 @@ export default function Login() {
             />
 
             <div className="text-right">
-              <Link href="/auth/forgot-password" className="text-sm text-primary-500 hover:text-primary-600 hover:underline">
+              <Link href="/auth/forgot-password" className="text-sm text-primary-500 hover:text-primary-400 hover:underline">
                 Esqueci minha senha
               </Link>
             </div>
@@ -93,9 +108,9 @@ export default function Login() {
               Entrar
             </Button>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-lumera-muted">
               Não tem uma conta?{' '}
-              <Link href="/auth/register" className="text-primary-500 hover:text-primary-600 hover:underline font-medium">
+              <Link href="/auth/register" className="text-primary-500 hover:text-primary-400 hover:underline font-medium">
                 Criar conta
               </Link>
             </p>

@@ -185,7 +185,7 @@ export default function EditEvent() {
         <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando evento...</p>
+            <p className="mt-4 text-lumera-muted">Carregando evento...</p>
           </div>
         </div>
       </>
@@ -203,7 +203,7 @@ export default function EditEvent() {
           <div className="mb-8">
             <Link
               href="/admin/events"
-              className="text-primary-600 hover:underline flex items-center gap-2 mb-4"
+              className="text-primary-400 hover:underline flex items-center gap-2 mb-4"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -216,14 +216,14 @@ export default function EditEvent() {
                 {getStatusInfo(event.status).label}
               </span>
             </div>
-            <p className="text-gray-600 mt-2">
+            <p className="text-lumera-muted mt-2">
               Atualize as informações do seu evento
             </p>
           </div>
 
           {isCompleted && (
-            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center gap-2 text-yellow-800">
+            <div className="mb-6 p-4 bg-yellow-500/20 border border-lumera-border rounded-lg">
+              <div className="flex items-center gap-2 text-yellow-300">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -233,8 +233,8 @@ export default function EditEvent() {
           )}
 
           {hasSoldTickets && !isCompleted && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-800">
+            <div className="mb-6 p-4 bg-blue-500/20 border border-lumera-border rounded-lg">
+              <div className="flex items-center gap-2 text-blue-300">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -262,7 +262,7 @@ export default function EditEvent() {
                 />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-lumera-muted mb-1">
                     Descrição *
                   </label>
                   <textarea
@@ -271,23 +271,23 @@ export default function EditEvent() {
                       minLength: { value: 10, message: 'Descrição deve ter pelo menos 10 caracteres' },
                     })}
                     rows={5}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-lumera-surface-alt disabled:cursor-not-allowed"
                     placeholder="Descreva seu evento de forma detalhada..."
                     disabled={isCompleted}
                   />
                   {errors.description && (
-                    <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                    <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Categoria *
                     </label>
                     <select
                       {...register('category', { required: 'Categoria é obrigatória' })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-lumera-surface-alt disabled:cursor-not-allowed"
                       disabled={isCompleted}
                     >
                       <option value="">Selecione uma categoria</option>
@@ -298,17 +298,17 @@ export default function EditEvent() {
                       ))}
                     </select>
                     {errors.category && (
-                      <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+                      <p className="mt-1 text-sm text-red-400">{errors.category.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Status *
                     </label>
                     <select
                       {...register('status', { required: 'Status é obrigatório' })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-lumera-surface-alt disabled:cursor-not-allowed"
                       disabled={isCompleted}
                     >
                       <option value="DRAFT">Rascunho</option>
@@ -317,7 +317,7 @@ export default function EditEvent() {
                       {isCompleted && <option value="COMPLETED">Concluído</option>}
                     </select>
                     {errors.status && (
-                      <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+                      <p className="mt-1 text-sm text-red-400">{errors.status.message}</p>
                     )}
                   </div>
                 </div>
@@ -380,12 +380,12 @@ export default function EditEvent() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Classificação Etária
                     </label>
                     <select
                       {...register('ageRestriction')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-lumera-surface-alt disabled:cursor-not-allowed"
                       disabled={isCompleted}
                     >
                       <option value="">Livre</option>
@@ -396,7 +396,7 @@ export default function EditEvent() {
                       <option value="18">18 anos</option>
                       <option value="21">21 anos</option>
                     </select>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-lumera-muted mt-1">
                       Idade mínima para participar do evento
                     </p>
                   </div>
@@ -410,17 +410,17 @@ export default function EditEvent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-lumera-muted mb-1">
                     Regras do Evento
                   </label>
                   <textarea
                     {...register('rules')}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-lumera-surface-alt disabled:cursor-not-allowed"
                     placeholder="Digite as regras do evento (uma por linha)"
                     disabled={isCompleted}
                   />
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-lumera-muted mt-1">
                     Informe as regras e orientações para os participantes
                   </p>
                 </div>
@@ -433,7 +433,7 @@ export default function EditEvent() {
               <div className="space-y-4">
                 {/* Upload Area */}
                 {!isCompleted && (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                  <div className="border-2 border-dashed border-lumera-border rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -448,7 +448,7 @@ export default function EditEvent() {
                       className="cursor-pointer flex flex-col items-center"
                     >
                       <svg
-                        className="w-12 h-12 text-gray-400 mb-3"
+                        className="w-12 h-12 text-lumera-muted mb-3"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -463,14 +463,14 @@ export default function EditEvent() {
                       {uploading ? (
                         <div className="flex items-center gap-2">
                           <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-                          <span className="text-gray-600">Enviando...</span>
+                          <span className="text-lumera-muted">Enviando...</span>
                         </div>
                       ) : (
                         <>
-                          <span className="text-primary-600 font-medium">
+                          <span className="text-primary-400 font-medium">
                             Clique para enviar imagens
                           </span>
-                          <span className="text-sm text-gray-500 mt-1">
+                          <span className="text-sm text-lumera-muted mt-1">
                             PNG, JPG, GIF ou WebP (max. 5MB cada)
                           </span>
                         </>
@@ -484,7 +484,7 @@ export default function EditEvent() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {uploadedImages.map((url, index) => (
                       <div key={index} className="relative group">
-                        <div className="aspect-video relative rounded-lg overflow-hidden bg-gray-100">
+                        <div className="aspect-video relative rounded-lg overflow-hidden bg-lumera-surface-alt">
                           <Image
                             src={url}
                             alt={`Imagem ${index + 1}`}
@@ -508,7 +508,7 @@ export default function EditEvent() {
                   </div>
                 )}
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-lumera-muted">
                   {uploadedImages.length > 0
                     ? `${uploadedImages.length} imagem(ns) selecionada(s)`
                     : 'Nenhuma imagem selecionada'}
@@ -517,7 +517,7 @@ export default function EditEvent() {
             </div>
 
             {/* Quick Actions */}
-            <div className="pt-4 border-t border-gray-200">
+            <div className="pt-4 border-t border-lumera-border">
               <h2 className="text-xl font-semibold mb-4">Ações Rápidas</h2>
               <div className="flex flex-wrap gap-3">
                 <Link href={`/admin/events/${id}/tickets`}>
@@ -541,7 +541,7 @@ export default function EditEvent() {
             </div>
 
             {/* Botões */}
-            <div className="flex gap-4 pt-4 border-t border-gray-200">
+            <div className="flex gap-4 pt-4 border-t border-lumera-border">
               <Button
                 type="button"
                 variant="outline"

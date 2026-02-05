@@ -77,7 +77,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
       {/* Results info */}
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-lumera-muted">
         Mostrando <span className="font-medium">{showingFrom}</span> -{' '}
         <span className="font-medium">{showingTo}</span> de{' '}
         <span className="font-medium">{totalItems}</span> eventos
@@ -91,8 +91,8 @@ export const Pagination: React.FC<PaginationProps> = ({
           disabled={currentPage === 1}
           className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
             currentPage === 1
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-600 border border-gray-300'
+              ? 'bg-lumera-surface text-lumera-muted cursor-not-allowed'
+              : 'bg-lumera-surface text-lumera-luminoso hover:bg-primary-500/10 hover:text-primary-400 border border-lumera-border'
           }`}
           aria-label="Página anterior"
         >
@@ -112,7 +112,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           {pageNumbers.map((page, index) => {
             if (page === '...') {
               return (
-                <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-400">
+                <span key={`ellipsis-${index}`} className="px-3 py-2 text-lumera-muted">
                   ...
                 </span>
               );
@@ -128,7 +128,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary-500 text-white'
-                    : 'bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-600 border border-gray-300'
+                    : 'bg-lumera-surface text-lumera-luminoso hover:bg-primary-500/10 hover:text-primary-400 border border-lumera-border'
                 }`}
                 aria-label={`Página ${pageNum}`}
                 aria-current={isActive ? 'page' : undefined}
@@ -140,7 +140,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         </div>
 
         {/* Mobile: Current page indicator */}
-        <div className="sm:hidden px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700">
+        <div className="sm:hidden px-4 py-2 bg-lumera-surface border border-lumera-border rounded-lg text-sm font-medium text-lumera-luminoso">
           {currentPage} / {totalPages}
         </div>
 
@@ -150,8 +150,8 @@ export const Pagination: React.FC<PaginationProps> = ({
           disabled={currentPage === totalPages}
           className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
             currentPage === totalPages
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-primary-50 hover:text-primary-600 border border-gray-300'
+              ? 'bg-lumera-surface text-lumera-muted cursor-not-allowed'
+              : 'bg-lumera-surface text-lumera-luminoso hover:bg-primary-500/10 hover:text-primary-400 border border-lumera-border'
           }`}
           aria-label="Próxima página"
         >

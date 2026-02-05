@@ -30,10 +30,10 @@ interface UsersResponse {
 }
 
 const ROLES = [
-  { value: 'USER', label: 'Usuario', color: 'bg-gray-100 text-gray-700' },
-  { value: 'ORGANIZER', label: 'Organizador', color: 'bg-blue-100 text-blue-700' },
+  { value: 'USER', label: 'Usuario', color: 'bg-lumera-surface-alt text-lumera-muted' },
+  { value: 'ORGANIZER', label: 'Organizador', color: 'bg-blue-500/20 text-blue-300' },
   { value: 'PROMOTER', label: 'Promoter', color: 'bg-purple-100 text-purple-700' },
-  { value: 'ADMIN', label: 'Administrador', color: 'bg-red-100 text-red-700' },
+  { value: 'ADMIN', label: 'Administrador', color: 'bg-red-500/20 text-red-400' },
 ];
 
 export default function AdminUsersPage() {
@@ -132,8 +132,8 @@ export default function AdminUsersPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gerenciar Usuarios</h1>
-            <p className="text-gray-600 mt-1">Altere as permissoes dos usuarios da plataforma</p>
+            <h1 className="text-3xl font-bold text-lumera-luminoso">Gerenciar Usuarios</h1>
+            <p className="text-lumera-muted mt-1">Altere as permissoes dos usuarios da plataforma</p>
           </div>
         </div>
 
@@ -141,7 +141,7 @@ export default function AdminUsersPage() {
         <div className="card p-6 mb-6">
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+              <label className="block text-sm font-medium text-lumera-muted mb-1">Buscar</label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -156,7 +156,7 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Role</label>
+              <label className="block text-sm font-medium text-lumera-muted mb-1">Filtrar por Role</label>
               <select
                 value={roleFilter}
                 onChange={(e) => {
@@ -181,69 +181,69 @@ export default function AdminUsersPage() {
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-              <p className="mt-4 text-gray-600">Carregando usuarios...</p>
+              <p className="mt-4 text-lumera-muted">Carregando usuarios...</p>
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-lumera-muted">
               Nenhum usuario encontrado
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
+                  <thead className="bg-lumera-obsidian border-b border-lumera-border">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                         Usuario
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                         Telefone
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                         Pedidos
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                         Criado em
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                         Role
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-lumera-surface divide-y divide-lumera-border">
                     {users.map((user) => {
                       const roleInfo = getRoleInfo(user.role);
                       const isCurrentUser = user.id === currentUser?.id;
 
                       return (
-                        <tr key={user.id} className={isCurrentUser ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
+                        <tr key={user.id} className={isCurrentUser ? 'bg-yellow-500/10' : 'hover:bg-primary-500/10'}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                                <span className="text-primary-700 font-medium">
+                              <div className="w-10 h-10 bg-primary-500/20 rounded-full flex items-center justify-center">
+                                <span className="text-primary-300 font-medium">
                                   {user.name?.charAt(0).toUpperCase() || 'U'}
                                 </span>
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                <div className="text-sm font-medium text-lumera-luminoso flex items-center gap-2">
                                   {user.name}
                                   {isCurrentUser && (
-                                    <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded">
+                                    <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded">
                                       Voce
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-sm text-gray-500">{user.email}</div>
+                                <div className="text-sm text-lumera-muted">{user.email}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-lumera-muted">
                             {user.phone || '-'}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-lumera-luminoso">
                             {user.ordersCount}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-lumera-muted">
                             {formatDate(user.createdAt)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -277,7 +277,7 @@ export default function AdminUsersPage() {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
+                <div className="px-6 py-4 border-t border-lumera-border">
                   <Pagination
                     currentPage={pagination.page}
                     totalPages={pagination.totalPages}
@@ -294,9 +294,9 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Help text */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-2">Sobre os Roles</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
+        <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-blue-300 mb-2">Sobre os Roles</h3>
+          <ul className="text-sm text-blue-300 space-y-1">
             <li><strong>Usuario:</strong> Acesso apenas ao site publico, pode comprar ingressos</li>
             <li><strong>Organizador:</strong> Pode criar e gerenciar eventos, ver relatorios de vendas</li>
             <li><strong>Promoter:</strong> Pode promover eventos e acompanhar vendas</li>

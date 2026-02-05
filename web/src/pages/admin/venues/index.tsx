@@ -93,7 +93,7 @@ export default function AdminVenues() {
         <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando locais...</p>
+            <p className="mt-4 text-lumera-muted">Carregando locais...</p>
           </div>
         </div>
       </>
@@ -107,7 +107,7 @@ export default function AdminVenues() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Meus Locais</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-lumera-muted mt-2">
               Gerencie os locais dos seus eventos
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function AdminVenues() {
         {venues.length === 0 ? (
           <div className="card p-12 text-center">
             <svg
-              className="mx-auto h-16 w-16 text-gray-400"
+              className="mx-auto h-16 w-16 text-lumera-muted"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -152,10 +152,10 @@ export default function AdminVenues() {
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="mt-4 text-lg font-medium text-lumera-luminoso">
               Nenhum local cadastrado
             </h3>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-lumera-muted">
               Cadastre locais para reutilizar em seus eventos!
             </p>
             <Link href="/admin/venues/create">
@@ -176,9 +176,9 @@ export default function AdminVenues() {
                     className="w-full h-40 object-cover rounded-lg mb-4"
                   />
                 ) : (
-                  <div className="w-full h-40 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
+                  <div className="w-full h-40 bg-lumera-surface-alt rounded-lg mb-4 flex items-center justify-center">
                     <svg
-                      className="w-12 h-12 text-gray-400"
+                      className="w-12 h-12 text-lumera-muted"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -199,11 +199,11 @@ export default function AdminVenues() {
                   </div>
                 )}
 
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                <h3 className="text-lg font-bold text-lumera-luminoso mb-2">
                   {venue.name}
                 </h3>
 
-                <div className="space-y-2 text-sm text-gray-600 mb-4">
+                <div className="space-y-2 text-sm text-lumera-muted mb-4">
                   <div className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -246,7 +246,7 @@ export default function AdminVenues() {
                     size="sm"
                     onClick={() => handleDelete(venue.id)}
                     isLoading={deletingId === venue.id}
-                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    className="text-red-400 border-red-400 hover:bg-red-500/10"
                   >
                     Deletar
                   </Button>

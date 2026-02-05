@@ -69,7 +69,7 @@ export default function Register() {
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold">Criar Conta</h1>
-            <p className="text-gray-600 mt-2">Crie sua conta gratuitamente</p>
+            <p className="text-lumera-muted mt-2">Crie sua conta gratuitamente</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-4">
@@ -104,9 +104,9 @@ export default function Register() {
               Criar Conta
             </Button>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-lumera-muted">
               Já tem uma conta?{' '}
-              <Link href="/auth/login" className="text-primary-600 hover:underline">
+              <Link href="/auth/login" className="text-primary-400 hover:underline">
                 Fazer login
               </Link>
             </p>

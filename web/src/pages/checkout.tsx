@@ -202,7 +202,7 @@ export default function Checkout() {
     return (
       <div className="container-custom py-16 text-center">
         <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-600">Carregando...</p>
+        <p className="text-lumera-muted">Carregando...</p>
       </div>
     );
   }
@@ -289,11 +289,11 @@ export default function Checkout() {
                     <div className="flex-grow">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold">PIX</span>
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                        <span className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
                           Aprovacao imediata
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-lumera-muted mt-1">
                         Pague com QR Code ou Pix Copia e Cola
                       </p>
                     </div>
@@ -314,7 +314,7 @@ export default function Checkout() {
                           Ate 12x sem juros
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-lumera-muted mt-1">
                         Visa, Mastercard, Elo, American Express, Hipercard
                       </p>
                     </div>
@@ -335,7 +335,7 @@ export default function Checkout() {
                           Aprovacao imediata
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-lumera-muted mt-1">
                         Visa, Mastercard, Elo
                       </p>
                     </div>
@@ -366,7 +366,7 @@ export default function Checkout() {
                     <button
                       type="button"
                       onClick={() => setShowCardForm(false)}
-                      className="text-sm text-gray-600 hover:text-gray-800"
+                      className="text-sm text-lumera-muted hover:text-lumera-luminoso"
                     >
                       Voltar
                     </button>
@@ -399,15 +399,15 @@ export default function Checkout() {
                             className="object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gray-200" />
+                          <div className="w-full h-full bg-lumera-surface-alt" />
                         )}
                       </div>
                       <div className="flex-grow min-w-0">
                         <h4 className="font-semibold text-sm truncate">
                           {item.ticket.event.name}
                         </h4>
-                        <p className="text-xs text-gray-600">{item.ticket.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-lumera-muted">{item.ticket.name}</p>
+                        <p className="text-xs text-lumera-muted">
                           {item.quantity}x R$ {Number(item.ticket.price).toFixed(2)}
                         </p>
                       </div>
@@ -421,7 +421,7 @@ export default function Checkout() {
                     <span>Subtotal</span>
                     <span>R$ {Number(cart.subtotal).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-gray-600">
+                  <div className="flex justify-between text-sm text-lumera-muted">
                     <span>Taxa de serviço</span>
                     <span>R$ 0,00</span>
                   </div>
@@ -453,7 +453,7 @@ export default function Checkout() {
                   </Button>
                 )}
 
-                <p className="text-xs text-gray-500 text-center mt-4">
+                <p className="text-xs text-lumera-muted text-center mt-4">
                   Ao confirmar, voce concorda com nossos Termos de Uso
                 </p>
               </div>

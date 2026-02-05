@@ -17,21 +17,22 @@ export default function App({ Component, pageProps }: AppProps) {
 
   const isAuthPage = router.pathname.startsWith('/auth');
 
+  const isAdminPage = router.pathname.startsWith('/admin');
+  const isUserPage = router.pathname.startsWith('/user');
+
   useEffect(() => {
     // Espera a hidratação do estado do localStorage
     if (!_hasHydrated) return;
 
-    // Only check auth once on initial load, and only if not already authenticated
-    // This prevents overwriting the auth state after a successful login
-    if (!hasCheckedAuth.current && !isAuthPage && !isAuthenticated) {
+    // Only check auth once on initial load, and only if not already authenticated.
+    // Skip for admin/user pages - they have their own auth guards (AdminLayout/UserLayout).
+    // This prevents race conditions where a stale checkAuth response clears auth state.
+    if (!hasCheckedAuth.current && !isAuthPage && !isAdminPage && !isUserPage && !isAuthenticated) {
       hasCheckedAuth.current = true;
       checkAuth();
     }
     fetchCart();
-  }, [_hasHydrated, isAuthPage, isAuthenticated]);
-
-  const isAdminPage = router.pathname.startsWith('/admin');
-  const isUserPage = router.pathname.startsWith('/user');
+  }, [_hasHydrated, isAuthPage, isAuthenticated, isAdminPage, isUserPage]);
 
   // Admin pages use AdminLayout
   if (isAdminPage) {

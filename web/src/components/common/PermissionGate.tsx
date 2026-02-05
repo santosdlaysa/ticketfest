@@ -61,7 +61,7 @@ export const PermissionGate: React.FC<PermissionGateProps> = ({
   // Mostra loading enquanto verifica permissões
   if (showLoading && isLoading) {
     return (
-      <div className="animate-pulse bg-gray-200 rounded h-8 w-full" />
+      <div className="animate-pulse bg-lumera-surface-alt rounded h-8 w-full" />
     );
   }
 

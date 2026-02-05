@@ -114,7 +114,7 @@ export default function AdminEvents() {
         <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando eventos...</p>
+            <p className="mt-4 text-lumera-muted">Carregando eventos...</p>
           </div>
         </div>
       </>
@@ -128,7 +128,7 @@ export default function AdminEvents() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Meus Eventos</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-lumera-muted mt-2">
               Gerencie seus eventos e ingressos
             </p>
           </div>
@@ -155,7 +155,7 @@ export default function AdminEvents() {
         {events.length === 0 ? (
           <div className="card p-12 text-center">
             <svg
-              className="mx-auto h-16 w-16 text-gray-400"
+              className="mx-auto h-16 w-16 text-lumera-muted"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -167,10 +167,10 @@ export default function AdminEvents() {
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="mt-4 text-lg font-medium text-lumera-luminoso">
               Nenhum evento criado
             </h3>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-lumera-muted">
               Comece criando seu primeiro evento!
             </p>
             <Link href="/admin/events/create">
@@ -190,13 +190,13 @@ export default function AdminEvents() {
                       <img
                         src={event.images[0]}
                         alt={event.name}
-                        className="w-full h-32 md:h-full object-cover rounded-lg bg-gray-100"
+                        className="w-full h-32 md:h-full object-cover rounded-lg bg-lumera-surface-alt"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
                           target.parentElement!.innerHTML = `
-                            <div class="w-full h-32 md:h-full bg-gray-100 rounded-lg flex items-center justify-center">
-                              <svg class="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div class="w-full h-32 md:h-full bg-lumera-surface-alt rounded-lg flex items-center justify-center">
+                              <svg class="w-12 h-12 text-lumera-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
                             </div>
@@ -204,8 +204,8 @@ export default function AdminEvents() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-32 md:h-full bg-gray-100 rounded-lg flex items-center justify-center">
-                        <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="w-full h-32 md:h-full bg-lumera-surface-alt rounded-lg flex items-center justify-center">
+                        <svg className="w-12 h-12 text-lumera-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
@@ -220,17 +220,17 @@ export default function AdminEvents() {
                           <h3 className="text-xl font-bold">{event.name}</h3>
                           {getStatusBadge(event.status)}
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-lumera-muted mb-2">
                           {event.category}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-gray-700 mb-4 line-clamp-2">
+                    <p className="text-lumera-muted mb-4 line-clamp-2">
                       {event.description}
                     </p>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-gray-600 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-lumera-muted mb-4">
                       <div className="flex items-center gap-2">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -286,7 +286,7 @@ export default function AdminEvents() {
                         size="sm"
                         onClick={() => handleExportAttendees(event.id)}
                         isLoading={exportingId === event.id}
-                        className="text-green-600 border-green-600 hover:bg-green-50"
+                        className="text-green-400 border-green-400 hover:bg-green-500/10"
                       >
                         Exportar Participantes
                       </Button>
@@ -295,7 +295,7 @@ export default function AdminEvents() {
                         size="sm"
                         onClick={() => handleDelete(event.id)}
                         isLoading={deletingId === event.id}
-                        className="text-red-600 border-red-600 hover:bg-red-50"
+                        className="text-red-400 border-red-400 hover:bg-red-500/10"
                       >
                         Deletar
                       </Button>

@@ -11,9 +11,9 @@ const roleLabels: Record<string, string> = {
 };
 
 const roleColors: Record<string, string> = {
-  USER: 'bg-gray-100 text-gray-800',
-  ADMIN: 'bg-purple-100 text-purple-800',
-  ORGANIZER: 'bg-blue-100 text-blue-800',
+  USER: 'bg-lumera-surface-alt text-lumera-luminoso',
+  ADMIN: 'bg-purple-500/20 text-purple-300',
+  ORGANIZER: 'bg-blue-500/20 text-blue-300',
 };
 
 const moduleLabels: Record<string, string> = {
@@ -182,8 +182,8 @@ export default function AdminPermissionsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Permissões</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-lumera-luminoso">Permissões</h1>
+            <p className="text-lumera-muted mt-1">
               Gerencie as permissões de acesso dos usuários ({total} usuários)
             </p>
           </div>
@@ -234,42 +234,42 @@ export default function AdminPermissionsPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-lumera-muted">
               Nenhum usuário encontrado
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-lumera-border">
+              <thead className="bg-lumera-obsidian">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                     Usuário
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                     Perfil
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                     Permissões
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-lumera-muted uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-lumera-surface divide-y divide-lumera-border">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user.id} className="hover:bg-primary-500/10">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-lumera-luminoso">
                           {user.name}
                         </div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
+                        <div className="text-sm text-lumera-muted">{user.email}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
-                          roleColors[user.role] || 'bg-gray-100 text-gray-800'
+                          roleColors[user.role] || 'bg-lumera-surface-alt text-lumera-luminoso'
                         }`}
                       >
                         {roleLabels[user.role] || user.role}
@@ -278,7 +278,7 @@ export default function AdminPermissionsPage() {
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1 max-w-md">
                         {user.permissions.length === 0 ? (
-                          <span className="text-sm text-gray-400">
+                          <span className="text-sm text-lumera-muted">
                             Nenhuma permissão atribuída
                           </span>
                         ) : user.permissions.length > 5 ? (
@@ -286,12 +286,12 @@ export default function AdminPermissionsPage() {
                             {user.permissions.slice(0, 3).map((p) => (
                               <span
                                 key={p.id}
-                                className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded"
+                                className="px-2 py-0.5 text-xs bg-lumera-surface-alt text-lumera-muted rounded"
                               >
                                 {p.name}
                               </span>
                             ))}
-                            <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">
+                            <span className="px-2 py-0.5 text-xs bg-purple-500/20 text-purple-300 rounded">
                               +{user.permissions.length - 3} mais
                             </span>
                           </>
@@ -299,7 +299,7 @@ export default function AdminPermissionsPage() {
                           user.permissions.map((p) => (
                             <span
                               key={p.id}
-                              className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded"
+                              className="px-2 py-0.5 text-xs bg-lumera-surface-alt text-lumera-muted rounded"
                             >
                               {p.name}
                             </span>
@@ -324,8 +324,8 @@ export default function AdminPermissionsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="bg-white px-4 py-3 border-t flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+            <div className="bg-lumera-surface px-4 py-3 border-t border-lumera-border flex items-center justify-between">
+              <div className="text-sm text-lumera-muted">
                 Mostrando {(page - 1) * 20 + 1} a {Math.min(page * 20, total)} de{' '}
                 {total} usuários
               </div>
@@ -355,20 +355,20 @@ export default function AdminPermissionsPage() {
       {/* Edit Permissions Modal */}
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+          <div className="bg-lumera-surface rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="text-xl font-bold text-lumera-luminoso">
                     Editar Permissões
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-lumera-muted mt-1">
                     {selectedUser.name} ({selectedUser.email})
                   </p>
                 </div>
                 <button
                   onClick={closeModal}
-                  className="text-gray-400 hover:text-gray-500"
+                  className="text-lumera-muted hover:text-lumera-luminoso"
                 >
                   <svg
                     className="h-6 w-6"
@@ -396,7 +396,7 @@ export default function AdminPermissionsPage() {
                 <Button variant="outline" size="sm" onClick={clearAllPermissions}>
                   Limpar Todas
                 </Button>
-                <span className="text-sm text-gray-500 ml-4 self-center">
+                <span className="text-sm text-lumera-muted ml-4 self-center">
                   {selectedPermissions.length} permissão(ões) selecionada(s)
                 </span>
               </div>
@@ -406,7 +406,7 @@ export default function AdminPermissionsPage() {
                 {Object.entries(permissions).map(([module, modulePermissions]) => (
                   <div key={module} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-lumera-luminoso">
                         {moduleLabels[module] || module}
                       </h3>
                       <button
@@ -431,14 +431,14 @@ export default function AdminPermissionsPage() {
                             type="checkbox"
                             checked={selectedPermissions.includes(permission.id)}
                             onChange={() => togglePermission(permission.id)}
-                            className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                            className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-lumera-border rounded"
                           />
                           <div>
-                            <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                            <span className="text-sm text-lumera-muted group-hover:text-lumera-luminoso">
                               {permission.name}
                             </span>
                             {permission.description && (
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-lumera-muted">
                                 {permission.description}
                               </p>
                             )}
@@ -451,7 +451,7 @@ export default function AdminPermissionsPage() {
               </div>
             </div>
 
-            <div className="p-6 border-t bg-gray-50 flex justify-end gap-3">
+            <div className="p-6 border-t border-lumera-border bg-lumera-obsidian flex justify-end gap-3">
               <Button variant="outline" onClick={closeModal}>
                 Cancelar
               </Button>

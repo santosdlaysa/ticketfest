@@ -24,13 +24,13 @@ export const Button: React.FC<ButtonProps> = ({
         'disabled:opacity-50 disabled:cursor-not-allowed',
         {
           // Variants - Lumera Colors
-          'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 shadow-sm hover:shadow-glow':
+          'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 shadow-sm hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]':
             variant === 'primary',
-          'bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700':
+          'bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700 hover:scale-[1.02] active:scale-[0.98]':
             variant === 'secondary',
-          'border-2 border-primary-500 text-primary-500 hover:bg-primary-50 active:bg-primary-100':
+          'border-2 border-primary-500 text-primary-400 hover:bg-primary-500/10 active:bg-primary-500/20 hover:scale-[1.01]':
             variant === 'outline',
-          'text-lumera-obsidian hover:bg-primary-50 active:bg-primary-100':
+          'text-lumera-luminoso hover:bg-primary-500/10 active:bg-primary-500/20 hover:scale-[1.01]':
             variant === 'ghost',
 
           // Sizes

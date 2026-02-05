@@ -83,13 +83,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // UI de erro padrão
       return (
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center px-4">
-          <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 md:p-12">
+        <div className="min-h-screen bg-lumera-obsidian flex items-center justify-center px-4">
+          <div className="max-w-2xl w-full bg-lumera-surface rounded-2xl shadow-xl p-8 md:p-12 border border-lumera-border">
             <div className="text-center">
               {/* Ícone de erro */}
-              <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
+              <div className="mx-auto w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mb-6">
                 <svg
-                  className="w-10 h-10 text-red-600"
+                  className="w-10 h-10 text-red-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -105,12 +105,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Título */}
-              <h1 className="text-3xl md:text-4xl font-bold text-lumera-obsidian mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-lumera-luminoso mb-4">
                 Ops! Algo deu errado
               </h1>
 
               {/* Descrição */}
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-lumera-muted mb-8">
                 Desculpe, ocorreu um erro inesperado. Nossa equipe foi notificada
                 e estamos trabalhando para resolver o problema.
               </p>
@@ -118,19 +118,19 @@ export class ErrorBoundary extends Component<Props, State> {
               {/* Detalhes do erro (apenas em desenvolvimento) */}
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <div className="mb-8 text-left">
-                  <details className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <summary className="cursor-pointer font-semibold text-gray-700 mb-2">
+                  <details className="bg-lumera-surface-alt rounded-lg p-4 border border-lumera-border">
+                    <summary className="cursor-pointer font-semibold text-lumera-muted mb-2">
                       Detalhes do erro (visível apenas em desenvolvimento)
                     </summary>
                     <div className="mt-4 space-y-4">
                       <div>
-                        <p className="font-mono text-sm text-red-600 font-semibold">
+                        <p className="font-mono text-sm text-red-400 font-semibold">
                           {this.state.error.name}: {this.state.error.message}
                         </p>
                       </div>
                       {this.state.error.stack && (
                         <div>
-                          <p className="text-xs font-semibold text-gray-700 mb-1">
+                          <p className="text-xs font-semibold text-lumera-muted mb-1">
                             Stack Trace:
                           </p>
                           <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto">
@@ -140,7 +140,7 @@ export class ErrorBoundary extends Component<Props, State> {
                       )}
                       {this.state.errorInfo?.componentStack && (
                         <div>
-                          <p className="text-xs font-semibold text-gray-700 mb-1">
+                          <p className="text-xs font-semibold text-lumera-muted mb-1">
                             Component Stack:
                           </p>
                           <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto">
@@ -203,12 +203,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Informações de suporte */}
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <p className="text-sm text-gray-500">
+              <div className="mt-8 pt-8 border-t border-lumera-border">
+                <p className="text-sm text-lumera-muted">
                   Se o problema persistir, entre em contato com nosso suporte em{' '}
                   <a
                     href="mailto:suporte@ticketfest.com"
-                    className="text-primary-600 hover:text-primary-700 font-medium"
+                    className="text-primary-400 hover:text-primary-300 font-medium"
                   >
                     suporte@ticketfest.com
                   </a>

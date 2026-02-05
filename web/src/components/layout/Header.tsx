@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-lumera-divider">
+    <header className="bg-lumera-obsidian/95 backdrop-blur-md shadow-festival sticky top-0 z-50 border-b border-white/[0.06]">
       <nav className="container-custom" aria-label="Navegação principal">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -34,25 +34,25 @@ export const Header: React.FC = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               href="/events"
-              className="text-lumera-obsidian hover:text-primary-500 transition-colors"
+              className="text-lumera-luminoso/80 hover:text-primary-400 transition-colors"
             >
               Eventos
             </Link>
             <Link
               href="/events?category=Música"
-              className="text-lumera-obsidian hover:text-primary-500 transition-colors"
+              className="text-lumera-luminoso/80 hover:text-primary-400 transition-colors"
             >
               Música
             </Link>
             <Link
               href="/events?category=Tecnologia"
-              className="text-lumera-obsidian hover:text-primary-500 transition-colors"
+              className="text-lumera-luminoso/80 hover:text-primary-400 transition-colors"
             >
               Tecnologia
             </Link>
             <Link
               href="/events?category=Comédia"
-              className="text-lumera-obsidian hover:text-primary-500 transition-colors"
+              className="text-lumera-luminoso/80 hover:text-primary-400 transition-colors"
             >
               Comédia
             </Link>
@@ -63,7 +63,7 @@ export const Header: React.FC = () => {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative p-2 text-lumera-obsidian hover:text-primary-500 transition-colors"
+              className="relative p-2 text-lumera-luminoso/80 hover:text-primary-400 transition-colors"
               aria-label={`Carrinho de compras${cartItemCount > 0 ? ` - ${cartItemCount} ${cartItemCount === 1 ? 'item' : 'itens'}` : ' - vazio'}`}
             >
               <svg
@@ -92,19 +92,19 @@ export const Header: React.FC = () => {
             {isAuthenticated && user ? (
               <div className="relative group">
                 <button
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-primary-50 transition-colors"
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-primary-500/10 transition-colors"
                   aria-label={`Menu do usuário - ${user.name}`}
                   aria-haspopup="true"
                   aria-expanded="false"
                 >
-                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center" aria-hidden="true">
-                    <span className="text-primary-700 font-medium text-sm">
+                  <div className="w-8 h-8 bg-primary-500/20 rounded-full flex items-center justify-center" aria-hidden="true">
+                    <span className="text-primary-300 font-medium text-sm">
                       {user.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 text-lumera-obsidian"
+                    className="h-4 w-4 text-lumera-luminoso/80"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -120,40 +120,40 @@ export const Header: React.FC = () => {
                 </button>
 
                 {/* Dropdown */}
-                <nav className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-lumera-divider" aria-label="Menu do usuário">
+                <nav className="absolute right-0 mt-2 w-48 bg-white/[0.04] backdrop-blur-lg rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-white/[0.08] animate-scale-in" aria-label="Menu do usuário">
                   <div className="px-4 py-2 border-b border-lumera-divider">
-                    <p className="text-sm font-medium text-lumera-obsidian">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
+                    <p className="text-sm font-medium text-lumera-luminoso">{user.name}</p>
+                    <p className="text-xs text-lumera-muted">{user.email}</p>
                   </div>
                   {(user.role === 'ORGANIZER' || user.role === 'ADMIN') && (
                     <Link
                       href="/admin/events"
-                      className="block px-4 py-2 text-sm text-primary-500 font-medium hover:bg-primary-50"
+                      className="block px-4 py-2 text-sm text-primary-400 font-medium hover:bg-primary-500/10"
                     >
                       Meus Eventos
                     </Link>
                   )}
                   <Link
                     href="/user/profile"
-                    className="block px-4 py-2 text-sm text-lumera-obsidian hover:bg-primary-50"
+                    className="block px-4 py-2 text-sm text-lumera-luminoso hover:bg-primary-500/10"
                   >
                     Meu Perfil
                   </Link>
                   <Link
                     href="/user/tickets"
-                    className="block px-4 py-2 text-sm text-lumera-obsidian hover:bg-primary-50"
+                    className="block px-4 py-2 text-sm text-lumera-luminoso hover:bg-primary-500/10"
                   >
                     Meus Ingressos
                   </Link>
                   <Link
                     href="/user/orders"
-                    className="block px-4 py-2 text-sm text-lumera-obsidian hover:bg-primary-50"
+                    className="block px-4 py-2 text-sm text-lumera-luminoso hover:bg-primary-500/10"
                   >
                     Meus Pedidos
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"
                     aria-label="Sair da conta"
                   >
                     Sair
@@ -177,7 +177,7 @@ export const Header: React.FC = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 text-lumera-obsidian"
+              className="md:hidden p-2 text-lumera-luminoso"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
               aria-expanded={mobileMenuOpen}
@@ -208,28 +208,28 @@ export const Header: React.FC = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <nav id="mobile-menu" className="md:hidden border-t border-lumera-divider py-4 space-y-2" aria-label="Menu mobile">
+          <nav id="mobile-menu" className="md:hidden border-t border-lumera-border py-4 space-y-2" aria-label="Menu mobile">
             <Link
               href="/events"
-              className="block px-4 py-2 text-lumera-obsidian hover:bg-primary-50 rounded-lg"
+              className="block px-4 py-2 text-lumera-luminoso hover:bg-primary-500/10 rounded-lg"
             >
               Eventos
             </Link>
             <Link
               href="/events?category=Música"
-              className="block px-4 py-2 text-lumera-obsidian hover:bg-primary-50 rounded-lg"
+              className="block px-4 py-2 text-lumera-luminoso hover:bg-primary-500/10 rounded-lg"
             >
               Música
             </Link>
             <Link
               href="/events?category=Tecnologia"
-              className="block px-4 py-2 text-lumera-obsidian hover:bg-primary-50 rounded-lg"
+              className="block px-4 py-2 text-lumera-luminoso hover:bg-primary-500/10 rounded-lg"
             >
               Tecnologia
             </Link>
             <Link
               href="/events?category=Comédia"
-              className="block px-4 py-2 text-lumera-obsidian hover:bg-primary-50 rounded-lg"
+              className="block px-4 py-2 text-lumera-luminoso hover:bg-primary-500/10 rounded-lg"
             >
               Comédia
             </Link>

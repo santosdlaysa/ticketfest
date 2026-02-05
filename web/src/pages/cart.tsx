@@ -36,11 +36,11 @@ export default function Cart() {
         <Head><title>Carrinho - Lumera</title></Head>
         <div className="container-custom py-16 text-center" role="status">
           <div className="max-w-md mx-auto">
-            <svg className="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className="w-24 h-24 mx-auto text-lumera-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <h1 className="text-2xl font-bold mb-2">Seu carrinho está vazio</h1>
-            <p className="text-gray-600 mb-6">Adicione ingressos para continuar</p>
+            <p className="text-lumera-muted mb-6">Adicione ingressos para continuar</p>
             <Link href="/events"><Button aria-label="Explorar eventos disponíveis">Explorar Eventos</Button></Link>
           </div>
         </div>
@@ -69,8 +69,8 @@ export default function Cart() {
 
                 <div className="flex-grow">
                   <h2 className="font-semibold text-lg">{item.ticket.event.name}</h2>
-                  <p className="text-sm text-gray-600">{item.ticket.name}</p>
-                  <time className="text-sm text-gray-500" dateTime={item.ticket.event.date}>
+                  <p className="text-sm text-lumera-muted">{item.ticket.name}</p>
+                  <time className="text-sm text-lumera-muted" dateTime={item.ticket.event.date}>
                     {format(new Date(item.ticket.event.date), "dd/MM/yyyy 'às' HH:mm")}
                   </time>
 
@@ -78,14 +78,14 @@ export default function Cart() {
                     <div className="flex items-center space-x-2" role="group" aria-label={`Quantidade de ${item.ticket.name}`}>
                       <button
                         onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                        className="w-8 h-8 rounded border hover:bg-gray-100"
+                        className="w-8 h-8 rounded border border-lumera-border hover:bg-primary-500/10"
                         disabled={isLoading}
                         aria-label="Diminuir quantidade"
                       >-</button>
                       <span className="w-8 text-center" aria-live="polite" aria-atomic="true">{item.quantity}</span>
                       <button
                         onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                        className="w-8 h-8 rounded border hover:bg-gray-100"
+                        className="w-8 h-8 rounded border border-lumera-border hover:bg-primary-500/10"
                         disabled={isLoading}
                         aria-label="Aumentar quantidade"
                       >+</button>
@@ -97,7 +97,7 @@ export default function Cart() {
                       </span>
                       <button
                         onClick={() => handleRemove(item.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-400 hover:text-red-400"
                         disabled={isLoading}
                         aria-label={`Remover ${item.ticket.name} do carrinho`}
                       >
@@ -122,7 +122,7 @@ export default function Cart() {
                   <span>Subtotal ({cart.itemCount} item{cart.itemCount > 1 ? 's' : ''})</span>
                   <span aria-label={`Subtotal: R$ ${Number(cart.subtotal).toFixed(2)}`}>R$ {Number(cart.subtotal).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-600">
+                <div className="flex justify-between text-sm text-lumera-muted">
                   <span>Taxa de serviço</span>
                   <span>R$ 0,00</span>
                 </div>

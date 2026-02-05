@@ -141,7 +141,7 @@ export default function ManageTickets() {
         <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando...</p>
+            <p className="mt-4 text-lumera-muted">Carregando...</p>
           </div>
         </div>
       </>
@@ -157,12 +157,12 @@ export default function ManageTickets() {
           <div className="mb-8">
             <Link
               href="/admin/events"
-              className="text-primary-600 hover:text-primary-700 mb-4 inline-flex items-center"
+              className="text-primary-400 hover:text-primary-300 mb-4 inline-flex items-center"
             >
               ← Voltar para Meus Eventos
             </Link>
             <h1 className="text-3xl font-bold mt-2">{event.name}</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-lumera-muted mt-2">
               Gerencie os ingressos disponíveis para este evento
             </p>
           </div>
@@ -206,13 +206,13 @@ export default function ManageTickets() {
                   />
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Descrição
                     </label>
                     <textarea
                       {...register('description')}
                       rows={2}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                       placeholder="Descrição opcional do ingresso"
                     />
                   </div>
@@ -232,22 +232,22 @@ export default function ManageTickets() {
                   />
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Benefícios/Características (separados por vírgula)
                     </label>
                     <textarea
                       {...register('features')}
                       rows={2}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                       placeholder="Ex: Acesso à pista, Open bar, Área VIP"
                     />
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-lumera-muted mt-1">
                       Digite os benefícios separados por vírgula
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <div className="flex gap-3 pt-4 border-t border-lumera-border">
                   <Button
                     type="button"
                     variant="outline"
@@ -291,7 +291,7 @@ export default function ManageTickets() {
           {tickets.length === 0 ? (
             <div className="card p-12 text-center">
               <svg
-                className="mx-auto h-16 w-16 text-gray-400"
+                className="mx-auto h-16 w-16 text-lumera-muted"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -303,10 +303,10 @@ export default function ManageTickets() {
                   d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
                 />
               </svg>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
+              <h3 className="mt-4 text-lg font-medium text-lumera-luminoso">
                 Nenhum ingresso cadastrado
               </h3>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-lumera-muted">
                 Adicione ingressos para que os usuários possam comprar
               </p>
             </div>
@@ -318,11 +318,11 @@ export default function ManageTickets() {
                     <div className="flex-1">
                       <h3 className="text-xl font-bold">{ticket.name}</h3>
                       {ticket.description && (
-                        <p className="text-gray-600 mt-1">{ticket.description}</p>
+                        <p className="text-lumera-muted mt-1">{ticket.description}</p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-primary-600">
+                      <p className="text-2xl font-bold text-primary-400">
                         R$ {Number(ticket.price).toFixed(2)}
                       </p>
                     </div>
@@ -330,17 +330,17 @@ export default function ManageTickets() {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
                     <div>
-                      <span className="text-gray-600">Disponível:</span>
+                      <span className="text-lumera-muted">Disponível:</span>
                       <p className="font-semibold">
                         {ticket.quantity - ticket.sold} / {ticket.quantity}
                       </p>
                     </div>
                     <div>
-                      <span className="text-gray-600">Vendidos:</span>
+                      <span className="text-lumera-muted">Vendidos:</span>
                       <p className="font-semibold">{ticket.sold}</p>
                     </div>
                     <div className="md:col-span-2">
-                      <span className="text-gray-600">Período de vendas:</span>
+                      <span className="text-lumera-muted">Período de vendas:</span>
                       <p className="font-semibold">
                         {new Date(ticket.salesStart).toLocaleDateString('pt-BR')} até{' '}
                         {new Date(ticket.salesEnd).toLocaleDateString('pt-BR')}
@@ -350,7 +350,7 @@ export default function ManageTickets() {
 
                   {ticket.features.length > 0 && (
                     <div className="mb-4">
-                      <span className="text-sm text-gray-600">Benefícios:</span>
+                      <span className="text-sm text-lumera-muted">Benefícios:</span>
                       <ul className="mt-1 space-y-1">
                         {ticket.features.map((feature, idx) => (
                           <li key={idx} className="text-sm flex items-center">
@@ -384,7 +384,7 @@ export default function ManageTickets() {
                       size="sm"
                       onClick={() => handleDelete(ticket.id)}
                       isLoading={deletingId === ticket.id}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
+                      className="text-red-400 border-red-400 hover:bg-red-500/10"
                     >
                       Deletar
                     </Button>
@@ -399,7 +399,7 @@ export default function ManageTickets() {
       {/* Batch Manager Modal */}
       {batchManagerTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-lumera-surface rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <BatchManager
                 ticketId={batchManagerTicket.id}

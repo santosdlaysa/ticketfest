@@ -14,9 +14,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  CONFIRMED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
+  PENDING: 'bg-yellow-500/20 text-yellow-300',
+  CONFIRMED: 'bg-green-500/20 text-green-300',
+  CANCELLED: 'bg-red-500/20 text-red-300',
 };
 
 const paymentStatusLabels: Record<string, string> = {
@@ -27,9 +27,9 @@ const paymentStatusLabels: Record<string, string> = {
 };
 
 const paymentStatusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  PAID: 'bg-green-100 text-green-800',
-  FAILED: 'bg-red-100 text-red-800',
+  PENDING: 'bg-yellow-500/20 text-yellow-300',
+  PAID: 'bg-green-500/20 text-green-300',
+  FAILED: 'bg-red-500/20 text-red-300',
   REFUNDED: 'bg-accent-100 text-accent-800',
 };
 
@@ -182,8 +182,8 @@ export default function AdminOrdersPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-lumera-obsidian">Gestão de Pedidos</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-lumera-luminoso">Gestão de Pedidos</h1>
+            <p className="text-lumera-muted mt-1">
               {total} pedidos encontrados
             </p>
           </div>
@@ -202,7 +202,7 @@ export default function AdminOrdersPage() {
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                <label className="block text-sm font-medium text-lumera-muted mb-1">Buscar</label>
                 <input
                   type="text"
                   value={search}
@@ -212,7 +212,7 @@ export default function AdminOrdersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="block text-sm font-medium text-lumera-muted mb-1">Status</label>
                 <select
                   value={status}
                   onChange={(e) => { setStatus(e.target.value); setPage(1); }}
@@ -225,7 +225,7 @@ export default function AdminOrdersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Pagamento</label>
+                <label className="block text-sm font-medium text-lumera-muted mb-1">Pagamento</label>
                 <select
                   value={paymentStatus}
                   onChange={(e) => { setPaymentStatus(e.target.value); setPage(1); }}
@@ -239,7 +239,7 @@ export default function AdminOrdersPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Evento</label>
+                <label className="block text-sm font-medium text-lumera-muted mb-1">Evento</label>
                 <select
                   value={eventId}
                   onChange={(e) => { setEventId(e.target.value); setPage(1); }}
@@ -254,7 +254,7 @@ export default function AdminOrdersPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
+                <label className="block text-sm font-medium text-lumera-muted mb-1">Data Inicial</label>
                 <input
                   type="date"
                   value={startDate}
@@ -263,7 +263,7 @@ export default function AdminOrdersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
+                <label className="block text-sm font-medium text-lumera-muted mb-1">Data Final</label>
                 <input
                   type="date"
                   value={endDate}
@@ -283,46 +283,46 @@ export default function AdminOrdersPage() {
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-500 border-r-transparent"></div>
-              <p className="mt-4 text-gray-600">Carregando pedidos...</p>
+              <p className="mt-4 text-lumera-muted">Carregando pedidos...</p>
             </div>
           ) : orders.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-lumera-muted">
               Nenhum pedido encontrado
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-lumera-obsidian">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Pedido
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Cliente
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Evento
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Total
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Pagamento
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Data
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Acoes
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-lumera-surface divide-y divide-lumera-border">
                   {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
+                    <tr key={order.id} className="hover:bg-primary-500/10">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Link href={`/admin/orders/${order.id}`} className="text-primary-500 hover:text-primary-600 hover:underline font-mono text-sm">
                           {order.id.slice(0, 8)}...
@@ -330,17 +330,17 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{order.user.name}</div>
-                          <div className="text-sm text-gray-500">{order.user.email}</div>
+                          <div className="text-sm font-medium text-lumera-luminoso">{order.user.name}</div>
+                          <div className="text-sm text-lumera-muted">{order.user.email}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{order.event.name}</div>
+                        <div className="text-sm text-lumera-luminoso">{order.event.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{formatCurrency(order.total)}</div>
+                        <div className="text-sm font-medium text-lumera-luminoso">{formatCurrency(order.total)}</div>
                         {order.discount > 0 && (
-                          <div className="text-xs text-green-600">-{formatCurrency(order.discount)}</div>
+                          <div className="text-xs text-green-400">-{formatCurrency(order.discount)}</div>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -353,7 +353,7 @@ export default function AdminOrdersPage() {
                           {paymentStatusLabels[order.paymentStatus]}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-lumera-muted">
                         {formatDate(order.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -365,7 +365,7 @@ export default function AdminOrdersPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-green-600 hover:bg-green-50"
+                              className="text-green-400 hover:bg-green-500/10"
                               onClick={() => handleConfirmPayment(order.id)}
                             >
                               Confirmar Pgto
@@ -376,7 +376,7 @@ export default function AdminOrdersPage() {
                               <Button variant="ghost" size="sm" onClick={() => handleResendEmail(order.id)}>
                                 Email
                               </Button>
-                              <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => handleRefund(order.id)}>
+                              <Button variant="ghost" size="sm" className="text-red-400 hover:bg-red-500/10" onClick={() => handleRefund(order.id)}>
                                 Reembolsar
                               </Button>
                             </>
@@ -393,7 +393,7 @@ export default function AdminOrdersPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="px-6 py-4 border-t flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-lumera-muted">
                 Pagina {page} de {totalPages}
               </div>
               <div className="flex gap-2">

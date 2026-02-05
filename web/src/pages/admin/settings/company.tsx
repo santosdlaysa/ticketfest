@@ -152,29 +152,29 @@ export default function CompanySettingsPage() {
         <div className="mb-8">
           <Link
             href="/admin/settings"
-            className="text-primary-600 hover:underline flex items-center gap-2 mb-4"
+            className="text-primary-400 hover:underline flex items-center gap-2 mb-4"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Voltar para Configuracoes
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Dados da Empresa</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-lumera-luminoso">Dados da Empresa</h1>
+          <p className="text-lumera-muted mt-2">
             Configure as informacoes da sua empresa para emissao de notas e recebimento
           </p>
         </div>
 
         {/* No Account Message */}
         {!hasAccount && (
-          <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
+          <div className="card p-4 mb-6 bg-blue-500/20 border-lumera-border">
             <div className="flex items-center gap-3">
-              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <div className="font-medium text-blue-800">Crie sua conta de organizador</div>
-                <div className="text-sm text-blue-700">
+                <div className="font-medium text-blue-400">Crie sua conta de organizador</div>
+                <div className="text-sm text-blue-400/80">
                   Preencha os dados abaixo para comecar a receber os repasses das vendas dos seus eventos
                 </div>
               </div>
@@ -210,7 +210,7 @@ export default function CompanySettingsPage() {
                 })}
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Regime Tributario
                 </label>
                 <select
@@ -272,7 +272,7 @@ export default function CompanySettingsPage() {
                   {...register('companyCity')}
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-lumera-muted mb-1">
                     Estado
                   </label>
                   <select
@@ -300,7 +300,7 @@ export default function CompanySettingsPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-4 border-t">
+          <div className="flex gap-4 pt-4 border-t border-lumera-border">
             <Link href="/admin/settings" className="flex-1">
               <Button type="button" variant="outline" className="w-full">
                 Cancelar

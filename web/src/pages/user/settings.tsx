@@ -67,17 +67,17 @@ export default function UserSettingsPage() {
       </Head>
 
       <div className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Configuracoes</h1>
-          <p className="text-gray-600">Gerencie suas preferencias e seguranca da conta</p>
+        <div className="bg-lumera-surface rounded-xl shadow-sm p-6">
+          <h1 className="text-2xl font-bold text-lumera-luminoso mb-2">Configuracoes</h1>
+          <p className="text-lumera-muted">Gerencie suas preferencias e seguranca da conta</p>
         </div>
 
         {/* Change Password */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Alterar Senha</h2>
+        <div className="bg-lumera-surface rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Alterar Senha</h2>
           <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-lumera-muted mb-1">
                 Senha Atual
               </label>
               <input
@@ -90,7 +90,7 @@ export default function UserSettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-lumera-muted mb-1">
                 Nova Senha
               </label>
               <input
@@ -104,7 +104,7 @@ export default function UserSettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-lumera-muted mb-1">
                 Confirmar Nova Senha
               </label>
               <input
@@ -123,19 +123,19 @@ export default function UserSettingsPage() {
         </div>
 
         {/* Notifications */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Notificacoes por E-mail</h2>
+        <div className="bg-lumera-surface rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Notificacoes por E-mail</h2>
           <div className="space-y-4">
             <label className="flex items-center justify-between py-2">
               <div>
-                <p className="font-medium text-gray-900">Atualizacoes de Eventos</p>
-                <p className="text-sm text-gray-500">Receba avisos sobre eventos de seu interesse</p>
+                <p className="font-medium text-lumera-luminoso">Atualizacoes de Eventos</p>
+                <p className="text-sm text-lumera-muted">Receba avisos sobre eventos de seu interesse</p>
               </div>
               <button
                 type="button"
                 onClick={() => handleNotificationChange('emailEvents')}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications.emailEvents ? 'bg-primary-500' : 'bg-gray-200'
+                  notifications.emailEvents ? 'bg-primary-500' : 'bg-lumera-border'
                 }`}
               >
                 <span
@@ -146,16 +146,16 @@ export default function UserSettingsPage() {
               </button>
             </label>
 
-            <label className="flex items-center justify-between py-2 border-t">
+            <label className="flex items-center justify-between py-2 border-t border-lumera-border">
               <div>
-                <p className="font-medium text-gray-900">Status de Pedidos</p>
-                <p className="text-sm text-gray-500">Receba atualizacoes sobre suas compras</p>
+                <p className="font-medium text-lumera-luminoso">Status de Pedidos</p>
+                <p className="text-sm text-lumera-muted">Receba atualizacoes sobre suas compras</p>
               </div>
               <button
                 type="button"
                 onClick={() => handleNotificationChange('emailOrders')}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications.emailOrders ? 'bg-primary-500' : 'bg-gray-200'
+                  notifications.emailOrders ? 'bg-primary-500' : 'bg-lumera-border'
                 }`}
               >
                 <span
@@ -166,16 +166,16 @@ export default function UserSettingsPage() {
               </button>
             </label>
 
-            <label className="flex items-center justify-between py-2 border-t">
+            <label className="flex items-center justify-between py-2 border-t border-lumera-border">
               <div>
-                <p className="font-medium text-gray-900">Promocoes e Novidades</p>
-                <p className="text-sm text-gray-500">Receba ofertas exclusivas e lancamentos</p>
+                <p className="font-medium text-lumera-luminoso">Promocoes e Novidades</p>
+                <p className="text-sm text-lumera-muted">Receba ofertas exclusivas e lancamentos</p>
               </div>
               <button
                 type="button"
                 onClick={() => handleNotificationChange('emailMarketing')}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  notifications.emailMarketing ? 'bg-primary-500' : 'bg-gray-200'
+                  notifications.emailMarketing ? 'bg-primary-500' : 'bg-lumera-border'
                 }`}
               >
                 <span
@@ -189,22 +189,22 @@ export default function UserSettingsPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-red-200">
-          <h2 className="text-lg font-semibold text-red-600 mb-4">Zona de Perigo</h2>
+        <div className="bg-lumera-surface rounded-xl shadow-sm p-6 border border-red-500/30">
+          <h2 className="text-lg font-semibold text-red-400 mb-4">Zona de Perigo</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium text-gray-900">Sair da Conta</p>
-                <p className="text-sm text-gray-500">Encerre sua sessao neste dispositivo</p>
+                <p className="font-medium text-lumera-luminoso">Sair da Conta</p>
+                <p className="text-sm text-lumera-muted">Encerre sua sessao neste dispositivo</p>
               </div>
               <Button variant="outline" onClick={handleLogout}>
                 Sair
               </Button>
             </div>
-            <div className="flex items-center justify-between pt-4 border-t">
+            <div className="flex items-center justify-between pt-4 border-t border-lumera-border">
               <div>
-                <p className="font-medium text-gray-900">Excluir Conta</p>
-                <p className="text-sm text-gray-500">Remova permanentemente sua conta e todos os dados</p>
+                <p className="font-medium text-lumera-luminoso">Excluir Conta</p>
+                <p className="text-sm text-lumera-muted">Remova permanentemente sua conta e todos os dados</p>
               </div>
               <button
                 disabled

@@ -179,15 +179,15 @@ export default function BankSettingsPage() {
         <div className="mb-8">
           <Link
             href="/admin/settings"
-            className="text-primary-600 hover:underline flex items-center gap-2 mb-4"
+            className="text-primary-400 hover:underline flex items-center gap-2 mb-4"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Voltar para Configuracoes
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Dados Bancarios</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-lumera-luminoso">Dados Bancarios</h1>
+          <p className="text-lumera-muted mt-2">
             Configure sua conta bancaria para receber os repasses das vendas
           </p>
         </div>
@@ -196,13 +196,13 @@ export default function BankSettingsPage() {
         {hasAccount && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="card p-4">
-              <div className="text-sm text-gray-600">Saldo Disponivel</div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-sm text-lumera-muted">Saldo Disponivel</div>
+              <div className="text-2xl font-bold text-green-400">
                 R$ {balance.available.toFixed(2)}
               </div>
             </div>
             <div className="card p-4">
-              <div className="text-sm text-gray-600">Saldo Pendente</div>
+              <div className="text-sm text-lumera-muted">Saldo Pendente</div>
               <div className="text-2xl font-bold text-yellow-600">
                 R$ {balance.pending.toFixed(2)}
               </div>
@@ -212,17 +212,17 @@ export default function BankSettingsPage() {
 
         {/* Verification Status */}
         {hasAccount && (
-          <div className={`card p-4 mb-6 ${verified ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+          <div className={`card p-4 mb-6 ${verified ? 'bg-green-500/20 border-lumera-border' : 'bg-yellow-500/20 border-lumera-border'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {verified ? (
                   <>
-                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <div className="font-medium text-green-800">Conta Verificada</div>
-                      <div className="text-sm text-green-700">Sua conta esta pronta para receber repasses</div>
+                      <div className="font-medium text-green-400">Conta Verificada</div>
+                      <div className="text-sm text-green-400/80">Sua conta esta pronta para receber repasses</div>
                     </div>
                   </>
                 ) : (
@@ -231,8 +231,8 @@ export default function BankSettingsPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <div>
-                      <div className="font-medium text-yellow-800">Verificacao Pendente</div>
-                      <div className="text-sm text-yellow-700">Complete seus dados e solicite verificacao</div>
+                      <div className="font-medium text-yellow-400">Verificacao Pendente</div>
+                      <div className="text-sm text-yellow-400/80">Complete seus dados e solicite verificacao</div>
                     </div>
                   </>
                 )}
@@ -253,14 +253,14 @@ export default function BankSettingsPage() {
 
         {/* No Account Message */}
         {!hasAccount && (
-          <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
+          <div className="card p-4 mb-6 bg-blue-500/20 border-lumera-border">
             <div className="flex items-center gap-3">
-              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <div className="font-medium text-blue-800">Crie sua conta de organizador</div>
-                <div className="text-sm text-blue-700">
+                <div className="font-medium text-blue-400">Crie sua conta de organizador</div>
+                <div className="text-sm text-blue-400/80">
                   Preencha os dados abaixo para comecar a receber os repasses das vendas dos seus eventos
                 </div>
               </div>
@@ -274,7 +274,7 @@ export default function BankSettingsPage() {
             <h2 className="text-lg font-semibold mb-4">Dados da Conta</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Banco *
                 </label>
                 <select
@@ -289,11 +289,11 @@ export default function BankSettingsPage() {
                   ))}
                 </select>
                 {errors.bankCode && (
-                  <p className="text-red-500 text-sm mt-1">{errors.bankCode.message}</p>
+                  <p className="text-red-400 text-sm mt-1">{errors.bankCode.message}</p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Tipo de Conta *
                 </label>
                 <select
@@ -357,7 +357,7 @@ export default function BankSettingsPage() {
                 {...register('holderName', { required: 'Nome e obrigatorio' })}
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Tipo de Pessoa *
                 </label>
                 <select
@@ -388,7 +388,7 @@ export default function BankSettingsPage() {
             <h2 className="text-lg font-semibold mb-4">Chave PIX (Opcional)</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Tipo de Chave
                 </label>
                 <select
@@ -412,7 +412,7 @@ export default function BankSettingsPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-4 border-t">
+          <div className="flex gap-4 pt-4 border-t border-lumera-border">
             <Link href="/admin/settings" className="flex-1">
               <Button type="button" variant="outline" className="w-full">
                 Cancelar

@@ -162,6 +162,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     // Espera a hidratação do estado do localStorage
     if (!_hasHydrated) return;
 
+    let cancelled = false;
+
     const verifyAuth = async () => {
       // Se já está autenticado no store, não precisa verificar na API
       if (user) {
@@ -172,14 +174,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       // Tenta verificar na API apenas se não está autenticado
       const authenticated = await checkAuth();
+
+      // Ignora resultado se o efeito foi cancelado (ex: usuário logou enquanto o check rodava)
+      if (cancelled) return;
+
       setIsAuthValid(authenticated);
       setIsChecking(false);
 
       if (!authenticated) {
-        router.push('/auth/login?redirect=' + encodeURIComponent(router.asPath));
+        router.replace('/auth/login?redirect=' + encodeURIComponent(router.asPath));
       }
     };
     verifyAuth();
+
+    return () => {
+      cancelled = true;
+    };
   }, [_hasHydrated, user]);
 
   // Filtra itens de navegação baseado nas permissões
@@ -197,10 +207,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   // Show loading while checking authentication or waiting for hydration
   if (!_hasHydrated || isChecking || permissionsLoading) {
     return (
-      <div className="min-h-screen bg-lumera-luminoso flex items-center justify-center" role="status" aria-live="polite">
+      <div className="min-h-screen bg-lumera-obsidian flex items-center justify-center" role="status" aria-live="polite">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" aria-hidden="true"></div>
-          <p className="text-gray-600">Verificando autenticacao...</p>
+          <p className="text-lumera-muted">Verificando autenticacao...</p>
         </div>
       </div>
     );
@@ -214,15 +224,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   // Verifica se o usuário pode acessar o admin
   if (!canAccessAdmin) {
     return (
-      <div className="min-h-screen bg-lumera-luminoso flex items-center justify-center" role="alert" aria-live="assertive">
+      <div className="min-h-screen bg-lumera-obsidian flex items-center justify-center" role="alert" aria-live="assertive">
         <div className="text-center max-w-md p-8">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+            <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Acesso Negado</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-xl font-semibold text-lumera-luminoso mb-2">Acesso Negado</h2>
+          <p className="text-lumera-muted mb-6">
             Voce nao tem permissao para acessar esta area. Entre em contato com o administrador.
           </p>
           <Link
@@ -254,14 +264,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const NavLink = ({ item }: { item: NavItem }) => (
     <Link
       href={item.href}
-      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
         isActive(item.href)
-          ? 'bg-primary-100 text-primary-700'
-          : 'text-lumera-obsidian hover:bg-primary-50'
+          ? 'bg-primary-500/15 text-primary-300'
+          : 'text-lumera-luminoso hover:bg-primary-500/10'
       }`}
       onClick={() => setSidebarOpen(false)}
     >
-      <span className={isActive(item.href) ? 'text-primary-500' : 'text-gray-500'}>
+      <span className={isActive(item.href) ? 'text-primary-400' : 'text-lumera-muted'}>
         {item.icon}
       </span>
       {item.name}
@@ -274,7 +284,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen bg-lumera-luminoso">
+    <div className="min-h-screen bg-lumera-obsidian">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -285,14 +295,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-lumera-divider ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white/[0.03] backdrop-blur-md shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-white/[0.06] ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Navegação do painel administrativo"
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-4 border-b border-lumera-divider">
+          <div className="flex items-center justify-between h-16 px-4 border-b border-lumera-border">
             <Link href="/admin" className="flex items-center gap-2" aria-label="Lumera Admin - Página inicial">
               <div className="w-8 h-8 bg-gradient-lumera rounded-lg flex items-center justify-center shadow-sm" aria-hidden="true">
                 <span className="text-white font-bold text-xl">L</span>
@@ -300,7 +310,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <span className="text-xl font-bold text-gradient-lumera">Lumera</span>
             </Link>
             <button
-              className="lg:hidden p-2 text-gray-500 hover:text-primary-500"
+              className="lg:hidden p-2 text-lumera-muted hover:text-primary-400"
               onClick={() => setSidebarOpen(false)}
               aria-label="Fechar menu lateral"
             >
@@ -315,7 +325,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             {/* Main Navigation */}
             {filteredNavigation.length > 0 && (
               <section>
-                <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                <h2 className="px-3 text-xs font-semibold text-lumera-muted uppercase tracking-wider mb-2">
                   Principal
                 </h2>
                 <div className="space-y-1">
@@ -329,7 +339,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             {/* Sales Navigation */}
             {filteredSalesNavigation.length > 0 && (
               <section>
-                <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                <h2 className="px-3 text-xs font-semibold text-lumera-muted uppercase tracking-wider mb-2">
                   Vendas
                 </h2>
                 <div className="space-y-1">
@@ -343,7 +353,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             {/* Other Navigation */}
             {filteredOtherNavigation.length > 0 && (
               <section>
-                <h2 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                <h2 className="px-3 text-xs font-semibold text-lumera-muted uppercase tracking-wider mb-2">
                   Operacoes
                 </h2>
                 <div className="space-y-1">
@@ -356,22 +366,22 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-lumera-divider" role="region" aria-label="Informações do usuário">
+          <div className="p-4 border-t border-lumera-border" role="region" aria-label="Informações do usuário">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center" aria-hidden="true">
-                <span className="text-primary-700 font-medium">
+              <div className="w-10 h-10 bg-primary-500/20 rounded-full flex items-center justify-center" aria-hidden="true">
+                <span className="text-primary-300 font-medium">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-lumera-obsidian truncate">{user?.name}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-sm font-medium text-lumera-luminoso truncate">{user?.name}</p>
+                <p className="text-xs text-lumera-muted truncate">{user?.email}</p>
               </div>
             </div>
             <div className="space-y-1">
               <Link
                 href="/"
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-primary-50 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-lumera-muted hover:bg-primary-500/10 rounded-lg"
                 aria-label="Voltar ao site público"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -381,7 +391,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg"
                 aria-label="Sair da conta"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -397,10 +407,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white shadow-sm border-b border-lumera-divider">
+        <header className="sticky top-0 z-30 bg-white/[0.03] backdrop-blur-md shadow-sm border-b border-white/[0.06]">
           <div className="flex items-center justify-between h-16 px-4">
             <button
-              className="lg:hidden p-2 text-gray-500 hover:text-primary-500"
+              className="lg:hidden p-2 text-lumera-muted hover:text-primary-400"
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menu lateral"
               aria-expanded={sidebarOpen}
@@ -411,7 +421,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </button>
 
             <div className="flex-1 lg:hidden text-center">
-              <span className="font-semibold text-lumera-obsidian">Admin</span>
+              <span className="font-semibold text-lumera-luminoso">Admin</span>
             </div>
 
             <div className="flex items-center gap-4">

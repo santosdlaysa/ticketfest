@@ -75,7 +75,7 @@ export default function MyTickets() {
         <div className="py-12">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando ingressos...</p>
+            <p className="mt-4 text-lumera-muted">Carregando ingressos...</p>
           </div>
         </div>
       </UserLayout>
@@ -88,7 +88,7 @@ export default function MyTickets() {
       <div className="space-y-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Meus Ingressos</h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-lumera-muted mt-2">
             Aqui estão todos os seus ingressos confirmados
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function MyTickets() {
         {tickets.length === 0 ? (
           <div className="card p-12 text-center">
             <svg
-              className="mx-auto h-16 w-16 text-gray-400"
+              className="mx-auto h-16 w-16 text-lumera-muted"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -108,10 +108,10 @@ export default function MyTickets() {
                 d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
               />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="mt-4 text-lg font-medium text-lumera-luminoso">
               Nenhum ingresso encontrado
             </h3>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-lumera-muted">
               Você ainda não tem ingressos confirmados. Comece a explorar eventos!
             </p>
             <Button onClick={() => router.push('/events')} className="mt-6">
@@ -147,15 +147,15 @@ export default function MyTickets() {
                 {/* Corpo do ticket */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold px-2 py-1 rounded">
+                    <span className="inline-block bg-primary-500/20 text-primary-300 text-xs font-semibold px-2 py-1 rounded">
                       {ticket.ticketName}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-lumera-muted">
                       #{ticket.id.slice(0, 8).toUpperCase()}
                     </span>
                   </div>
 
-                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                  <div className="space-y-2 text-sm text-lumera-muted mb-4">
                     <div className="flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -179,14 +179,14 @@ export default function MyTickets() {
                   </div>
 
                   {/* Linha tracejada */}
-                  <div className="border-t-2 border-dashed border-gray-200 my-4 relative">
-                    <div className="absolute -left-6 -top-3 w-6 h-6 bg-gray-100 rounded-full" />
-                    <div className="absolute -right-6 -top-3 w-6 h-6 bg-gray-100 rounded-full" />
+                  <div className="border-t-2 border-dashed border-lumera-border my-4 relative">
+                    <div className="absolute -left-6 -top-3 w-6 h-6 bg-lumera-surface-alt rounded-full" />
+                    <div className="absolute -right-6 -top-3 w-6 h-6 bg-lumera-surface-alt rounded-full" />
                   </div>
 
                   {/* QR Code */}
                   <div className="flex justify-center mb-4">
-                    <div className="bg-white p-3 rounded-lg border-2 border-gray-200">
+                    <div className="bg-white p-3 rounded-lg border-2 border-lumera-border">
                       <img
                         src={ticket.qrCode}
                         alt="QR Code"
@@ -195,16 +195,16 @@ export default function MyTickets() {
                     </div>
                   </div>
 
-                  <p className="text-center text-xs text-gray-500 mb-4">
+                  <p className="text-center text-xs text-lumera-muted mb-4">
                     Apresente este QR Code na entrada
                   </p>
 
                   {ticket.checkedIn && ticket.checkedInAt && (
-                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-                      <p className="text-green-800 text-sm font-medium">
+                    <div className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
+                      <p className="text-green-300 text-sm font-medium">
                         Check-in realizado
                       </p>
-                      <p className="text-green-600 text-xs mt-1">
+                      <p className="text-green-400 text-xs mt-1">
                         {new Date(ticket.checkedInAt).toLocaleString('pt-BR')}
                       </p>
                     </div>

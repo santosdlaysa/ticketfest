@@ -96,7 +96,7 @@ export const Footer: React.FC = () => {
           </nav>
         </div>
 
-        <div className="border-t border-lumera-fumaca mt-8 pt-8 text-sm text-center">
+        <div className="border-t border-lumera-border mt-8 pt-8 text-sm text-center">
           <p className="text-gray-400">&copy; {new Date().getFullYear()} Lumera. Todos os direitos reservados.</p>
         </div>
       </div>

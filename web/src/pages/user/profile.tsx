@@ -48,9 +48,9 @@ export default function UserProfilePage() {
 
   const getRoleBadge = (role: string) => {
     const roles: Record<string, { label: string; className: string }> = {
-      USER: { label: 'Cliente', className: 'bg-gray-100 text-gray-700' },
-      ORGANIZER: { label: 'Organizador', className: 'bg-primary-100 text-primary-700' },
-      ADMIN: { label: 'Administrador', className: 'bg-red-100 text-red-700' },
+      USER: { label: 'Cliente', className: 'bg-lumera-surface-alt text-lumera-muted' },
+      ORGANIZER: { label: 'Organizador', className: 'bg-primary-500/20 text-primary-300' },
+      ADMIN: { label: 'Administrador', className: 'bg-red-500/20 text-red-400' },
     };
     const roleInfo = roles[role] || roles.USER;
     return (
@@ -68,18 +68,18 @@ export default function UserProfilePage() {
 
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-lumera-surface rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-primary-700 font-bold text-2xl">
+              <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center">
+                <span className="text-primary-300 font-bold text-2xl">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
+                <h1 className="text-2xl font-bold text-lumera-luminoso">{user?.name}</h1>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-gray-500">{user?.email}</span>
+                  <span className="text-lumera-muted">{user?.email}</span>
                   {user?.role && getRoleBadge(user.role)}
                 </div>
               </div>
@@ -93,13 +93,13 @@ export default function UserProfilePage() {
         </div>
 
         {/* Profile Form */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informacoes Pessoais</h2>
+        <div className="bg-lumera-surface rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Informacoes Pessoais</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Nome Completo
                 </label>
                 <input
@@ -108,12 +108,12 @@ export default function UserProfilePage() {
                   value={formData.name}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  className="input w-full disabled:bg-gray-50 disabled:text-gray-500"
+                  className="input w-full disabled:bg-lumera-obsidian disabled:text-lumera-muted"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   E-mail
                 </label>
                 <input
@@ -121,13 +121,13 @@ export default function UserProfilePage() {
                   name="email"
                   value={formData.email}
                   disabled
-                  className="input w-full bg-gray-50 text-gray-500 cursor-not-allowed"
+                  className="input w-full bg-lumera-obsidian text-lumera-muted cursor-not-allowed"
                 />
-                <p className="text-xs text-gray-500 mt-1">O e-mail nao pode ser alterado</p>
+                <p className="text-xs text-lumera-muted mt-1">O e-mail nao pode ser alterado</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   Telefone
                 </label>
                 <input
@@ -137,12 +137,12 @@ export default function UserProfilePage() {
                   onChange={handleChange}
                   disabled={!isEditing}
                   placeholder="(00) 00000-0000"
-                  className="input w-full disabled:bg-gray-50 disabled:text-gray-500"
+                  className="input w-full disabled:bg-lumera-obsidian disabled:text-lumera-muted"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-lumera-muted mb-1">
                   CPF
                 </label>
                 <input
@@ -152,9 +152,9 @@ export default function UserProfilePage() {
                   onChange={handleChange}
                   disabled={!isEditing}
                   placeholder="000.000.000-00"
-                  className="input w-full disabled:bg-gray-50 disabled:text-gray-500"
+                  className="input w-full disabled:bg-lumera-obsidian disabled:text-lumera-muted"
                 />
-                <p className="text-xs text-gray-500 mt-1">Necessario para compras via PIX ou Boleto</p>
+                <p className="text-xs text-lumera-muted mt-1">Necessario para compras via PIX ou Boleto</p>
               </div>
             </div>
 
@@ -186,12 +186,12 @@ export default function UserProfilePage() {
         </div>
 
         {/* Account Info */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informacoes da Conta</h2>
+        <div className="bg-lumera-surface rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Informacoes da Conta</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-gray-600">Membro desde</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-lumera-muted">Membro desde</span>
+              <span className="font-medium text-lumera-luminoso">
                 {user?.createdAt
                   ? new Date(user.createdAt).toLocaleDateString('pt-BR', {
                       day: '2-digit',
@@ -202,7 +202,7 @@ export default function UserProfilePage() {
               </span>
             </div>
             <div className="flex items-center justify-between py-2">
-              <span className="text-gray-600">Tipo de conta</span>
+              <span className="text-lumera-muted">Tipo de conta</span>
               {user?.role && getRoleBadge(user.role)}
             </div>
           </div>

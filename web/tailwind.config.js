@@ -7,8 +7,8 @@
 const lumeraColors = {
   roxoLumera: '#7B2EFF',      // Primária - moderno, premium, noturno
   azulGlow: '#4A6CFF',        // Secundária - brilho, tecnologia
-  pretoObsidian: '#0E0E0F',   // Elegância, contraste
-  brancoLuminoso: '#F8F8FF',  // Leveza, minimalismo
+  pretoObsidian: '#0A0A0B',   // Background principal (dark theme)
+  brancoLuminoso: '#E8E8F0',  // Texto principal (light on dark)
   lilasNeon: '#C084FF',       // Destaque, elementos vibrantes
   douradoSuave: '#E0C87A',    // Premium, VIP
   cinzaFumaca: '#2A2A2E',     // Base para UI
@@ -76,12 +76,14 @@ module.exports = {
         },
         // Cores de base Lumera
         lumera: {
-          obsidian: '#0E0E0F',     // Preto Obsidian
-          luminoso: '#F8F8FF',     // Branco Luminoso
+          obsidian: '#0A0A0B',     // Background principal (dark)
+          luminoso: '#E8E8F0',     // Texto principal (light on dark)
           fumaca: '#2A2A2E',       // Cinza Fumaça
-          surface: '#F5F3FF',      // Superfície clara (com tom roxo)
-          border: '#E0D4FF',       // Bordas (com tom roxo)
-          divider: '#F0EAFF',      // Divisores
+          surface: '#141418',      // Background de cards/surfaces
+          'surface-alt': '#1A1A20', // Surface alternativa mais clara
+          border: '#2D2640',       // Bordas (tom roxo escuro)
+          divider: '#1E1B2E',      // Divisores
+          muted: '#9B95A8',        // Texto secundário/muted
         },
       },
       fontFamily: {
@@ -92,10 +94,62 @@ module.exports = {
         'card-hover': '0 4px 16px rgba(123, 46, 255, 0.15)',
         'glow': '0 0 20px rgba(123, 46, 255, 0.3)',
         'glow-lg': '0 0 40px rgba(123, 46, 255, 0.4)',
+        'festival': '0 0 15px rgba(123, 46, 255, 0.2), 0 0 30px rgba(74, 108, 255, 0.1)',
       },
       backgroundImage: {
         'gradient-lumera': 'linear-gradient(135deg, #7B2EFF 0%, #4A6CFF 100%)',
         'gradient-lumera-vertical': 'linear-gradient(180deg, #7B2EFF 0%, #4A6CFF 100%)',
+        'gradient-festival': 'linear-gradient(135deg, #7B2EFF 0%, #C084FF 50%, #4A6CFF 100%)',
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'slide-up': {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'glow-pulse': {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(123,46,255,0.15)' },
+          '50%': { boxShadow: '0 0 30px rgba(123,46,255,0.35)' },
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+        'float-slow': {
+          '0%, 100%': { transform: 'translateY(0px) scale(1)' },
+          '50%': { transform: 'translateY(-30px) scale(1.05)' },
+        },
+        'aurora': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' },
+        },
+        'text-glow': {
+          '0%, 100%': { textShadow: '0 0 20px rgba(123,46,255,0.3), 0 0 60px rgba(123,46,255,0.1)' },
+          '50%': { textShadow: '0 0 30px rgba(123,46,255,0.5), 0 0 80px rgba(123,46,255,0.2)' },
+        },
+        'border-rotate': {
+          '0%': { backgroundPosition: '0% 0%' },
+          '100%': { backgroundPosition: '200% 0%' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.4s ease-out',
+        'slide-up': 'slide-up 0.5s ease-out',
+        'scale-in': 'scale-in 0.3s ease-out',
+        'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
+        'float': 'float 6s ease-in-out infinite',
+        'float-slow': 'float-slow 8s ease-in-out infinite',
+        'aurora': 'aurora 8s ease infinite',
+        'text-glow': 'text-glow 3s ease-in-out infinite',
+        'border-rotate': 'border-rotate 3s linear infinite',
       },
     },
   },

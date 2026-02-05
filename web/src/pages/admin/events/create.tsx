@@ -108,7 +108,7 @@ export default function CreateEvent() {
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Criar Novo Evento</h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-lumera-muted mt-2">
               Preencha os dados do seu evento
             </p>
           </div>
@@ -129,7 +129,7 @@ export default function CreateEvent() {
                 />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-lumera-muted mb-1">
                     Descrição *
                   </label>
                   <textarea
@@ -138,22 +138,22 @@ export default function CreateEvent() {
                       minLength: { value: 10, message: 'Descrição deve ter pelo menos 10 caracteres' }
                     })}
                     rows={5}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     placeholder="Descreva seu evento de forma detalhada..."
                   />
                   {errors.description && (
-                    <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                    <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Categoria *
                     </label>
                     <select
                       {...register('category', { required: 'Categoria é obrigatória' })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     >
                       <option value="">Selecione uma categoria</option>
                       {CATEGORIES.map(cat => (
@@ -161,23 +161,23 @@ export default function CreateEvent() {
                       ))}
                     </select>
                     {errors.category && (
-                      <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+                      <p className="mt-1 text-sm text-red-400">{errors.category.message}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Status *
                     </label>
                     <select
                       {...register('status', { required: 'Status é obrigatório' })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     >
                       <option value="DRAFT">Rascunho</option>
                       <option value="PUBLISHED">Publicado</option>
                     </select>
                     {errors.status && (
-                      <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+                      <p className="mt-1 text-sm text-red-400">{errors.status.message}</p>
                     )}
                   </div>
                 </div>
@@ -236,12 +236,12 @@ export default function CreateEvent() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-lumera-muted mb-1">
                       Classificação Etária
                     </label>
                     <select
                       {...register('ageRestriction')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     >
                       <option value="">Livre</option>
                       <option value="10">10 anos</option>
@@ -251,7 +251,7 @@ export default function CreateEvent() {
                       <option value="18">18 anos</option>
                       <option value="21">21 anos</option>
                     </select>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-lumera-muted mt-1">
                       Idade mínima para participar do evento
                     </p>
                   </div>
@@ -264,16 +264,16 @@ export default function CreateEvent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-lumera-muted mb-1">
                     Regras do Evento
                   </label>
                   <textarea
                     {...register('rules')}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     placeholder="Digite as regras do evento (uma por linha)&#10;Ex:&#10;- Proibido entrada de bebidas&#10;- Proibido fumar no local&#10;- Obrigatório apresentar documento com foto"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-lumera-muted mt-1">
                     Informe as regras e orientações para os participantes
                   </p>
                 </div>
@@ -285,7 +285,7 @@ export default function CreateEvent() {
               <h2 className="text-xl font-semibold mb-4">Imagens</h2>
               <div className="space-y-4">
                 {/* Upload Area */}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                <div className="border-2 border-dashed border-lumera-border rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -300,7 +300,7 @@ export default function CreateEvent() {
                     className="cursor-pointer flex flex-col items-center"
                   >
                     <svg
-                      className="w-12 h-12 text-gray-400 mb-3"
+                      className="w-12 h-12 text-lumera-muted mb-3"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -315,14 +315,14 @@ export default function CreateEvent() {
                     {uploading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-gray-600">Enviando...</span>
+                        <span className="text-lumera-muted">Enviando...</span>
                       </div>
                     ) : (
                       <>
-                        <span className="text-primary-600 font-medium">
+                        <span className="text-primary-400 font-medium">
                           Clique para enviar imagens
                         </span>
-                        <span className="text-sm text-gray-500 mt-1">
+                        <span className="text-sm text-lumera-muted mt-1">
                           PNG, JPG, GIF ou WebP (max. 5MB cada)
                         </span>
                       </>
@@ -335,7 +335,7 @@ export default function CreateEvent() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {uploadedImages.map((url, index) => (
                       <div key={index} className="relative group">
-                        <div className="aspect-video relative rounded-lg overflow-hidden bg-gray-100">
+                        <div className="aspect-video relative rounded-lg overflow-hidden bg-lumera-surface-alt">
                           <Image
                             src={url}
                             alt={`Imagem ${index + 1}`}
@@ -357,7 +357,7 @@ export default function CreateEvent() {
                   </div>
                 )}
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-lumera-muted">
                   {uploadedImages.length > 0
                     ? `${uploadedImages.length} imagem(ns) selecionada(s)`
                     : 'Nenhuma imagem selecionada'}
@@ -366,7 +366,7 @@ export default function CreateEvent() {
             </div>
 
             {/* Botões */}
-            <div className="flex gap-4 pt-4 border-t border-gray-200">
+            <div className="flex gap-4 pt-4 border-t border-lumera-border">
               <Button
                 type="button"
                 variant="outline"

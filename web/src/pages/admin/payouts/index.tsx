@@ -14,11 +14,11 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  PROCESSING: 'bg-blue-100 text-blue-800',
-  COMPLETED: 'bg-green-100 text-green-800',
-  FAILED: 'bg-red-100 text-red-800',
-  CANCELLED: 'bg-gray-100 text-gray-800',
+  PENDING: 'bg-yellow-500/20 text-yellow-300',
+  PROCESSING: 'bg-blue-500/20 text-blue-300',
+  COMPLETED: 'bg-green-500/20 text-green-300',
+  FAILED: 'bg-red-500/20 text-red-300',
+  CANCELLED: 'bg-lumera-surface-alt text-lumera-luminoso',
 };
 
 const methodLabels: Record<string, string> = {
@@ -122,8 +122,8 @@ export default function AdminPayoutsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestao de Repasses</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-lumera-luminoso">Gestao de Repasses</h1>
+            <p className="text-lumera-muted mt-1">
               {total} repasses encontrados
             </p>
           </div>
@@ -133,7 +133,7 @@ export default function AdminPayoutsPage() {
         <div className="card p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-lumera-muted mb-1">Status</label>
               <select
                 value={status}
                 onChange={(e) => { setStatus(e.target.value); setPage(1); }}
@@ -155,68 +155,68 @@ export default function AdminPayoutsPage() {
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-              <p className="mt-4 text-gray-600">Carregando repasses...</p>
+              <p className="mt-4 text-lumera-muted">Carregando repasses...</p>
             </div>
           ) : payouts.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-lumera-muted">
               Nenhum repasse encontrado
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-lumera-obsidian">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Organizador
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Valor
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Metodo
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Data
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-right text-xs font-medium text-lumera-muted uppercase tracking-wider">
                       Acoes
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-lumera-surface divide-y divide-lumera-border">
                   {payouts.map((payout) => (
-                    <tr key={payout.id} className="hover:bg-gray-50">
+                    <tr key={payout.id} className="hover:bg-primary-500/10">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{payout.organizerAccount.user.name}</div>
-                          <div className="text-sm text-gray-500">{payout.organizerAccount.user.email}</div>
+                          <div className="text-sm font-medium text-lumera-luminoso">{payout.organizerAccount.user.name}</div>
+                          <div className="text-sm text-lumera-muted">{payout.organizerAccount.user.email}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{formatCurrency(payout.amount)}</div>
+                          <div className="text-sm font-medium text-lumera-luminoso">{formatCurrency(payout.amount)}</div>
                           {payout.fee > 0 && (
-                            <div className="text-xs text-gray-500">Taxa: {formatCurrency(payout.fee)}</div>
+                            <div className="text-xs text-lumera-muted">Taxa: {formatCurrency(payout.fee)}</div>
                           )}
-                          <div className="text-xs text-green-600">Liquido: {formatCurrency(payout.netAmount)}</div>
+                          <div className="text-xs text-green-400">Liquido: {formatCurrency(payout.netAmount)}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{methodLabels[payout.payoutMethod]}</span>
+                        <span className="text-sm text-lumera-luminoso">{methodLabels[payout.payoutMethod]}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[payout.status]}`}>
                           {statusLabels[payout.status]}
                         </span>
                         {payout.failureReason && (
-                          <p className="text-xs text-red-600 mt-1">{payout.failureReason}</p>
+                          <p className="text-xs text-red-400 mt-1">{payout.failureReason}</p>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-lumera-muted">
                           <div>Solicitado: {formatDate(payout.requestedAt)}</div>
                           {payout.processedAt && (
                             <div>Processado: {formatDate(payout.processedAt)}</div>
@@ -232,7 +232,7 @@ export default function AdminPayoutsPage() {
                             <Button size="sm" onClick={() => handleApprove(payout.id)}>
                               Aprovar
                             </Button>
-                            <Button variant="outline" size="sm" className="text-red-600" onClick={() => openRejectModal(payout.id)}>
+                            <Button variant="outline" size="sm" className="text-red-400" onClick={() => openRejectModal(payout.id)}>
                               Rejeitar
                             </Button>
                           </div>
@@ -248,7 +248,7 @@ export default function AdminPayoutsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="px-6 py-4 border-t flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-lumera-muted">
                 Pagina {page} de {totalPages}
               </div>
               <div className="flex gap-2">
@@ -276,10 +276,10 @@ export default function AdminPayoutsPage() {
         {/* Reject Modal */}
         {showRejectModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Rejeitar Repasse</h3>
+            <div className="bg-lumera-surface rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Rejeitar Repasse</h3>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Motivo da rejeicao</label>
+                <label className="block text-sm font-medium text-lumera-muted mb-1">Motivo da rejeicao</label>
                 <textarea
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}

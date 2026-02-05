@@ -70,12 +70,12 @@ export default function AdminDashboard() {
 
   const getPaymentStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      PAID: { label: 'Pago', className: 'bg-green-100 text-green-800' },
-      PENDING: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800' },
-      FAILED: { label: 'Falhou', className: 'bg-red-100 text-red-800' },
-      REFUNDED: { label: 'Reembolsado', className: 'bg-gray-100 text-gray-800' },
+      PAID: { label: 'Pago', className: 'bg-green-500/20 text-green-300' },
+      PENDING: { label: 'Pendente', className: 'bg-yellow-500/20 text-yellow-300' },
+      FAILED: { label: 'Falhou', className: 'bg-red-500/20 text-red-400' },
+      REFUNDED: { label: 'Reembolsado', className: 'bg-lumera-surface-alt text-lumera-luminoso' },
     };
-    const info = statusMap[status] || { label: status, className: 'bg-gray-100 text-gray-800' };
+    const info = statusMap[status] || { label: status, className: 'bg-lumera-surface-alt text-lumera-luminoso' };
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${info.className}`}>{info.label}</span>;
   };
 
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
         <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando dashboard...</p>
+            <p className="mt-4 text-lumera-muted">Carregando dashboard...</p>
           </div>
         </div>
       </>
@@ -100,13 +100,13 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-lumera-luminoso animate-fade-in">Dashboard</h1>
+            <p className="text-lumera-muted mt-1">
               Acompanhe suas vendas em tempo real
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 text-sm text-gray-600">
+            <label className="flex items-center gap-2 text-sm text-lumera-muted">
               <input
                 type="checkbox"
                 checked={autoRefresh}
@@ -125,23 +125,23 @@ export default function AdminDashboard() {
         </div>
 
         {/* Today's Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 stagger-children">
           <div className="card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Receita Hoje</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-lumera-muted">Receita Hoje</p>
+                <p className="text-2xl font-bold text-lumera-luminoso">
                   {formatCurrency(dashboard?.summary.todayRevenue || 0)}
                 </p>
                 {(dashboard?.summary.dailyGrowth ?? 0) !== 0 && (
-                  <p className={`text-sm ${(dashboard?.summary.dailyGrowth ?? 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-sm ${(dashboard?.summary.dailyGrowth ?? 0) > 0 ? 'text-green-400' : 'text-red-400'}`}>
                     {(dashboard?.summary.dailyGrowth ?? 0) > 0 ? '+' : ''}
                     {(dashboard?.summary.dailyGrowth ?? 0).toFixed(1)}% vs ontem
                   </p>
                 )}
               </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-3 bg-green-500/20 rounded-full">
+                <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -151,15 +151,15 @@ export default function AdminDashboard() {
           <div className="card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Pedidos Hoje</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-lumera-muted">Pedidos Hoje</p>
+                <p className="text-2xl font-bold text-lumera-luminoso">
                   {dashboard?.summary.todayOrders || 0}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-lumera-muted">
                   {dashboard?.summary.todayTickets || 0} ingressos
                 </p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
+              <div className="p-3 bg-blue-500/20 rounded-full">
                 <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
@@ -170,15 +170,15 @@ export default function AdminDashboard() {
           <div className="card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Receita do Mes</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-lumera-muted">Receita do Mes</p>
+                <p className="text-2xl font-bold text-lumera-luminoso">
                   {formatCurrency(dashboard?.summary.monthRevenue || 0)}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-lumera-muted">
                   {dashboard?.summary.monthOrders || 0} pedidos
                 </p>
               </div>
-              <div className="p-3 bg-purple-100 rounded-full">
+              <div className="p-3 bg-purple-500/20 rounded-full">
                 <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -189,14 +189,14 @@ export default function AdminDashboard() {
           <div className="card p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Pendentes</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-lumera-muted">Pendentes</p>
+                <p className="text-2xl font-bold text-lumera-luminoso">
                   {dashboard?.summary.pendingOrders || 0}
                 </p>
-                <p className="text-sm text-gray-500">aguardando pagamento</p>
+                <p className="text-sm text-lumera-muted">aguardando pagamento</p>
               </div>
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <svg className="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-3 bg-yellow-500/20 rounded-full">
+                <svg className="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 stagger-children">
           <div className="card p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white">
             <p className="text-sm opacity-80">Receita Total (Todos os Tempos)</p>
             <p className="text-3xl font-bold mt-1">
@@ -238,14 +238,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Orders and Upcoming Events */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-fade-in">
           {/* Recent Orders */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-lumera-luminoso">
                 Pedidos Recentes
               </h3>
-              <Link href="/admin/orders" className="text-primary-600 text-sm hover:underline">
+              <Link href="/admin/orders" className="text-primary-400 text-sm hover:underline">
                 Ver todos
               </Link>
             </div>
@@ -255,21 +255,21 @@ export default function AdminDashboard() {
                   <Link
                     key={order.id}
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg hover:bg-primary-500/10 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
+                      <p className="font-medium text-lumera-luminoso truncate">
                         {order.customer}
                       </p>
-                      <p className="text-sm text-gray-500 truncate">
+                      <p className="text-sm text-lumera-muted truncate">
                         {order.event}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-lumera-muted">
                         {formatDate(order.createdAt)}
                       </p>
                     </div>
                     <div className="text-right ml-4">
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-lumera-luminoso">
                         {formatCurrency(order.total)}
                       </p>
                       {getPaymentStatusBadge(order.paymentStatus)}
@@ -278,9 +278,9 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-lumera-muted">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="mx-auto h-12 w-12 text-lumera-muted"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -295,10 +295,10 @@ export default function AdminDashboard() {
           {/* Upcoming Events */}
           <div className="card p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-lumera-luminoso">
                 Proximos Eventos
               </h3>
-              <Link href="/admin/events" className="text-primary-600 text-sm hover:underline">
+              <Link href="/admin/events" className="text-primary-400 text-sm hover:underline">
                 Ver todos
               </Link>
             </div>
@@ -308,30 +308,30 @@ export default function AdminDashboard() {
                   <Link
                     key={event.id}
                     href={`/admin/events/${event.id}/tickets`}
-                    className="block p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="block p-3 bg-lumera-obsidian rounded-lg hover:bg-primary-500/10 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium text-gray-900 truncate">
+                      <p className="font-medium text-lumera-luminoso truncate">
                         {event.name}
                       </p>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-lumera-muted">
                         {getRelativeDate(event.date)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                    <div className="flex items-center gap-2 text-sm text-lumera-muted mb-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       </svg>
                       <span className="truncate">{event.location}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2 mr-3">
+                      <div className="flex-1 bg-lumera-border rounded-full h-2 mr-3">
                         <div
                           className="bg-primary-600 h-2 rounded-full transition-all"
                           style={{ width: `${Math.min(event.occupancy, 100)}%` }}
                         ></div>
                       </div>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-lumera-muted">
                         {event.ticketsSold}/{event.totalCapacity}
                       </span>
                     </div>
@@ -339,9 +339,9 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-lumera-muted">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="mx-auto h-12 w-12 text-lumera-muted"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -362,38 +362,38 @@ export default function AdminDashboard() {
         {/* Top Events This Month */}
         {dashboard?.topEvents && dashboard.topEvents.length > 0 && (
           <div className="card p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">
               Top Eventos Este Mes
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Evento</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Pedidos</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Receita</th>
+                  <tr className="border-b border-lumera-border">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-lumera-muted">Evento</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-lumera-muted">Pedidos</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-lumera-muted">Receita</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dashboard.topEvents.map((event, index) => (
-                    <tr key={event.id} className="border-b border-gray-100 last:border-0">
+                    <tr key={event.id} className="border-b border-lumera-border last:border-0">
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <span className="flex items-center justify-center w-8 h-8 bg-primary-100 text-primary-600 rounded-full text-sm font-medium">
+                          <span className="flex items-center justify-center w-8 h-8 bg-primary-500/20 text-primary-400 rounded-full text-sm font-medium">
                             {index + 1}
                           </span>
                           <Link
                             href={`/admin/events/${event.id}/tickets`}
-                            className="font-medium text-gray-900 hover:text-primary-600"
+                            className="font-medium text-lumera-luminoso hover:text-primary-400"
                           >
                             {event.name}
                           </Link>
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-right text-gray-600">
+                      <td className="py-3 px-4 text-right text-lumera-muted">
                         {event.orders}
                       </td>
-                      <td className="py-3 px-4 text-right font-medium text-gray-900">
+                      <td className="py-3 px-4 text-right font-medium text-lumera-luminoso">
                         {formatCurrency(event.revenue)}
                       </td>
                     </tr>

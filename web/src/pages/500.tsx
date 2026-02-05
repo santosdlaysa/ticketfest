@@ -16,8 +16,8 @@ export default function Custom500() {
         />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center px-4">
-        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 md:p-12">
+      <div className="min-h-screen bg-lumera-obsidian flex items-center justify-center px-4">
+        <div className="max-w-2xl w-full bg-lumera-surface rounded-2xl shadow-xl p-8 md:p-12">
           <div className="text-center">
             {/* Código de erro */}
             <div className="mb-6">
@@ -27,9 +27,9 @@ export default function Custom500() {
             </div>
 
             {/* Ícone de erro */}
-            <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6 -mt-16">
+            <div className="mx-auto w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mb-6 -mt-16">
               <svg
-                className="w-10 h-10 text-red-600"
+                className="w-10 h-10 text-red-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -45,25 +45,25 @@ export default function Custom500() {
             </div>
 
             {/* Título */}
-            <h1 className="text-3xl md:text-4xl font-bold text-lumera-obsidian mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-lumera-luminoso mb-4">
               Erro Interno do Servidor
             </h1>
 
             {/* Descrição */}
-            <p className="text-lg text-gray-600 mb-4">
+            <p className="text-lg text-lumera-muted mb-4">
               Desculpe, nossos servidores encontraram um problema inesperado.
             </p>
-            <p className="text-base text-gray-500 mb-8">
+            <p className="text-base text-lumera-muted mb-8">
               Nossa equipe foi notificada automaticamente e já está trabalhando para
               resolver a situação o mais rápido possível.
             </p>
 
             {/* Sugestões */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 text-left">
-              <h3 className="font-semibold text-blue-900 mb-2">
+            <div className="bg-blue-500/10 border border-lumera-border rounded-lg p-4 mb-8 text-left">
+              <h3 className="font-semibold text-blue-300 mb-2">
                 O que você pode fazer:
               </h3>
-              <ul className="space-y-2 text-sm text-blue-800">
+              <ul className="space-y-2 text-sm text-blue-300">
                 <li className="flex items-start">
                   <svg
                     className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0"
@@ -173,14 +173,14 @@ export default function Custom500() {
             </div>
 
             {/* Informações de suporte */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <p className="text-sm text-gray-500 mb-2">
+            <div className="mt-8 pt-8 border-t border-lumera-border">
+              <p className="text-sm text-lumera-muted mb-2">
                 Se o problema persistir, entre em contato com nosso suporte:
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center text-sm">
                 <a
                   href="mailto:suporte@ticketfest.com"
-                  className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
+                  className="text-primary-400 hover:text-primary-300 font-medium flex items-center"
                 >
                   <svg
                     className="w-4 h-4 mr-1"

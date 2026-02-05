@@ -39,8 +39,8 @@ export default function ForgotPassword() {
             <div className="w-16 h-16 bg-gradient-lumera rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
               <span className="text-white font-bold text-3xl">L</span>
             </div>
-            <h1 className="text-3xl font-bold text-lumera-obsidian">Esqueceu sua senha?</h1>
-            <p className="text-gray-600 mt-2">
+            <h1 className="text-3xl font-bold text-lumera-luminoso">Esqueceu sua senha?</h1>
+            <p className="text-lumera-muted mt-2">
               {submitted
                 ? 'Verifique seu email para continuar'
                 : 'Digite seu email para receber um link de recuperacao'
@@ -55,11 +55,11 @@ export default function ForgotPassword() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Email enviado!</h2>
-              <p className="text-gray-600 mb-6">
+              <h2 className="text-xl font-semibold text-lumera-luminoso mb-2">Email enviado!</h2>
+              <p className="text-lumera-muted mb-6">
                 Se o email informado estiver cadastrado, voce recebera um link para redefinir sua senha.
               </p>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm text-lumera-muted mb-6">
                 Nao recebeu? Verifique sua caixa de spam ou tente novamente.
               </p>
               <div className="space-y-3">
@@ -93,9 +93,9 @@ export default function ForgotPassword() {
                 Enviar link de recuperacao
               </Button>
 
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-lumera-muted">
                 Lembrou sua senha?{' '}
-                <Link href="/auth/login" className="text-primary-500 hover:text-primary-600 hover:underline font-medium">
+                <Link href="/auth/login" className="text-primary-500 hover:text-primary-400 hover:underline font-medium">
                   Voltar para o login
                 </Link>
               </p>

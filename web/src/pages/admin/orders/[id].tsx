@@ -14,9 +14,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  CONFIRMED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
+  PENDING: 'bg-yellow-500/20 text-yellow-300',
+  CONFIRMED: 'bg-green-500/20 text-green-300',
+  CANCELLED: 'bg-red-500/20 text-red-300',
 };
 
 const paymentStatusLabels: Record<string, string> = {
@@ -27,9 +27,9 @@ const paymentStatusLabels: Record<string, string> = {
 };
 
 const paymentStatusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  PAID: 'bg-green-100 text-green-800',
-  FAILED: 'bg-red-100 text-red-800',
+  PENDING: 'bg-yellow-500/20 text-yellow-300',
+  PAID: 'bg-green-500/20 text-green-300',
+  FAILED: 'bg-red-500/20 text-red-300',
   REFUNDED: 'bg-purple-100 text-purple-800',
 };
 
@@ -110,7 +110,7 @@ export default function OrderDetailsPage() {
         <div className="p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
-            <p className="mt-4 text-gray-600">Carregando pedido...</p>
+            <p className="mt-4 text-lumera-muted">Carregando pedido...</p>
           </div>
         </div>
       </>
@@ -123,7 +123,7 @@ export default function OrderDetailsPage() {
         <Head><title>Pedido nao encontrado - Lumera</title></Head>
         <div className="p-6">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900">Pedido nao encontrado</h1>
+            <h1 className="text-2xl font-bold text-lumera-luminoso">Pedido nao encontrado</h1>
             <Link href="/admin/orders">
               <Button className="mt-4">Voltar para Pedidos</Button>
             </Link>
@@ -141,12 +141,12 @@ export default function OrderDetailsPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <div className="flex items-center gap-4 mb-2">
-              <Link href="/admin/orders" className="text-gray-500 hover:text-gray-700">
+              <Link href="/admin/orders" className="text-lumera-muted hover:text-lumera-luminoso">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </Link>
-              <h1 className="text-3xl font-bold text-gray-900">Pedido #{order.id.slice(0, 8)}</h1>
+              <h1 className="text-3xl font-bold text-lumera-luminoso">Pedido #{order.id.slice(0, 8)}</h1>
             </div>
             <div className="flex items-center gap-3">
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[order.status]}`}>
@@ -163,7 +163,7 @@ export default function OrderDetailsPage() {
                 <Button variant="outline" onClick={handleResendEmail}>
                   Reenviar Email
                 </Button>
-                <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50" onClick={handleRefund}>
+                <Button variant="outline" className="text-red-400 border-red-400 hover:bg-red-500/10" onClick={handleRefund}>
                   Reembolsar
                 </Button>
               </>
@@ -176,17 +176,17 @@ export default function OrderDetailsPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Items */}
             <div className="card p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Itens do Pedido</h2>
+              <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Itens do Pedido</h2>
               <div className="space-y-4">
                 {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div key={item.id} className="flex items-center justify-between p-4 bg-lumera-obsidian rounded-lg">
                     <div>
-                      <h3 className="font-medium text-gray-900">{item.ticket.name}</h3>
-                      <p className="text-sm text-gray-500">Quantidade: {item.quantity}</p>
+                      <h3 className="font-medium text-lumera-luminoso">{item.ticket.name}</h3>
+                      <p className="text-sm text-lumera-muted">Quantidade: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatCurrency(item.price * item.quantity)}</p>
-                      <p className="text-sm text-gray-500">{formatCurrency(item.price)} cada</p>
+                      <p className="font-medium text-lumera-luminoso">{formatCurrency(item.price * item.quantity)}</p>
+                      <p className="text-sm text-lumera-muted">{formatCurrency(item.price)} cada</p>
                     </div>
                   </div>
                 ))}
@@ -194,17 +194,17 @@ export default function OrderDetailsPage() {
 
               {/* Totals */}
               <div className="mt-6 pt-6 border-t space-y-2">
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-lumera-muted">
                   <span>Subtotal</span>
                   <span>{formatCurrency(order.subtotal)}</span>
                 </div>
                 {order.discount > 0 && (
-                  <div className="flex justify-between text-green-600">
+                  <div className="flex justify-between text-green-400">
                     <span>Desconto {order.couponCode && `(${order.couponCode})`}</span>
                     <span>-{formatCurrency(order.discount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-lg font-semibold text-gray-900 pt-2 border-t">
+                <div className="flex justify-between text-lg font-semibold text-lumera-luminoso pt-2 border-t">
                   <span>Total</span>
                   <span>{formatCurrency(order.total)}</span>
                 </div>
@@ -214,27 +214,27 @@ export default function OrderDetailsPage() {
             {/* Tickets */}
             {order.items.some((item) => item.ticketInstances && item.ticketInstances.length > 0) && (
               <div className="card p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Ingressos</h2>
+                <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Ingressos</h2>
                 <div className="space-y-4">
                   {order.items.map((item) =>
                     item.ticketInstances?.map((instance) => (
-                      <div key={instance.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div key={instance.id} className="flex items-center justify-between p-4 bg-lumera-obsidian rounded-lg">
                         <div>
-                          <p className="font-medium text-gray-900">{item.ticket.name}</p>
-                          <p className="text-sm font-mono text-gray-500">{instance.qrCode}</p>
+                          <p className="font-medium text-lumera-luminoso">{item.ticket.name}</p>
+                          <p className="text-sm font-mono text-lumera-muted">{instance.qrCode}</p>
                         </div>
                         <div className="text-right">
                           {instance.checkedIn ? (
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-300">
                               Check-in realizado
                             </span>
                           ) : (
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-lumera-surface-alt text-lumera-luminoso">
                               Aguardando check-in
                             </span>
                           )}
                           {instance.checkedInAt && (
-                            <p className="text-xs text-gray-500 mt-1">{formatDate(instance.checkedInAt)}</p>
+                            <p className="text-xs text-lumera-muted mt-1">{formatDate(instance.checkedInAt)}</p>
                           )}
                         </div>
                       </div>
@@ -249,20 +249,20 @@ export default function OrderDetailsPage() {
           <div className="space-y-6">
             {/* Customer */}
             <div className="card p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Cliente</h2>
+              <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Cliente</h2>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-500">Nome</p>
-                  <p className="font-medium text-gray-900">{order.user.name}</p>
+                  <p className="text-sm text-lumera-muted">Nome</p>
+                  <p className="font-medium text-lumera-luminoso">{order.user.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium text-gray-900">{order.user.email}</p>
+                  <p className="text-sm text-lumera-muted">Email</p>
+                  <p className="font-medium text-lumera-luminoso">{order.user.email}</p>
                 </div>
                 {order.user.phone && (
                   <div>
-                    <p className="text-sm text-gray-500">Telefone</p>
-                    <p className="font-medium text-gray-900">{order.user.phone}</p>
+                    <p className="text-sm text-lumera-muted">Telefone</p>
+                    <p className="font-medium text-lumera-luminoso">{order.user.phone}</p>
                   </div>
                 )}
               </div>
@@ -270,45 +270,45 @@ export default function OrderDetailsPage() {
 
             {/* Event */}
             <div className="card p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Evento</h2>
+              <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Evento</h2>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-500">Nome</p>
-                  <p className="font-medium text-gray-900">{order.event.name}</p>
+                  <p className="text-sm text-lumera-muted">Nome</p>
+                  <p className="font-medium text-lumera-luminoso">{order.event.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Data</p>
-                  <p className="font-medium text-gray-900">{formatDate(order.event.date)}</p>
+                  <p className="text-sm text-lumera-muted">Data</p>
+                  <p className="font-medium text-lumera-luminoso">{formatDate(order.event.date)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Local</p>
-                  <p className="font-medium text-gray-900">{order.event.location}</p>
+                  <p className="text-sm text-lumera-muted">Local</p>
+                  <p className="font-medium text-lumera-luminoso">{order.event.location}</p>
                 </div>
               </div>
             </div>
 
             {/* Payment */}
             <div className="card p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Pagamento</h2>
+              <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Pagamento</h2>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-500">Metodo</p>
-                  <p className="font-medium text-gray-900">{paymentMethodLabels[order.paymentMethod] || order.paymentMethod}</p>
+                  <p className="text-sm text-lumera-muted">Metodo</p>
+                  <p className="font-medium text-lumera-luminoso">{paymentMethodLabels[order.paymentMethod] || order.paymentMethod}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-sm text-lumera-muted">Status</p>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${paymentStatusColors[order.paymentStatus]}`}>
                     {paymentStatusLabels[order.paymentStatus]}
                   </span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Data do Pedido</p>
-                  <p className="font-medium text-gray-900">{formatDate(order.createdAt)}</p>
+                  <p className="text-sm text-lumera-muted">Data do Pedido</p>
+                  <p className="font-medium text-lumera-luminoso">{formatDate(order.createdAt)}</p>
                 </div>
                 {order.paidAt && (
                   <div>
-                    <p className="text-sm text-gray-500">Data do Pagamento</p>
-                    <p className="font-medium text-gray-900">{formatDate(order.paidAt)}</p>
+                    <p className="text-sm text-lumera-muted">Data do Pagamento</p>
+                    <p className="font-medium text-lumera-luminoso">{formatDate(order.paidAt)}</p>
                   </div>
                 )}
               </div>
@@ -316,11 +316,11 @@ export default function OrderDetailsPage() {
 
             {/* Order ID */}
             <div className="card p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Identificacao</h2>
+              <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Identificacao</h2>
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm text-gray-500">ID do Pedido</p>
-                  <p className="font-mono text-sm text-gray-900 break-all">{order.id}</p>
+                  <p className="text-sm text-lumera-muted">ID do Pedido</p>
+                  <p className="font-mono text-sm text-lumera-luminoso break-all">{order.id}</p>
                 </div>
               </div>
             </div>

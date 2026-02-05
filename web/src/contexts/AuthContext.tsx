@@ -115,10 +115,15 @@ export const useAuthStore = create<AuthState>()(
           set({ user, isAuthenticated: true });
           return true;
         } catch (error) {
-          set({
-            user: null,
-            isAuthenticated: false,
-          });
+          // Só limpa o estado se não houve um login bem-sucedido enquanto o check rodava.
+          // Isso evita que uma resposta atrasada de checkAuth sobreponha um login recente.
+          const currentState = get();
+          if (!currentState.isAuthenticated) {
+            set({
+              user: null,
+              isAuthenticated: false,
+            });
+          }
           return false;
         }
       },

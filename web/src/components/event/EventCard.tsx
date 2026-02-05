@@ -16,7 +16,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   return (
     <Link href={`/events/${event.slug}`} aria-label={`Ver detalhes do evento ${event.name}`}>
-      <article className="card overflow-hidden cursor-pointer group">
+      <article className="card overflow-hidden cursor-pointer group hover-lift group-hover:shadow-glow">
         {/* Image */}
         <div className="relative h-48 bg-lumera-surface overflow-hidden">
           {event.images && event.images.length > 0 ? (
@@ -35,7 +35,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           )}
           {/* Category Badge */}
           <div className="absolute top-3 right-3">
-            <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-lumera-obsidian" aria-label={`Categoria: ${event.category}`}>
+            <span className="px-3 py-1 bg-lumera-obsidian/70 backdrop-blur-md rounded-full text-xs font-medium text-lumera-luminoso border border-white/[0.1]" aria-label={`Categoria: ${event.category}`}>
               {event.category}
             </span>
           </div>
@@ -43,13 +43,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
         {/* Content */}
         <div className="p-4">
-          <h3 className="font-bold text-lg text-lumera-obsidian mb-2 line-clamp-2 group-hover:text-primary-500 transition-colors">
+          <h3 className="font-bold text-lg text-lumera-luminoso mb-2 line-clamp-2 group-hover:text-primary-400 transition-colors">
             {event.name}
           </h3>
 
           {/* Date and Location */}
           <div className="space-y-1 mb-3">
-            <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center text-sm text-lumera-muted">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 mr-2 text-secondary-500"
@@ -69,7 +69,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 {format(eventDate, "dd/MM/yyyy 'às' HH:mm")}
               </time>
             </div>
-            <div className="flex items-center text-sm text-gray-600">
+            <div className="flex items-center text-sm text-lumera-muted">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 mr-2 text-accent-500"
@@ -98,7 +98,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           {/* Price */}
           {minPrice > 0 && (
             <div className="flex items-baseline" aria-label={`Preço a partir de R$ ${minPrice.toFixed(2)}`}>
-              <span className="text-xs text-gray-500 mr-1">a partir de</span>
+              <span className="text-xs text-lumera-muted mr-1">a partir de</span>
               <span className="text-lg font-bold text-primary-500">
                 R$ {minPrice.toFixed(2)}
               </span>

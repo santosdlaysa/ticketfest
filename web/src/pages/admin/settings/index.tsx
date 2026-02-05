@@ -44,8 +44,8 @@ export default function SettingsPage() {
 
       <div className="p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-lumera-luminoso">Configurações</h1>
+          <p className="text-lumera-muted mt-2">
             Gerencie as configurações da sua conta e empresa
           </p>
         </div>
@@ -55,19 +55,19 @@ export default function SettingsPage() {
             <Link key={section.href} href={section.href}>
               <div className="card p-6 hover:shadow-lg transition-shadow cursor-pointer group">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-primary-50 text-primary-600 rounded-lg group-hover:bg-primary-100 transition-colors">
+                  <div className="p-3 bg-primary-500/10 text-primary-400 rounded-lg group-hover:bg-primary-500/20 transition-colors">
                     {section.icon}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                    <h3 className="text-lg font-semibold text-lumera-luminoso group-hover:text-primary-400 transition-colors">
                       {section.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-lumera-muted mt-1">
                       {section.description}
                     </p>
                   </div>
                   <svg
-                    className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors"
+                    className="w-5 h-5 text-lumera-muted group-hover:text-primary-400 transition-colors"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
