@@ -16,6 +16,8 @@ import permissionsRoutes from './permissions.routes.js';
 import migrateRoutes from './migrate.routes.js';
 import organizerAccountRoutes from './organizer-account.routes.js';
 import splitRoutes from './split.routes.js';
+import companyRoutes from './company.routes.js';
+import checkinWebRoutes from './checkin-web.routes.js';
 import { getConnectionStatus, query } from '../config/database.js';
 
 const router = Router();
@@ -57,6 +59,8 @@ router.use('/permissions', permissionsRoutes);
 router.use('/migrate', migrateRoutes);
 router.use('/organizer-accounts', organizerAccountRoutes);
 router.use('/split', splitRoutes);
+router.use('/company', companyRoutes);
+router.use('/checkin-web', checkinWebRoutes);
 
 // Test endpoint - ONLY FOR DEVELOPMENT
 if (process.env.NODE_ENV !== 'production') {
