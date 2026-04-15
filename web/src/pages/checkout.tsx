@@ -83,6 +83,8 @@ export default function Checkout() {
   }, [cart, router, cartLoaded]);
 
   const onSubmit = async (data: CheckoutForm) => {
+    if (isProcessing) return;
+
     if (!cart || cart.items.length === 0) {
       toast.error('Seu carrinho esta vazio');
       return;
@@ -146,6 +148,7 @@ export default function Checkout() {
   };
 
   const handleCardPaymentSuccess = async (cardToken: string, installments: number) => {
+    if (isProcessing) return;
     if (!cart || !pendingOrderData) return;
 
     setIsProcessing(true);
