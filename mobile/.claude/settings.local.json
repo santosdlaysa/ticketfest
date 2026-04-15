@@ -18,7 +18,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git -C /c/Users/ldsantos/ticketfest/mobile config user.email)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(python -c \"from PIL import Image; img = Image.open\\('assets/icon.png'\\); print\\('size:', img.size\\); print\\('mode:', img.mode\\); print\\('has_alpha:', img.mode in \\('RGBA','LA'\\) or \\(img.mode=='P' and 'transparency' in img.info\\)\\)\")",
+      "Bash(eas update:configure --non-interactive)"
     ]
   }
 }
