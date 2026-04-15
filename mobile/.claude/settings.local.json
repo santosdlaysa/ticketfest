@@ -12,7 +12,8 @@
       "Bash(PGPASSWORD=220798 psql:*)",
       "Bash(node -e:*)",
       "Bash(npm run build:*)",
-      "Bash(PGPASSWORD=6Ql9SRKmrpl7mZvFtMnp0UZrWSVEIM92 psql:*)"
+      "Bash(PGPASSWORD=6Ql9SRKmrpl7mZvFtMnp0UZrWSVEIM92 psql:*)",
+      "Bash(curl:*)"
     ]
   }
 }

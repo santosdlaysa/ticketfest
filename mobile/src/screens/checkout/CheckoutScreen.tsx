@@ -1343,7 +1343,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   pixAmountValue: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
     color: theme.colors.primary,
   },
@@ -1591,7 +1591,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   totalValue: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
     color: theme.colors.onSurface,
   },

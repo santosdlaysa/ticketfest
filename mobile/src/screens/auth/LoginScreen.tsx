@@ -118,9 +118,11 @@ export default function LoginScreen({ navigation }: Props) {
       const errorLower = errorMessage.toLowerCase();
 
       // Try to identify which field has the error
-      if (errorLower.includes('email') || errorLower.includes('usuário não encontrado') || errorLower.includes('user not found')) {
+      if (errorLower.includes('usuário não encontrado') || errorLower.includes('user not found')) {
         setErrors((prev) => ({ ...prev, email: 'Email não encontrado' }));
-      } else if (errorLower.includes('senha') || errorLower.includes('password') || errorLower.includes('incorreta') || errorLower.includes('incorrect') || errorLower.includes('inválid')) {
+      } else if (errorLower.includes('email ou senha') || errorLower.includes('email or password') || errorLower.includes('incorret')) {
+        Alert.alert('Erro no login', 'Email ou senha incorretos. Verifique seus dados ou cadastre-se.');
+      } else if (errorLower.includes('senha') || errorLower.includes('password') || errorLower.includes('inválid')) {
         setErrors((prev) => ({ ...prev, password: 'Senha incorreta' }));
       } else {
         Alert.alert('Erro no login', errorMessage);

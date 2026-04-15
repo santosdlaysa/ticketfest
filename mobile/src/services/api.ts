@@ -26,10 +26,8 @@ import { useLogStore } from '../stores/logStore';
 // Flag para usar dados mock (true = mock, false = API real)
 const USE_MOCK_DATA = false;
 
-// API URL - use localhost for development (change to production URL when deploying)
-const API_URL = __DEV__
-  ? 'http://192.168.100.136:3000/api'  // IP local da máquina (localhost não funciona em dispositivos reais)
-  : 'https://api.Lumera.com/api'; // Production URL
+// API URL
+const API_URL = 'https://ticketfest-tnqy.onrender.com/api';
 
 // Create axios instance
 export const api = axios.create({

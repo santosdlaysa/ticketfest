@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { lightColors, darkColors, lumeraColors } from '../theme';
 import { useThemeStore } from '../stores/themeStore';
 import { usePermissions, TabName } from '../hooks/usePermissions';
@@ -148,6 +149,10 @@ const TAB_CONFIG: TabConfig[] = [
 export default function HomeTabs() {
   const { isDark } = useThemeStore();
   const { allowedTabs } = usePermissions();
+  const insets = useSafeAreaInsets();
+
+  const bottomPadding = Math.max(insets.bottom, 10) + 8;
+  const tabBarHeight = 55 + bottomPadding;
 
   // Filtra apenas as tabs permitidas para o role do usuário
   const visibleTabs = TAB_CONFIG.filter((tab) => allowedTabs.includes(tab.name));
@@ -162,9 +167,9 @@ export default function HomeTabs() {
           backgroundColor: isDark ? lumeraColors.cinzaFumaca : '#fff',
           borderTopColor: isDark ? 'rgba(123, 46, 255, 0.2)' : 'rgba(123, 46, 255, 0.1)',
           borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 85 : 65,
+          height: tabBarHeight,
           paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          paddingBottom: bottomPadding,
           elevation: 8,
           shadowColor: lumeraColors.roxoLumera,
           shadowOffset: { width: 0, height: -4 },

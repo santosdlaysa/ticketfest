@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -9,6 +9,9 @@ import {
   Alert,
   StatusBar,
   Animated,
+  Share,
+  Platform,
+  Linking,
 } from 'react-native';
 import {
   Text,
@@ -32,12 +35,12 @@ import type { Event, Ticket } from '../../types';
 import type { HomeStackParamList } from '../../navigation/types';
 
 const { width, height } = Dimensions.get('window');
-const IMAGE_HEIGHT = height * 0.4;
+const IMAGE_HEIGHT = height * 0.45;
+const HEADER_HEIGHT = Platform.OS === 'ios' ? 100 : 90;
 
 // Helper to fix localhost URLs for mobile
 const fixImageUrl = (url: string): string => {
   if (!url) return 'https://via.placeholder.com/400x250?text=Evento';
-  // Replace localhost with the actual server IP for mobile access
   return url.replace('http://localhost:3000', 'http://192.168.100.136:3000');
 };
 
@@ -66,7 +69,8 @@ export default function EventDetailsScreen() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
-  const scrollY = new Animated.Value(0);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     loadEventDetails();
@@ -94,8 +98,10 @@ export default function EventDetailsScreen() {
     return {
       day: format(date, 'dd', { locale: ptBR }),
       month: format(date, 'MMM', { locale: ptBR }).toUpperCase(),
+      weekday: format(date, 'EEEE', { locale: ptBR }),
       full: format(date, "EEEE, dd 'de' MMMM", { locale: ptBR }),
       time: format(date, 'HH:mm', { locale: ptBR }),
+      year: format(date, 'yyyy', { locale: ptBR }),
     };
   };
 
@@ -113,23 +119,38 @@ export default function EventDetailsScreen() {
   };
 
   const handleAddToCart = async () => {
-    console.log('handleAddToCart chamado', { selectedTicket, quantity });
-    if (!selectedTicket) {
-      console.log('selectedTicket é null');
-      return;
-    }
+    if (!selectedTicket) return;
 
     try {
-      console.log('Chamando addToCart...', { ticketId: selectedTicket.id, quantity });
       await addToCart(selectedTicket.id, quantity);
-      console.log('addToCart sucesso!');
       setModalVisible(false);
       Alert.alert('Sucesso', 'Item adicionado ao carrinho!');
     } catch (error: any) {
-      console.log('Erro ao adicionar ao carrinho:', error);
       Alert.alert('Erro', error.response?.data?.error || error.message || 'Erro ao adicionar ao carrinho');
     }
   };
+
+  const handleShare = useCallback(async () => {
+    if (!event) return;
+    try {
+      await Share.share({
+        title: event.name,
+        message: `${event.name}\n${formatEventDate(event.date).full} às ${formatEventDate(event.date).time}\n${event.location}`,
+      });
+    } catch (error) {
+      // User cancelled
+    }
+  }, [event]);
+
+  const handleOpenMap = useCallback(() => {
+    if (!event) return;
+    const address = encodeURIComponent(event.address || event.location);
+    const url = Platform.select({
+      ios: `maps:?q=${address}`,
+      android: `geo:0,0?q=${address}`,
+    });
+    if (url) Linking.openURL(url);
+  }, [event]);
 
   const isTicketAvailable = (ticket: Ticket) => {
     const now = new Date();
@@ -152,6 +173,13 @@ export default function EventDetailsScreen() {
     return { text: `${available} disponíveis`, color: '#4CAF50', icon: 'check-circle' };
   };
 
+  const getMinPrice = () => {
+    if (tickets.length === 0) return null;
+    const prices = tickets.filter(t => isTicketAvailable(t)).map(t => t.price);
+    if (prices.length === 0) return null;
+    return Math.min(...prices);
+  };
+
   if (loading) {
     return <EventDetailsSkeleton />;
   }
@@ -171,10 +199,66 @@ export default function EventDetailsScreen() {
   const imageUrl = fixImageUrl(event.images?.[0] || '');
   const dateInfo = formatEventDate(event.date);
   const category = categoryConfig[event.category] || { icon: 'calendar', color: theme.colors.primary };
+  const minPrice = getMinPrice();
+
+  // Parallax effect
+  const imageTranslateY = scrollY.interpolate({
+    inputRange: [-IMAGE_HEIGHT, 0, IMAGE_HEIGHT],
+    outputRange: [IMAGE_HEIGHT / 2, 0, -IMAGE_HEIGHT / 3],
+    extrapolate: 'clamp',
+  });
+
+  const imageScale = scrollY.interpolate({
+    inputRange: [-IMAGE_HEIGHT, 0],
+    outputRange: [2, 1],
+    extrapolateRight: 'clamp',
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [IMAGE_HEIGHT - HEADER_HEIGHT - 50, IMAGE_HEIGHT - HEADER_HEIGHT],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const shouldTruncateDescription = (event.description?.length || 0) > 200;
+  const displayDescription = shouldTruncateDescription && !descriptionExpanded
+    ? event.description?.substring(0, 200) + '...'
+    : event.description;
 
   return (
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+
+      {/* Floating Header (appears on scroll) */}
+      <Animated.View style={[styles.floatingHeader, { opacity: headerOpacity }]}>
+        <LinearGradient
+          colors={[lumeraColors.pretoObsidian, lumeraColors.pretoObsidian + 'F0']}
+          style={StyleSheet.absoluteFill}
+        />
+        <TouchableOpacity
+          style={styles.headerBackButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>{event.name}</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.headerActionButton} onPress={handleShare}>
+            <MaterialCommunityIcons name="share-variant" size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerActionButton}
+            onPress={() => navigation.navigate('Cart')}
+          >
+            <MaterialCommunityIcons name="cart-outline" size={20} color="#fff" />
+            {itemCount > 0 && (
+              <View style={styles.headerCartBadge}>
+                <Text style={styles.headerCartBadgeText}>{itemCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
 
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
@@ -184,42 +268,71 @@ export default function EventDetailsScreen() {
         )}
         scrollEventThrottle={16}
       >
-        {/* Hero Image */}
+        {/* Hero Image with Parallax */}
         <View style={styles.heroContainer}>
-          <Image source={{ uri: imageUrl }} style={styles.heroImage} resizeMode="cover" />
+          <Animated.Image
+            source={{ uri: imageUrl }}
+            style={[
+              styles.heroImage,
+              {
+                transform: [
+                  { translateY: imageTranslateY },
+                  { scale: imageScale },
+                ],
+              },
+            ]}
+            resizeMode="cover"
+          />
           <LinearGradient
-            colors={['transparent', lumeraColors.pretoObsidian + 'E6']}
+            colors={['transparent', 'rgba(0,0,0,0.3)', lumeraColors.pretoObsidian + 'EE']}
+            locations={[0.2, 0.6, 1]}
             style={styles.heroGradient}
           />
 
-          {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-          </TouchableOpacity>
+          {/* Top Buttons */}
+          <View style={styles.topButtons}>
+            <TouchableOpacity
+              style={styles.topButton}
+              onPress={() => navigation.goBack()}
+            >
+              <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+            </TouchableOpacity>
 
-          {/* Cart Button */}
-          <TouchableOpacity
-            style={styles.cartButton}
-            onPress={() => navigation.navigate('Cart')}
-          >
-            <MaterialCommunityIcons name="cart-outline" size={24} color="#fff" />
-            {itemCount > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{itemCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+            <View style={styles.topRightButtons}>
+              <TouchableOpacity style={styles.topButton} onPress={handleShare}>
+                <MaterialCommunityIcons name="share-variant" size={20} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.topButton}
+                onPress={() => navigation.navigate('Cart')}
+              >
+                <MaterialCommunityIcons name="cart-outline" size={22} color="#fff" />
+                {itemCount > 0 && (
+                  <View style={styles.cartBadge}>
+                    <Text style={styles.cartBadgeText}>{itemCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {/* Hero Content */}
           <View style={styles.heroContent}>
-            <View style={[styles.categoryBadge, { backgroundColor: category.color }]}>
+            <View style={[styles.categoryBadge, { backgroundColor: category.color + 'DD' }]}>
               <MaterialCommunityIcons name={category.icon as any} size={14} color="#fff" />
               <Text style={styles.categoryText}>{event.category}</Text>
             </View>
             <Text style={styles.heroTitle}>{event.name}</Text>
+            <View style={styles.heroMeta}>
+              <View style={styles.heroMetaItem}>
+                <MaterialCommunityIcons name="calendar" size={16} color={lumeraColors.lilasNeon} />
+                <Text style={styles.heroMetaText}>{dateInfo.full}</Text>
+              </View>
+              <View style={styles.heroMetaItem}>
+                <MaterialCommunityIcons name="clock-outline" size={16} color={lumeraColors.lilasNeon} />
+                <Text style={styles.heroMetaText}>{dateInfo.time}h</Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -228,67 +341,133 @@ export default function EventDetailsScreen() {
           {/* Quick Info Cards */}
           <View style={styles.quickInfoContainer}>
             <Surface style={styles.quickInfoCard}>
-              <MaterialCommunityIcons name="calendar-clock" size={24} color={theme.colors.primary} />
-              <Text style={styles.quickInfoLabel}>Data e hora</Text>
-              <Text style={styles.quickInfoValue}>{dateInfo.full}</Text>
-              <Text style={styles.quickInfoSubvalue}>{dateInfo.time}</Text>
+              <View style={[styles.quickInfoIconContainer, { backgroundColor: lumeraColors.roxoLumera + '12' }]}>
+                <MaterialCommunityIcons name="calendar-month" size={22} color={lumeraColors.roxoLumera} />
+              </View>
+              <View style={styles.quickInfoTextContainer}>
+                <Text style={styles.quickInfoLabel}>Data</Text>
+                <Text style={styles.quickInfoValue}>{dateInfo.day} {dateInfo.month}</Text>
+              </View>
+              <Text style={styles.quickInfoHighlight}>{dateInfo.time}h</Text>
             </Surface>
 
             <Surface style={styles.quickInfoCard}>
-              <MaterialCommunityIcons name="map-marker" size={24} color={theme.colors.primary} />
-              <Text style={styles.quickInfoLabel}>Local</Text>
-              <Text style={styles.quickInfoValue} numberOfLines={2}>{event.location}</Text>
+              <View style={[styles.quickInfoIconContainer, { backgroundColor: lumeraColors.azulGlow + '12' }]}>
+                <MaterialCommunityIcons name="map-marker" size={22} color={lumeraColors.azulGlow} />
+              </View>
+              <View style={styles.quickInfoTextContainer}>
+                <Text style={styles.quickInfoLabel}>Local</Text>
+                <Text style={styles.quickInfoValue} numberOfLines={1}>{event.location}</Text>
+              </View>
+              <TouchableOpacity onPress={handleOpenMap}>
+                <MaterialCommunityIcons name="directions" size={22} color={lumeraColors.azulGlow} />
+              </TouchableOpacity>
             </Surface>
           </View>
-
-          {/* Location Card */}
-          <Surface style={styles.locationCard}>
-            <View style={styles.locationHeader}>
-              <MaterialCommunityIcons name="map-marker-radius" size={24} color={theme.colors.primary} />
-              <Text style={styles.locationTitle}>Endereço</Text>
-            </View>
-            <Text style={styles.locationName}>{event.location}</Text>
-            <Text style={styles.locationAddress}>{event.address}</Text>
-            <TouchableOpacity style={styles.mapButton}>
-              <MaterialCommunityIcons name="directions" size={18} color={theme.colors.primary} />
-              <Text style={styles.mapButtonText}>Ver no mapa</Text>
-            </TouchableOpacity>
-          </Surface>
 
           {/* Description */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="information" size={22} color={theme.colors.primary} />
+              <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.roxoLumera + '12' }]}>
+                <MaterialCommunityIcons name="text-box-outline" size={18} color={lumeraColors.roxoLumera} />
+              </View>
               <Text style={styles.sectionTitle}>Sobre o evento</Text>
             </View>
-            <Text style={styles.description}>{event.description}</Text>
+            <Text style={styles.description}>{displayDescription}</Text>
+            {shouldTruncateDescription && (
+              <TouchableOpacity
+                style={styles.readMoreButton}
+                onPress={() => setDescriptionExpanded(!descriptionExpanded)}
+              >
+                <Text style={styles.readMoreText}>
+                  {descriptionExpanded ? 'Ler menos' : 'Ler mais'}
+                </Text>
+                <MaterialCommunityIcons
+                  name={descriptionExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={18}
+                  color={lumeraColors.roxoLumera}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Location Card */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.azulGlow + '12' }]}>
+                <MaterialCommunityIcons name="map-marker-radius" size={18} color={lumeraColors.azulGlow} />
+              </View>
+              <Text style={styles.sectionTitle}>Localização</Text>
+            </View>
+            <Surface style={styles.locationCard}>
+              <View style={styles.locationContent}>
+                <View style={styles.locationInfo}>
+                  <Text style={styles.locationName}>{event.location}</Text>
+                  <Text style={styles.locationAddress}>{event.address}</Text>
+                </View>
+                <TouchableOpacity style={styles.mapButton} onPress={handleOpenMap}>
+                  <LinearGradient
+                    colors={[lumeraColors.azulGlow, lumeraColors.roxoLumera]}
+                    style={styles.mapButtonGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <MaterialCommunityIcons name="directions" size={20} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </Surface>
           </View>
 
           {/* Organizer */}
           {event.organizer && (
-            <Surface style={styles.organizerCard}>
-              <View style={styles.organizerAvatar}>
-                <MaterialCommunityIcons name="account" size={24} color="#fff" />
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.douradoSuave + '25' }]}>
+                  <MaterialCommunityIcons name="account-star" size={18} color={lumeraColors.douradoSuave} />
+                </View>
+                <Text style={styles.sectionTitle}>Organizador</Text>
               </View>
-              <View style={styles.organizerInfo}>
-                <Text style={styles.organizerLabel}>Organizado por</Text>
-                <Text style={styles.organizerName}>{event.organizer.name}</Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={24} color="#ccc" />
-            </Surface>
+              <Surface style={styles.organizerCard}>
+                <LinearGradient
+                  colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+                  style={styles.organizerAvatar}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <MaterialCommunityIcons name="account" size={22} color="#fff" />
+                </LinearGradient>
+                <View style={styles.organizerInfo}>
+                  <Text style={styles.organizerLabel}>Organizado por</Text>
+                  <Text style={styles.organizerName}>{event.organizer.name}</Text>
+                </View>
+                <MaterialCommunityIcons name="chevron-right" size={22} color="#ccc" />
+              </Surface>
+            </View>
           )}
 
           {/* Tickets Section */}
           <View style={styles.ticketsSection}>
             <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="ticket" size={22} color={theme.colors.primary} />
+              <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.lilasNeon + '20' }]}>
+                <MaterialCommunityIcons name="ticket-confirmation" size={18} color={lumeraColors.lilasNeon} />
+              </View>
               <Text style={styles.sectionTitle}>Ingressos</Text>
+              {minPrice !== null && (
+                <View style={styles.startingPrice}>
+                  <Text style={styles.startingPriceLabel}>a partir de</Text>
+                  <Text style={styles.startingPriceValue}>{formatPrice(minPrice)}</Text>
+                </View>
+              )}
             </View>
 
             {tickets.length === 0 ? (
               <View style={styles.noTickets}>
-                <MaterialCommunityIcons name="ticket-outline" size={48} color="#ccc" />
-                <Text style={styles.noTicketsText}>Ingressos em breve</Text>
+                <View style={styles.noTicketsIcon}>
+                  <MaterialCommunityIcons name="ticket-outline" size={40} color={lumeraColors.lilasNeon} />
+                </View>
+                <Text style={styles.noTicketsTitle}>Ingressos em breve</Text>
+                <Text style={styles.noTicketsText}>Fique atento para quando as vendas iniciarem</Text>
               </View>
             ) : (
               tickets.map((ticket) => {
@@ -296,67 +475,114 @@ export default function EventDetailsScreen() {
                 const status = getTicketStatus(ticket);
 
                 return (
-                  <Surface key={ticket.id} style={[styles.ticketCard, !available && styles.ticketCardDisabled]}>
-                    <View style={styles.ticketContent}>
-                      <View style={styles.ticketMain}>
-                        <Text style={styles.ticketName}>{ticket.name}</Text>
-                        {ticket.description && (
-                          <Text style={styles.ticketDescription}>{ticket.description}</Text>
-                        )}
-                        <View style={[styles.statusBadge, { backgroundColor: status.color + '15' }]}>
-                          <MaterialCommunityIcons name={status.icon as any} size={14} color={status.color} />
-                          <Text style={[styles.statusText, { color: status.color }]}>{status.text}</Text>
-                        </View>
-                      </View>
+                  <View key={ticket.id} style={[styles.ticketCard, !available && styles.ticketCardDisabled]}>
+                    {/* Ticket notch decorations */}
+                    <View style={styles.ticketNotchLeft} />
+                    <View style={styles.ticketNotchRight} />
 
-                      <View style={styles.ticketPricing}>
-                        <Text style={styles.ticketPrice}>{formatPrice(ticket.price)}</Text>
-                        <TouchableOpacity
-                          style={[styles.selectButton, !available && styles.selectButtonDisabled]}
-                          onPress={() => handleSelectTicket(ticket)}
-                          disabled={!available}
-                        >
-                          <Text style={[styles.selectButtonText, !available && styles.selectButtonTextDisabled]}>
-                            {available ? 'Selecionar' : 'Indisponível'}
-                          </Text>
-                        </TouchableOpacity>
+                    <View style={styles.ticketTop}>
+                      <View style={styles.ticketMain}>
+                        <View style={styles.ticketNameRow}>
+                          <Text style={styles.ticketName}>{ticket.name}</Text>
+                          <View style={[styles.statusBadge, { backgroundColor: status.color + '15' }]}>
+                            <MaterialCommunityIcons name={status.icon as any} size={12} color={status.color} />
+                            <Text style={[styles.statusText, { color: status.color }]}>{status.text}</Text>
+                          </View>
+                        </View>
+                        {ticket.description && (
+                          <Text style={styles.ticketDescription} numberOfLines={2}>{ticket.description}</Text>
+                        )}
                       </View>
+                    </View>
+
+                    {/* Dashed divider */}
+                    <View style={styles.ticketDivider}>
+                      <View style={styles.dashedLine} />
+                    </View>
+
+                    <View style={styles.ticketBottom}>
+                      <View style={styles.ticketPriceContainer}>
+                        <Text style={styles.ticketPriceLabel}>Valor</Text>
+                        <Text style={styles.ticketPrice}>{formatPrice(ticket.price)}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.selectButton, !available && styles.selectButtonDisabled]}
+                        onPress={() => handleSelectTicket(ticket)}
+                        disabled={!available}
+                        activeOpacity={0.8}
+                      >
+                        {available ? (
+                          <LinearGradient
+                            colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+                            style={styles.selectButtonGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                          >
+                            <MaterialCommunityIcons name="cart-plus" size={16} color="#fff" />
+                            <Text style={styles.selectButtonText}>Comprar</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={styles.selectButtonDisabledInner}>
+                            <Text style={styles.selectButtonTextDisabled}>Indisponível</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
                     </View>
 
                     {ticket.features && ticket.features.length > 0 && (
                       <View style={styles.featuresContainer}>
                         {ticket.features.map((feature, index) => (
                           <View key={index} style={styles.featureItem}>
-                            <MaterialCommunityIcons name="check" size={16} color="#4CAF50" />
+                            <MaterialCommunityIcons name="check-circle" size={14} color={lumeraColors.roxoLumera} />
                             <Text style={styles.featureText}>{feature}</Text>
                           </View>
                         ))}
                       </View>
                     )}
-                  </Surface>
+                  </View>
                 );
               })
             )}
           </View>
+
+          {/* Bottom spacer for cart bar */}
+          <View style={{ height: itemCount > 0 ? 80 : 20 }} />
         </View>
       </Animated.ScrollView>
 
-      {/* Cart Bottom Bar - Only shows when cart has items */}
+      {/* Cart Bottom Bar */}
       {itemCount > 0 && (
-        <Surface style={styles.bottomBar}>
-          <View style={styles.bottomPricing}>
-            <Text style={styles.bottomLabel}>
-              {itemCount === 1 ? '1 item no carrinho' : `${itemCount} itens no carrinho`}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.bottomButton}
-            onPress={() => navigation.navigate('Cart')}
-          >
-            <MaterialCommunityIcons name="cart" size={20} color="#fff" />
-            <Text style={styles.bottomButtonText}>Ver carrinho</Text>
-          </TouchableOpacity>
-        </Surface>
+        <View style={styles.bottomBarWrapper}>
+          <LinearGradient
+            colors={['transparent', 'rgba(245,245,245,0.9)', '#f5f5f5']}
+            style={styles.bottomBarGradient}
+          />
+          <Surface style={styles.bottomBar}>
+            <View style={styles.bottomContent}>
+              <View style={styles.bottomPricing}>
+                <MaterialCommunityIcons name="cart" size={20} color={lumeraColors.roxoLumera} />
+                <Text style={styles.bottomLabel}>
+                  {itemCount === 1 ? '1 item' : `${itemCount} itens`}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.bottomButton}
+                onPress={() => navigation.navigate('Cart')}
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+                  style={styles.bottomButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Text style={styles.bottomButtonText}>Ver carrinho</Text>
+                  <MaterialCommunityIcons name="arrow-right" size={18} color="#fff" />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </Surface>
+        </View>
       )}
 
       {/* Quantity Selection Modal */}
@@ -366,27 +592,35 @@ export default function EventDetailsScreen() {
           onDismiss={() => setModalVisible(false)}
           contentContainerStyle={styles.modal}
         >
+          <View style={styles.modalHandle} />
+
           <View style={styles.modalHeader}>
-            <View style={styles.modalIconContainer}>
-              <MaterialCommunityIcons name="ticket" size={32} color={theme.colors.primary} />
-            </View>
+            <LinearGradient
+              colors={[lumeraColors.roxoLumera + '15', lumeraColors.azulGlow + '10']}
+              style={styles.modalIconContainer}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <MaterialCommunityIcons name="ticket-confirmation" size={28} color={lumeraColors.roxoLumera} />
+            </LinearGradient>
             <Text style={styles.modalTitle}>Selecionar quantidade</Text>
           </View>
 
           {selectedTicket && (
             <>
-              <View style={styles.modalTicketInfo}>
+              <Surface style={styles.modalTicketInfo}>
                 <Text style={styles.modalTicketName}>{selectedTicket.name}</Text>
                 <Text style={styles.modalTicketPrice}>{formatPrice(selectedTicket.price)} / un</Text>
-              </View>
+              </Surface>
 
               <View style={styles.quantitySelector}>
                 <TouchableOpacity
                   style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
                   onPress={() => quantity > 1 && setQuantity(quantity - 1)}
                   disabled={quantity <= 1}
+                  activeOpacity={0.7}
                 >
-                  <MaterialCommunityIcons name="minus" size={24} color={quantity <= 1 ? '#ccc' : theme.colors.primary} />
+                  <MaterialCommunityIcons name="minus" size={22} color={quantity <= 1 ? '#D0D0D0' : lumeraColors.roxoLumera} />
                 </TouchableOpacity>
 
                 <View style={styles.quantityDisplay}>
@@ -402,11 +636,12 @@ export default function EventDetailsScreen() {
                     }
                   }}
                   disabled={quantity >= selectedTicket.quantity - selectedTicket.sold || quantity >= 10}
+                  activeOpacity={0.7}
                 >
                   <MaterialCommunityIcons
                     name="plus"
-                    size={24}
-                    color={(quantity >= selectedTicket.quantity - selectedTicket.sold || quantity >= 10) ? '#ccc' : theme.colors.primary}
+                    size={22}
+                    color={(quantity >= selectedTicket.quantity - selectedTicket.sold || quantity >= 10) ? '#D0D0D0' : lumeraColors.roxoLumera}
                   />
                 </TouchableOpacity>
               </View>
@@ -420,15 +655,23 @@ export default function EventDetailsScreen() {
                 style={styles.addToCartButton}
                 onPress={handleAddToCart}
                 disabled={cartLoading}
+                activeOpacity={0.85}
               >
-                {cartLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons name="cart-plus" size={20} color="#fff" />
-                    <Text style={styles.addToCartText}>Adicionar ao carrinho</Text>
-                  </>
-                )}
+                <LinearGradient
+                  colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+                  style={styles.addToCartGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {cartLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons name="cart-plus" size={20} color="#fff" />
+                      <Text style={styles.addToCartText}>Adicionar ao carrinho</Text>
+                    </>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -448,24 +691,14 @@ export default function EventDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  loadingText: {
-    marginTop: spacing.md,
-    color: '#666',
+    backgroundColor: '#F5F3FF',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F3FF',
   },
   errorTitle: {
     fontSize: 18,
@@ -473,10 +706,66 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
 
+  // Floating Header
+  floatingHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HEADER_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingBottom: 12,
+    paddingHorizontal: spacing.md,
+    zIndex: 100,
+  },
+  headerBackButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginHorizontal: spacing.sm,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  headerActionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerCartBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#F44336',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerCartBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+
   // Hero
   heroContainer: {
     height: IMAGE_HEIGHT,
     position: 'relative',
+    overflow: 'hidden',
   },
   heroImage: {
     width: width,
@@ -487,44 +776,47 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: IMAGE_HEIGHT * 0.6,
+    height: IMAGE_HEIGHT * 0.7,
   },
-  backButton: {
+  topButtons: {
     position: 'absolute',
-    top: 48,
+    top: Platform.OS === 'ios' ? 54 : 44,
     left: spacing.md,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
+    right: spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  cartButton: {
-    position: 'absolute',
-    top: 48,
-    right: spacing.md,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+  topButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(0,0,0,0.35)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  topRightButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   cartBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -2,
+    right: -2,
     backgroundColor: '#F44336',
     borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.35)',
   },
   cartBadgeText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
   },
   heroContent: {
@@ -533,13 +825,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: spacing.lg,
+    paddingBottom: spacing.xl,
   },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 20,
     gap: 6,
     marginBottom: spacing.sm,
@@ -548,124 +841,170 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
   heroTitle: {
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#fff',
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    letterSpacing: -0.5,
+    textShadowColor: 'rgba(0,0,0,0.4)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    textShadowRadius: 6,
+    marginBottom: spacing.sm,
+  },
+  heroMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  heroMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  heroMetaText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 13,
+    fontWeight: '500',
   },
 
   // Content
   content: {
-    padding: spacing.sm,
-    paddingBottom: 100,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
   },
 
-  // Quick Info
+  // Quick Info Cards
   quickInfoContainer: {
-    flexDirection: 'row',
     gap: spacing.sm,
-    marginTop: -40,
-    marginBottom: spacing.sm,
+    marginTop: -30,
+    marginBottom: spacing.lg,
   },
   quickInfoCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: spacing.sm,
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 4,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: spacing.md,
+    elevation: 3,
     shadowColor: lumeraColors.roxoLumera,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    gap: spacing.sm,
+  },
+  quickInfoIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quickInfoTextContainer: {
+    flex: 1,
   },
   quickInfoLabel: {
     fontSize: 11,
     color: '#999',
-    marginTop: spacing.sm,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '500',
   },
   quickInfoValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  quickInfoSubvalue: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
-    color: lumeraColors.roxoLumera,
+    color: theme.colors.onSurface,
     marginTop: 2,
   },
-
-  // Location
-  locationCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: spacing.sm,
-    marginBottom: spacing.sm,
-    elevation: 2,
-  },
-  locationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  locationTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-  },
-  locationName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.onSurface,
-  },
-  locationAddress: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  mapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  mapButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.colors.primary,
+  quickInfoHighlight: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: lumeraColors.roxoLumera,
   },
 
   // Section
   section: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  sectionIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionTitle: {
+    flex: 1,
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.onSurface,
+    letterSpacing: -0.3,
   },
   description: {
     fontSize: 15,
     color: '#555',
     lineHeight: 24,
+  },
+  readMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.sm,
+    paddingVertical: 4,
+  },
+  readMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: lumeraColors.roxoLumera,
+  },
+
+  // Location
+  locationCard: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: spacing.md,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  locationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationInfo: {
+    flex: 1,
+    marginRight: spacing.md,
+  },
+  locationName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.onSurface,
+  },
+  locationAddress: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  mapButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  mapButtonGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Organizer
@@ -673,16 +1012,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
+    borderRadius: 14,
+    padding: spacing.md,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
   organizerAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.colors.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -691,108 +1032,208 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   organizerLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#999',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontWeight: '500',
   },
   organizerName: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: theme.colors.onSurface,
+    marginTop: 2,
   },
 
   // Tickets
   ticketsSection: {
     marginBottom: spacing.md,
   },
+  startingPrice: {
+    alignItems: 'flex-end',
+  },
+  startingPriceLabel: {
+    fontSize: 10,
+    color: '#999',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  startingPriceValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: lumeraColors.roxoLumera,
+  },
   noTickets: {
     alignItems: 'center',
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.xl,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+  },
+  noTicketsIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: lumeraColors.lilasNeon + '12',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  noTicketsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.onSurface,
+    marginBottom: 4,
   },
   noTicketsText: {
-    fontSize: 16,
+    fontSize: 13,
     color: '#999',
-    marginTop: spacing.sm,
   },
   ticketCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    marginBottom: spacing.sm,
-    elevation: 2,
-    overflow: 'hidden',
+    marginBottom: spacing.md,
+    elevation: 3,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    overflow: 'visible',
   },
   ticketCardDisabled: {
-    opacity: 0.6,
+    opacity: 0.55,
   },
-  ticketContent: {
-    flexDirection: 'row',
-    padding: spacing.sm,
+  ticketNotchLeft: {
+    position: 'absolute',
+    left: -8,
+    top: '50%',
+    marginTop: -8,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#F5F3FF',
+    zIndex: 1,
+  },
+  ticketNotchRight: {
+    position: 'absolute',
+    right: -8,
+    top: '50%',
+    marginTop: -8,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#F5F3FF',
+    zIndex: 1,
+  },
+  ticketTop: {
+    padding: spacing.md,
+    paddingBottom: spacing.sm,
   },
   ticketMain: {
     flex: 1,
-    marginRight: spacing.md,
+  },
+  ticketNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
   },
   ticketName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.onSurface,
+    flex: 1,
   },
   ticketDescription: {
     fontSize: 13,
-    color: '#666',
+    color: '#888',
     marginTop: 4,
+    lineHeight: 18,
   },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
     gap: 4,
-    marginTop: spacing.sm,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  ticketDivider: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 2,
+  },
+  dashedLine: {
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#F0EAFF',
+    borderStyle: 'dashed',
+  },
+  ticketBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    paddingTop: spacing.sm,
+  },
+  ticketPriceContainer: {},
+  ticketPriceLabel: {
+    fontSize: 11,
+    color: '#999',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
     fontWeight: '500',
   },
-  ticketPricing: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
   ticketPrice: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: lumeraColors.roxoLumera,
-    marginBottom: spacing.sm,
+    marginTop: 2,
   },
   selectButton: {
-    backgroundColor: lumeraColors.roxoLumera,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 22,
+    overflow: 'hidden',
   },
-  selectButtonDisabled: {
-    backgroundColor: '#E0E0E0',
+  selectButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    gap: 6,
+  },
+  selectButtonDisabled: {},
+  selectButtonDisabledInner: {
+    backgroundColor: '#E8E4F0',
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    borderRadius: 22,
   },
   selectButtonText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   selectButtonTextDisabled: {
-    color: '#999',
+    color: '#AAA',
+    fontSize: 14,
+    fontWeight: '600',
   },
   featuresContainer: {
-    backgroundColor: '#FAFAFA',
-    padding: spacing.sm,
+    backgroundColor: lumeraColors.roxoLumera + '06',
+    padding: spacing.md,
+    paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#F0EAFF',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: 6,
+    marginBottom: 5,
   },
   featureText: {
     fontSize: 13,
@@ -800,86 +1241,110 @@ const styles = StyleSheet.create({
   },
 
   // Bottom Bar
-  bottomBar: {
+  bottomBarWrapper: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  bottomBarGradient: {
+    height: 30,
+  },
+  bottomBar: {
+    backgroundColor: '#fff',
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  bottomContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    elevation: 8,
   },
   bottomPricing: {
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   bottomLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: theme.colors.onSurface,
   },
   bottomButton: {
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  bottomButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: lumeraColors.roxoLumera,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 28,
+    paddingHorizontal: 22,
+    paddingVertical: 13,
     gap: 8,
-    elevation: 6,
-    shadowColor: lumeraColors.roxoLumera,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
   },
   bottomButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
 
   // Modal
   modal: {
     backgroundColor: '#fff',
-    margin: spacing.lg,
-    borderRadius: 24,
+    marginHorizontal: spacing.lg,
+    borderRadius: 28,
     padding: spacing.xl,
+    paddingTop: spacing.md,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E0E0E0',
+    alignSelf: 'center',
+    marginBottom: spacing.lg,
   },
   modalHeader: {
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
   modalIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: theme.colors.primary + '15',
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
     color: theme.colors.onSurface,
+    letterSpacing: -0.3,
   },
   modalTicketInfo: {
     alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: lumeraColors.roxoLumera + '08',
+    borderRadius: 14,
     marginBottom: spacing.lg,
+    elevation: 0,
   },
   modalTicketName: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: theme.colors.onSurface,
   },
   modalTicketPrice: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
     marginTop: 4,
   },
   quantitySelector: {
@@ -887,27 +1352,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   quantityButton: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 16,
     borderWidth: 2,
-    borderColor: theme.colors.primary,
+    borderColor: lumeraColors.roxoLumera + '30',
+    backgroundColor: lumeraColors.roxoLumera + '06',
     justifyContent: 'center',
     alignItems: 'center',
   },
   quantityButtonDisabled: {
-    borderColor: '#E0E0E0',
+    borderColor: '#E8E4F0',
+    backgroundColor: '#FAFAFA',
   },
   quantityDisplay: {
-    width: 80,
+    width: 70,
     alignItems: 'center',
   },
   quantityNumber: {
-    fontSize: 36,
-    fontWeight: '700',
+    fontSize: 38,
+    fontWeight: '800',
     color: theme.colors.onSurface,
   },
   modalTotal: {
@@ -916,36 +1383,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#F0EAFF',
     marginBottom: spacing.lg,
   },
   modalTotalLabel: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 15,
+    color: '#888',
+    fontWeight: '500',
   },
   modalTotalValue: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '800',
     color: lumeraColors.roxoLumera,
   },
   addToCartButton: {
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  addToCartGradient: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: lumeraColors.roxoLumera,
     paddingVertical: 16,
-    borderRadius: 28,
     gap: 8,
-    elevation: 6,
-    shadowColor: lumeraColors.roxoLumera,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
   },
   addToCartText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   cancelButton: {
     alignItems: 'center',
@@ -953,7 +1418,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   cancelButtonText: {
-    color: '#666',
+    color: '#999',
     fontSize: 14,
+    fontWeight: '500',
   },
 });
