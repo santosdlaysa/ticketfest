@@ -20,9 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-// QRCode não é mais necessário - usamos a imagem do Pagar.me
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Clipboard from 'expo-clipboard';
-import { theme, spacing, fontSize } from '../../theme';
+import { theme, spacing, fontSize, lumeraColors } from '../../theme';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/authStore';
 import { ordersApi } from '../../services/api';
@@ -46,17 +46,17 @@ const PAYMENT_METHODS = [
   },
   {
     id: 'CREDIT_CARD' as PaymentMethod,
-    label: 'Cartão de Crédito',
+    label: 'Crédito',
     description: 'Parcele em até 12x',
     icon: 'credit-card',
-    color: '#1976D2',
+    color: lumeraColors.azulGlow,
   },
   {
     id: 'DEBIT_CARD' as PaymentMethod,
-    label: 'Cartão de Débito',
+    label: 'Débito',
     description: 'Débito à vista',
     icon: 'credit-card-outline',
-    color: '#7B1FA2',
+    color: lumeraColors.roxoLumera,
   },
 ];
 
@@ -90,7 +90,6 @@ export default function CheckoutScreen() {
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Buscar o carrinho ao montar a tela
   useEffect(() => {
     const loadCart = async () => {
       try {
@@ -177,7 +176,6 @@ export default function CheckoutScreen() {
     setLoading(true);
 
     try {
-      // 1. Tokenizar o cartão via backend (que chama Pagar.me)
       const tokenResponse = await ordersApi.createCardToken({
         number: cardNumber.replace(/\s/g, ''),
         holderName: cardHolder,
@@ -186,7 +184,6 @@ export default function CheckoutScreen() {
         cvv,
       });
 
-      // 2. Criar o pedido com o token
       const orderData = {
         items: cart.items.map((item) => ({
           ticketId: item.ticket.id,
@@ -227,7 +224,6 @@ export default function CheckoutScreen() {
     setLoading(true);
 
     try {
-      // Criar pedido no backend - isso gera o PIX real do Pagar.me
       const orderData = {
         items: cart.items.map((item) => ({
           ticketId: item.ticket.id,
@@ -240,10 +236,8 @@ export default function CheckoutScreen() {
       const response = await ordersApi.create(orderData);
 
       if (response.payment?.pix) {
-        // Usar o PIX real do Pagar.me
-        // qrCode é o código copia-cola, qrCodeUrl é a URL da imagem
         setPixCode(response.payment.pix.qrCode);
-        setPixQrData(response.payment.pix.qrCodeUrl); // URL da imagem do QR code
+        setPixQrData(response.payment.pix.qrCodeUrl);
         setPixPaymentId(response.payment.pix.chargeId);
         setOrderId(response.order.id);
         setStep('pix_qr');
@@ -264,7 +258,6 @@ export default function CheckoutScreen() {
     setLoading(true);
 
     try {
-      // Verificar status do pedido no backend
       const order = await ordersApi.getById(orderId);
 
       if (order.paymentStatus === 'PAID') {
@@ -310,11 +303,10 @@ export default function CheckoutScreen() {
     Alert.alert('Copiado!', 'Código PIX copiado para a área de transferência');
   };
 
-  // Mostrar loading enquanto carrega o carrinho pela primeira vez
   if (!initialLoadDone || (cartLoading && !cart)) {
     return (
       <View style={[styles.emptyContainer, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <ActivityIndicator size="large" color={lumeraColors.roxoLumera} />
         <Text style={[styles.emptySubtitle, { marginTop: spacing.md }]}>
           Carregando carrinho...
         </Text>
@@ -325,20 +317,26 @@ export default function CheckoutScreen() {
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <View style={[styles.emptyContainer, { paddingTop: insets.top }]}>
-        <View style={styles.emptyIconContainer}>
-          <MaterialCommunityIcons name="cart-off" size={64} color="#ccc" />
+        <View style={styles.emptyIconOuter}>
+          <View style={styles.emptyIconInner}>
+            <MaterialCommunityIcons name="cart-off" size={48} color={lumeraColors.lilasNeon} />
+          </View>
         </View>
         <Text style={styles.emptyTitle}>Carrinho vazio</Text>
         <Text style={styles.emptySubtitle}>
           Adicione itens ao carrinho para continuar
         </Text>
-        <Button
-          mode="contained"
-          onPress={() => navigation.goBack()}
-          style={styles.emptyButton}
-        >
-          Voltar
-        </Button>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.emptyButton}>
+          <LinearGradient
+            colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+            style={styles.emptyButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={18} color="#fff" />
+            <Text style={styles.emptyButtonText}>Voltar</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -354,7 +352,7 @@ export default function CheckoutScreen() {
   };
 
   const renderHeader = () => (
-    <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
+    <Surface style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
       <TouchableOpacity
         onPress={() => {
           if (step === 'review') {
@@ -377,8 +375,8 @@ export default function CheckoutScreen() {
       >
         <MaterialCommunityIcons
           name={step === 'success' ? 'close' : 'arrow-left'}
-          size={24}
-          color={theme.colors.onSurface}
+          size={22}
+          color={lumeraColors.roxoLumera}
         />
       </TouchableOpacity>
 
@@ -394,7 +392,7 @@ export default function CheckoutScreen() {
       </View>
 
       <View style={styles.headerPlaceholder} />
-    </View>
+    </Surface>
   );
 
   const renderProgressSteps = () => {
@@ -402,42 +400,48 @@ export default function CheckoutScreen() {
 
     const currentStep = getStepNumber();
 
-    return (
-      <View style={styles.progressContainer}>
+    const renderDot = (stepNum: number, label: string) => {
+      const isCompleted = currentStep > stepNum;
+      const isCurrent = currentStep === stepNum;
+      const isActive = isCompleted || isCurrent;
+
+      return (
         <View style={styles.progressStep}>
-          <View style={[styles.progressDot, styles.progressDotCompleted]}>
-            <MaterialCommunityIcons name="check" size={14} color="#fff" />
-          </View>
-          <Text style={[styles.progressLabel, styles.progressLabelCompleted]}>Carrinho</Text>
-        </View>
-        <View style={[styles.progressLine, styles.progressLineCompleted]} />
-        <View style={styles.progressStep}>
-          <View style={[
-            styles.progressDot,
-            currentStep >= 2 && (currentStep === 2 ? styles.progressDotCurrent : styles.progressDotCompleted)
-          ]}>
-            {currentStep > 2 ? (
-              <MaterialCommunityIcons name="check" size={14} color="#fff" />
-            ) : (
-              <Text style={[styles.progressDotText, currentStep < 2 && styles.progressDotTextInactive]}>2</Text>
-            )}
-          </View>
+          {isCompleted ? (
+            <LinearGradient
+              colors={['#4CAF50', '#66BB6A']}
+              style={styles.progressDot}
+            >
+              <MaterialCommunityIcons name="check" size={13} color="#fff" />
+            </LinearGradient>
+          ) : isCurrent ? (
+            <LinearGradient
+              colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+              style={styles.progressDot}
+            >
+              <Text style={styles.progressDotText}>{stepNum}</Text>
+            </LinearGradient>
+          ) : (
+            <View style={[styles.progressDot, styles.progressDotInactive]}>
+              <Text style={styles.progressDotTextInactive}>{stepNum}</Text>
+            </View>
+          )}
           <Text style={[
             styles.progressLabel,
-            currentStep === 2 && styles.progressLabelCurrent,
-            currentStep > 2 && styles.progressLabelCompleted
-          ]}>Revisão</Text>
+            isCompleted && styles.progressLabelCompleted,
+            isCurrent && styles.progressLabelCurrent,
+          ]}>{label}</Text>
         </View>
+      );
+    };
+
+    return (
+      <View style={styles.progressContainer}>
+        {renderDot(1, 'Carrinho')}
+        <View style={[styles.progressLine, currentStep > 1 && styles.progressLineCompleted]} />
+        {renderDot(2, 'Revisão')}
         <View style={[styles.progressLine, currentStep > 2 && styles.progressLineCompleted]} />
-        <View style={styles.progressStep}>
-          <View style={[
-            styles.progressDot,
-            currentStep >= 3 && styles.progressDotCurrent
-          ]}>
-            <Text style={[styles.progressDotText, currentStep < 3 && styles.progressDotTextInactive]}>3</Text>
-          </View>
-          <Text style={[styles.progressLabel, currentStep >= 3 && styles.progressLabelCurrent]}>Pagamento</Text>
-        </View>
+        {renderDot(3, 'Pagamento')}
       </View>
     );
   };
@@ -447,17 +451,24 @@ export default function CheckoutScreen() {
       {/* User Info */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <MaterialCommunityIcons name="account-circle" size={20} color={theme.colors.primary} />
+          <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.roxoLumera + '12' }]}>
+            <MaterialCommunityIcons name="account-circle" size={16} color={lumeraColors.roxoLumera} />
+          </View>
           <Text style={styles.sectionTitle}>Comprador</Text>
-          <MaterialCommunityIcons name="check-circle" size={18} color="#4CAF50" />
+          <MaterialCommunityIcons name="check-circle" size={16} color="#4CAF50" />
         </View>
         <Surface style={styles.card}>
           <View style={styles.userInfoRow}>
-            <View style={styles.userAvatar}>
+            <LinearGradient
+              colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+              style={styles.userAvatar}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
               <Text style={styles.userAvatarText}>
                 {user?.name?.charAt(0).toUpperCase() || 'U'}
               </Text>
-            </View>
+            </LinearGradient>
             <View style={styles.userDetails}>
               <Text style={styles.userName}>{user?.name}</Text>
               <Text style={styles.userEmail}>{user?.email}</Text>
@@ -469,7 +480,9 @@ export default function CheckoutScreen() {
       {/* Order Items */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <MaterialCommunityIcons name="ticket-confirmation" size={20} color={theme.colors.primary} />
+          <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.lilasNeon + '18' }]}>
+            <MaterialCommunityIcons name="ticket-confirmation" size={16} color={lumeraColors.lilasNeon} />
+          </View>
           <Text style={styles.sectionTitle}>Ingressos</Text>
           <View style={styles.itemCountBadge}>
             <Text style={styles.itemCountText}>{getTotalItems()}</Text>
@@ -504,58 +517,67 @@ export default function CheckoutScreen() {
       {/* Payment Method */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <MaterialCommunityIcons name="credit-card-outline" size={20} color={theme.colors.primary} />
+          <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.azulGlow + '12' }]}>
+            <MaterialCommunityIcons name="credit-card-outline" size={16} color={lumeraColors.azulGlow} />
+          </View>
           <Text style={styles.sectionTitle}>Forma de pagamento</Text>
         </View>
         <View style={styles.paymentMethodsGrid}>
-          {PAYMENT_METHODS.map((method) => (
-            <TouchableOpacity
-              key={method.id}
-              onPress={() => setPaymentMethod(method.id)}
-              style={[
-                styles.paymentMethodCard,
-                paymentMethod === method.id && styles.paymentMethodCardSelected,
-              ]}
-              activeOpacity={0.7}
-            >
-              <View style={[
-                styles.paymentMethodIcon,
-                { backgroundColor: method.color + '15' }
-              ]}>
-                <MaterialCommunityIcons
-                  name={method.icon as any}
-                  size={24}
-                  color={method.color}
-                />
-              </View>
-              <Text style={[
-                styles.paymentMethodLabel,
-                paymentMethod === method.id && styles.paymentMethodLabelSelected
-              ]}>
-                {method.label}
-              </Text>
-              <Text style={styles.paymentMethodDesc}>{method.description}</Text>
-              {paymentMethod === method.id && (
-                <View style={styles.paymentMethodCheck}>
-                  <MaterialCommunityIcons name="check-circle" size={20} color={theme.colors.primary} />
+          {PAYMENT_METHODS.map((method) => {
+            const isSelected = paymentMethod === method.id;
+            return (
+              <TouchableOpacity
+                key={method.id}
+                onPress={() => setPaymentMethod(method.id)}
+                style={[
+                  styles.paymentMethodCard,
+                  isSelected && styles.paymentMethodCardSelected,
+                ]}
+                activeOpacity={0.7}
+              >
+                <View style={[
+                  styles.paymentMethodIcon,
+                  { backgroundColor: isSelected ? method.color + '20' : '#f5f5f5' }
+                ]}>
+                  <MaterialCommunityIcons
+                    name={method.icon as any}
+                    size={22}
+                    color={isSelected ? method.color : '#999'}
+                  />
                 </View>
-              )}
-            </TouchableOpacity>
-          ))}
+                <Text style={[
+                  styles.paymentMethodLabel,
+                  isSelected && { color: method.color }
+                ]}>
+                  {method.label}
+                </Text>
+                <Text style={styles.paymentMethodDesc}>{method.description}</Text>
+                {isSelected && (
+                  <View style={styles.paymentMethodCheck}>
+                    <MaterialCommunityIcons name="check-circle" size={18} color={method.color} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
       {/* Coupon */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <MaterialCommunityIcons name="tag-outline" size={20} color={theme.colors.primary} />
-          <Text style={styles.sectionTitle}>Cupom</Text>
+          <View style={[styles.sectionIconContainer, { backgroundColor: lumeraColors.douradoSuave + '20' }]}>
+            <MaterialCommunityIcons name="tag-outline" size={16} color={lumeraColors.douradoSuave} />
+          </View>
+          <Text style={styles.sectionTitle}>Cupom de desconto</Text>
         </View>
         <Surface style={styles.card}>
           {couponApplied ? (
             <View style={styles.couponApplied}>
               <View style={styles.couponAppliedInfo}>
-                <MaterialCommunityIcons name="check-circle" size={24} color="#4CAF50" />
+                <View style={styles.couponCheckIcon}>
+                  <MaterialCommunityIcons name="check" size={14} color="#fff" />
+                </View>
                 <View>
                   <Text style={styles.couponAppliedCode}>{couponCode.toUpperCase()}</Text>
                   <Text style={styles.couponAppliedDiscount}>
@@ -563,8 +585,8 @@ export default function CheckoutScreen() {
                   </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={handleRemoveCoupon}>
-                <MaterialCommunityIcons name="close-circle" size={24} color="#999" />
+              <TouchableOpacity onPress={handleRemoveCoupon} style={styles.couponRemoveButton}>
+                <MaterialCommunityIcons name="close" size={16} color="#999" />
               </TouchableOpacity>
             </View>
           ) : (
@@ -577,25 +599,37 @@ export default function CheckoutScreen() {
                 style={styles.couponInput}
                 autoCapitalize="characters"
                 outlineStyle={styles.couponInputOutline}
+                outlineColor="#E0D4FF"
+                activeOutlineColor={lumeraColors.roxoLumera}
                 dense
               />
-              <Button
-                mode="contained"
+              <TouchableOpacity
                 onPress={handleApplyCoupon}
-                loading={applyingCoupon}
                 disabled={applyingCoupon || !couponCode.trim()}
-                style={styles.couponButton}
-                compact
+                style={[styles.couponApplyButton, (!couponCode.trim() || applyingCoupon) && styles.couponApplyButtonDisabled]}
               >
-                Aplicar
-              </Button>
+                <LinearGradient
+                  colors={(!couponCode.trim() || applyingCoupon)
+                    ? ['#E0E0E0', '#D0D0D0']
+                    : [lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+                  style={styles.couponApplyGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {applyingCoupon ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.couponApplyText}>Aplicar</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
             </View>
           )}
         </Surface>
       </View>
 
       {/* Spacer */}
-      <View style={{ height: 180 }} />
+      <View style={{ height: 140 }} />
     </>
   );
 
@@ -603,7 +637,9 @@ export default function CheckoutScreen() {
     <View style={styles.cardFormContainer}>
       <Surface style={styles.card}>
         <View style={styles.cardFormHeader}>
-          <MaterialCommunityIcons name="credit-card" size={24} color={theme.colors.primary} />
+          <View style={[styles.cardFormIconContainer, { backgroundColor: lumeraColors.azulGlow + '12' }]}>
+            <MaterialCommunityIcons name="credit-card" size={20} color={lumeraColors.azulGlow} />
+          </View>
           <Text style={styles.cardFormTitle}>
             {paymentMethod === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Cartão de Débito'}
           </Text>
@@ -618,6 +654,9 @@ export default function CheckoutScreen() {
           style={styles.input}
           placeholder="0000 0000 0000 0000"
           outlineStyle={styles.inputOutline}
+          outlineColor="#E0D4FF"
+          activeOutlineColor={lumeraColors.roxoLumera}
+          left={<TextInput.Icon icon="credit-card-outline" color="#999" />}
         />
 
         <TextInput
@@ -629,6 +668,9 @@ export default function CheckoutScreen() {
           style={styles.input}
           placeholder="NOME COMO NO CARTÃO"
           outlineStyle={styles.inputOutline}
+          outlineColor="#E0D4FF"
+          activeOutlineColor={lumeraColors.roxoLumera}
+          left={<TextInput.Icon icon="account-outline" color="#999" />}
         />
 
         <View style={styles.cardFormRow}>
@@ -641,6 +683,8 @@ export default function CheckoutScreen() {
             style={[styles.input, styles.smallInput]}
             placeholder="MM"
             outlineStyle={styles.inputOutline}
+            outlineColor="#E0D4FF"
+            activeOutlineColor={lumeraColors.roxoLumera}
           />
           <TextInput
             label="Ano"
@@ -651,6 +695,8 @@ export default function CheckoutScreen() {
             style={[styles.input, styles.smallInput]}
             placeholder="AA"
             outlineStyle={styles.inputOutline}
+            outlineColor="#E0D4FF"
+            activeOutlineColor={lumeraColors.roxoLumera}
           />
           <TextInput
             label="CVV"
@@ -662,17 +708,20 @@ export default function CheckoutScreen() {
             placeholder="123"
             secureTextEntry
             outlineStyle={styles.inputOutline}
+            outlineColor="#E0D4FF"
+            activeOutlineColor={lumeraColors.roxoLumera}
           />
         </View>
 
         <View style={styles.cardBrands}>
-          <MaterialCommunityIcons name="shield-check" size={16} color="#4CAF50" />
-          <Text style={styles.cardBrandsText}>Pagamento seguro • Visa, Master, Elo, Amex</Text>
+          <MaterialCommunityIcons name="shield-check" size={14} color="#4CAF50" />
+          <Text style={styles.cardBrandsText}>Pagamento seguro</Text>
+          <View style={styles.cardBrandsDot} />
+          <Text style={styles.cardBrandsText}>Visa, Master, Elo, Amex</Text>
         </View>
       </Surface>
 
-      {/* Spacer */}
-      <View style={{ height: 180 }} />
+      <View style={{ height: 140 }} />
     </View>
   );
 
@@ -681,7 +730,7 @@ export default function CheckoutScreen() {
       <Surface style={styles.pixCard}>
         <View style={styles.pixHeader}>
           <View style={styles.pixIconContainer}>
-            <MaterialCommunityIcons name="qrcode" size={32} color="#00A884" />
+            <MaterialCommunityIcons name="qrcode" size={28} color="#00A884" />
           </View>
           <Text style={styles.pixTitle}>Pague com PIX</Text>
           <Text style={styles.pixSubtitle}>Escaneie o QR Code ou copie o código</Text>
@@ -700,42 +749,68 @@ export default function CheckoutScreen() {
           <Text style={styles.pixAmountValue}>{formatPrice(total)}</Text>
         </View>
 
-        <TouchableOpacity style={styles.copyButton} onPress={copyPixCode}>
-          <MaterialCommunityIcons name="content-copy" size={20} color={theme.colors.primary} />
-          <Text style={styles.copyButtonText}>Copiar código PIX</Text>
+        <TouchableOpacity style={styles.copyButton} onPress={copyPixCode} activeOpacity={0.8}>
+          <LinearGradient
+            colors={[lumeraColors.roxoLumera + '10', lumeraColors.azulGlow + '10']}
+            style={styles.copyButtonInner}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <MaterialCommunityIcons name="content-copy" size={18} color={lumeraColors.roxoLumera} />
+            <Text style={styles.copyButtonText}>Copiar código PIX</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <View style={styles.pixTimer}>
-          <MaterialCommunityIcons name="clock-outline" size={16} color="#666" />
+          <MaterialCommunityIcons name="clock-outline" size={14} color="#999" />
           <Text style={styles.pixTimerText}>O código expira em 1 hora</Text>
         </View>
       </Surface>
 
-      <Button
-        mode="contained"
+      <TouchableOpacity
         onPress={handleConfirmPix}
         style={styles.confirmPixButton}
-        contentStyle={styles.confirmPixButtonContent}
-        loading={loading}
         disabled={loading}
-        icon="check"
+        activeOpacity={0.85}
       >
-        Já paguei
-      </Button>
+        <LinearGradient
+          colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+          style={styles.confirmPixGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <MaterialCommunityIcons name="check-circle" size={20} color="#fff" />
+              <Text style={styles.confirmPixText}>Já paguei</Text>
+            </>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
 
-      <Button
-        mode="text"
+      <TouchableOpacity
         onPress={() => setStep('review')}
         style={styles.backTextButton}
       >
-        Escolher outra forma de pagamento
-      </Button>
+        <Text style={styles.backTextButtonLabel}>Escolher outra forma de pagamento</Text>
+      </TouchableOpacity>
     </View>
   );
 
   const renderProcessing = () => (
     <View style={styles.processingContainer}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={styles.processingIconOuter}>
+        <LinearGradient
+          colors={[lumeraColors.roxoLumera + '20', lumeraColors.azulGlow + '10']}
+          style={styles.processingIconInner}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <ActivityIndicator size="large" color={lumeraColors.roxoLumera} />
+        </LinearGradient>
+      </View>
       <Text style={styles.processingTitle}>Processando pagamento...</Text>
       <Text style={styles.processingSubtitle}>Aguarde, não feche o aplicativo</Text>
     </View>
@@ -743,9 +818,12 @@ export default function CheckoutScreen() {
 
   const renderSuccess = () => (
     <View style={styles.successContainer}>
-      <View style={styles.successIconContainer}>
-        <MaterialCommunityIcons name="check" size={64} color="#fff" />
-      </View>
+      <LinearGradient
+        colors={['#4CAF50', '#66BB6A']}
+        style={styles.successIconContainer}
+      >
+        <MaterialCommunityIcons name="check" size={56} color="#fff" />
+      </LinearGradient>
       <Text style={styles.successTitle}>Pagamento aprovado!</Text>
       <Text style={styles.successSubtitle}>
         Seus ingressos já estão disponíveis na aba "Ingressos"
@@ -756,7 +834,7 @@ export default function CheckoutScreen() {
           <Text style={styles.successCardLabel}>Valor pago</Text>
           <Text style={styles.successCardValue}>{formatPrice(total)}</Text>
         </View>
-        <View style={styles.successCardRow}>
+        <View style={[styles.successCardRow, styles.successCardRowMiddle]}>
           <Text style={styles.successCardLabel}>Método</Text>
           <Text style={styles.successCardValue}>
             {paymentMethod === 'PIX' ? 'PIX' : 'Cartão'}
@@ -768,8 +846,7 @@ export default function CheckoutScreen() {
         </View>
       </Surface>
 
-      <Button
-        mode="contained"
+      <TouchableOpacity
         onPress={() => {
           navigation.reset({
             index: 0,
@@ -777,18 +854,25 @@ export default function CheckoutScreen() {
           });
         }}
         style={styles.successButton}
-        contentStyle={styles.successButtonContent}
-        icon="ticket"
+        activeOpacity={0.85}
       >
-        Ver meus ingressos
-      </Button>
+        <LinearGradient
+          colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+          style={styles.successButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <MaterialCommunityIcons name="ticket" size={20} color="#fff" />
+          <Text style={styles.successButtonText}>Ver meus ingressos</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 
   const renderFailed = () => (
     <View style={styles.failedContainer}>
       <View style={styles.failedIconContainer}>
-        <MaterialCommunityIcons name="close" size={64} color="#fff" />
+        <MaterialCommunityIcons name="close" size={56} color="#fff" />
       </View>
       <Text style={styles.failedTitle}>Pagamento recusado</Text>
       <Text style={styles.failedSubtitle}>
@@ -797,52 +881,50 @@ export default function CheckoutScreen() {
 
       <Surface style={styles.failedCard}>
         <View style={styles.failedTipRow}>
-          <MaterialCommunityIcons name="lightbulb-outline" size={20} color="#FF9800" />
+          <MaterialCommunityIcons name="lightbulb-outline" size={18} color="#FF9800" />
           <Text style={styles.failedTipTitle}>Dicas para tentar novamente:</Text>
         </View>
-        <View style={styles.failedTipItem}>
-          <MaterialCommunityIcons name="check" size={16} color="#666" />
-          <Text style={styles.failedTipText}>Verifique o número do cartão</Text>
-        </View>
-        <View style={styles.failedTipItem}>
-          <MaterialCommunityIcons name="check" size={16} color="#666" />
-          <Text style={styles.failedTipText}>Confira a data de validade</Text>
-        </View>
-        <View style={styles.failedTipItem}>
-          <MaterialCommunityIcons name="check" size={16} color="#666" />
-          <Text style={styles.failedTipText}>Verifique se há limite disponível</Text>
-        </View>
-        <View style={styles.failedTipItem}>
-          <MaterialCommunityIcons name="check" size={16} color="#666" />
-          <Text style={styles.failedTipText}>Tente outro cartão ou forma de pagamento</Text>
-        </View>
+        {[
+          'Verifique o número do cartão',
+          'Confira a data de validade',
+          'Verifique se há limite disponível',
+          'Tente outro cartão ou forma de pagamento',
+        ].map((tip, index) => (
+          <View key={index} style={styles.failedTipItem}>
+            <MaterialCommunityIcons name="check-circle-outline" size={14} color={lumeraColors.roxoLumera} />
+            <Text style={styles.failedTipText}>{tip}</Text>
+          </View>
+        ))}
       </Surface>
 
-      <Button
-        mode="contained"
+      <TouchableOpacity
         onPress={() => {
           setStep('card_form');
           setErrorMessage('');
         }}
         style={styles.retryButton}
-        contentStyle={styles.retryButtonContent}
-        icon="refresh"
+        activeOpacity={0.85}
       >
-        Tentar novamente
-      </Button>
+        <LinearGradient
+          colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+          style={styles.retryButtonGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <MaterialCommunityIcons name="refresh" size={18} color="#fff" />
+          <Text style={styles.retryButtonText}>Tentar novamente</Text>
+        </LinearGradient>
+      </TouchableOpacity>
 
-      <Button
-        mode="outlined"
+      <TouchableOpacity
         onPress={() => {
           setStep('review');
           setErrorMessage('');
         }}
         style={styles.changeMethodButton}
-        contentStyle={styles.changeMethodButtonContent}
-        icon="credit-card-multiple"
       >
-        Escolher outra forma de pagamento
-      </Button>
+        <Text style={styles.changeMethodText}>Escolher outra forma de pagamento</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -850,44 +932,60 @@ export default function CheckoutScreen() {
     if (step === 'processing' || step === 'success' || step === 'pix_qr' || step === 'failed') return null;
 
     return (
-      <Surface style={[styles.summaryContainer, { paddingBottom: insets.bottom + spacing.md }]}>
-        <View style={styles.summaryDetails}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
-          </View>
-
-          {discount > 0 && (
-            <View style={styles.summaryRow}>
-              <View style={styles.discountLabelRow}>
-                <MaterialCommunityIcons name="tag" size={16} color="#4CAF50" />
-                <Text style={styles.discountLabel}>Desconto</Text>
-              </View>
-              <Text style={styles.discountValue}>-{formatPrice(discount)}</Text>
-            </View>
-          )}
+      <View style={[styles.summaryContainer, { paddingBottom: insets.bottom + 8 }]}>
+        {/* Summary rows */}
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Subtotal</Text>
+          <Text style={styles.summaryValue}>{formatPrice(subtotal)}</Text>
         </View>
 
+        {discount > 0 && (
+          <View style={styles.summaryRow}>
+            <View style={styles.discountLabelRow}>
+              <MaterialCommunityIcons name="tag" size={14} color="#4CAF50" />
+              <Text style={styles.discountLabel}>Desconto</Text>
+            </View>
+            <Text style={styles.discountValue}>-{formatPrice(discount)}</Text>
+          </View>
+        )}
+
+        {/* Divider + Total + Button */}
         <View style={styles.totalContainer}>
           <View>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>{formatPrice(total)}</Text>
           </View>
 
-          <Button
-            mode="contained"
+          <TouchableOpacity
             onPress={step === 'review' ? handleProceedToPayment : handleCardPayment}
             style={styles.payButton}
-            contentStyle={styles.payButtonContent}
-            labelStyle={styles.payButtonLabel}
-            loading={loading}
             disabled={loading}
-            icon={step === 'review' ? 'arrow-right' : 'lock'}
+            activeOpacity={0.85}
           >
-            {step === 'review' ? 'Pagar' : 'Confirmar'}
-          </Button>
+            <LinearGradient
+              colors={[lumeraColors.roxoLumera, lumeraColors.azulGlow]}
+              style={styles.payButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Text style={styles.payButtonText}>
+                    {step === 'review' ? 'Pagar' : 'Confirmar'}
+                  </Text>
+                  <MaterialCommunityIcons
+                    name={step === 'review' ? 'arrow-right' : 'lock'}
+                    size={18}
+                    color="#fff"
+                  />
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
-      </Surface>
+      </View>
     );
   };
 
@@ -921,7 +1019,7 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F3FF',
   },
 
   // Header
@@ -931,12 +1029,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.md,
     backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    zIndex: 10,
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    borderRadius: 14,
+    backgroundColor: lumeraColors.roxoLumera + '10',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -946,8 +1050,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: theme.colors.onSurface,
+    letterSpacing: -0.3,
   },
   headerPlaceholder: {
     width: 40,
@@ -962,24 +1067,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#F0EAFF',
   },
   progressStep: {
     alignItems: 'center',
   },
   progressDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#e0e0e0',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  progressDotCompleted: {
-    backgroundColor: '#4CAF50',
-  },
-  progressDotCurrent: {
-    backgroundColor: theme.colors.primary,
+  progressDotInactive: {
+    backgroundColor: '#E8E4F0',
   },
   progressDotText: {
     fontSize: 12,
@@ -987,29 +1088,33 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   progressDotTextInactive: {
+    fontSize: 12,
+    fontWeight: '600',
     color: '#999',
   },
   progressLine: {
-    width: 40,
+    width: 36,
     height: 3,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#E8E4F0',
     marginHorizontal: spacing.xs,
+    borderRadius: 2,
   },
   progressLineCompleted: {
     backgroundColor: '#4CAF50',
   },
   progressLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#999',
     marginTop: 4,
+    fontWeight: '500',
   },
   progressLabelCompleted: {
     color: '#4CAF50',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   progressLabelCurrent: {
-    color: theme.colors.primary,
-    fontWeight: '600',
+    color: lumeraColors.roxoLumera,
+    fontWeight: '700',
   },
 
   // Empty State
@@ -1018,30 +1123,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F3FF',
   },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#f0f0f0',
+  emptyIconOuter: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: lumeraColors.roxoLumera + '08',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: theme.colors.onSurface,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: spacing.sm,
     marginBottom: spacing.xl,
   },
+  emptyIconInner: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: lumeraColors.roxoLumera + '12',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: theme.colors.onSurface,
+    letterSpacing: -0.3,
+  },
+  emptySubtitle: {
+    fontSize: 15,
+    color: '#888',
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
+    textAlign: 'center',
+  },
   emptyButton: {
-    borderRadius: 12,
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  emptyButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    gap: 8,
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 
   // Content
@@ -1060,24 +1188,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.sm,
-    gap: spacing.xs,
+    gap: spacing.sm,
+  },
+  sectionIconContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.onSurface,
     flex: 1,
+    letterSpacing: -0.2,
   },
   itemCountBadge: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 7,
   },
   itemCountText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: '700',
+    color: lumeraColors.lilasNeon,
   },
 
   // Card
@@ -1086,6 +1224,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: spacing.md,
     elevation: 2,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
 
   // User Info
@@ -1096,15 +1238,14 @@ const styles = StyleSheet.create({
   userAvatar: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.colors.primary + '20',
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   userAvatarText: {
     fontSize: 18,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: '#fff',
   },
   userDetails: {
     flex: 1,
@@ -1112,12 +1253,12 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.onSurface,
   },
   userEmail: {
     fontSize: 13,
-    color: '#666',
+    color: '#888',
     marginTop: 2,
   },
 
@@ -1129,10 +1270,10 @@ const styles = StyleSheet.create({
   },
   orderItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#F0EAFF',
   },
   quantityBadge: {
-    backgroundColor: theme.colors.primary + '15',
+    backgroundColor: lumeraColors.roxoLumera + '12',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1140,76 +1281,79 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: theme.colors.primary,
+    fontWeight: '700',
+    color: lumeraColors.roxoLumera,
   },
   orderItemCenter: {
     flex: 1,
   },
   orderItemName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.onSurface,
   },
   orderItemEvent: {
     fontSize: 12,
-    color: '#666',
+    color: '#888',
     marginTop: 2,
   },
   orderItemPrice: {
     fontSize: 14,
-    fontWeight: '700',
-    color: theme.colors.onSurface,
+    fontWeight: '800',
+    color: lumeraColors.roxoLumera,
   },
 
   // Payment Methods
   paymentMethodsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   paymentMethodCard: {
     flex: 1,
-    minWidth: '30%',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: spacing.md,
+    paddingVertical: spacing.md,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#eee',
+    borderColor: '#F0EAFF',
     elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
   },
   paymentMethodCardSelected: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primary + '08',
+    borderColor: lumeraColors.roxoLumera,
+    backgroundColor: lumeraColors.roxoLumera + '05',
+    elevation: 3,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOpacity: 0.1,
   },
   paymentMethodIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
   paymentMethodLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.onSurface,
     textAlign: 'center',
   },
-  paymentMethodLabelSelected: {
-    color: theme.colors.primary,
-  },
   paymentMethodDesc: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#999',
     textAlign: 'center',
     marginTop: 2,
   },
   paymentMethodCheck: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 6,
+    right: 6,
   },
 
   // Coupon
@@ -1224,10 +1368,26 @@ const styles = StyleSheet.create({
     height: 44,
   },
   couponInputOutline: {
-    borderRadius: 10,
+    borderRadius: 12,
   },
-  couponButton: {
-    borderRadius: 10,
+  couponApplyButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  couponApplyButtonDisabled: {
+    opacity: 0.7,
+  },
+  couponApplyGradient: {
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  couponApplyText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
   couponApplied: {
     flexDirection: 'row',
@@ -1239,6 +1399,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
+  couponCheckIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   couponAppliedCode: {
     fontSize: 14,
     fontWeight: '700',
@@ -1247,7 +1415,15 @@ const styles = StyleSheet.create({
   couponAppliedDiscount: {
     fontSize: 13,
     color: '#4CAF50',
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  couponRemoveButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Card Form
@@ -1260,9 +1436,16 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.lg,
   },
+  cardFormIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   cardFormTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.onSurface,
   },
   input: {
@@ -1270,7 +1453,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   inputOutline: {
-    borderRadius: 10,
+    borderRadius: 12,
   },
   cardFormRow: {
     flexDirection: 'row',
@@ -1283,12 +1466,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.xs,
+    gap: 6,
     marginTop: spacing.sm,
   },
   cardBrandsText: {
     fontSize: 12,
-    color: '#666',
+    color: '#888',
+  },
+  cardBrandsDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#CCC',
   },
 
   // PIX
@@ -1301,37 +1490,42 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     alignItems: 'center',
     width: '100%',
-    elevation: 2,
+    elevation: 3,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   pixHeader: {
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
   pixIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#00A884' + '15',
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: '#00A884' + '12',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
   pixTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
     color: theme.colors.onSurface,
+    letterSpacing: -0.3,
   },
   pixSubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: '#888',
     marginTop: 4,
   },
   qrContainer: {
     padding: spacing.md,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#F0EAFF',
     marginBottom: spacing.lg,
   },
   pixAmountContainer: {
@@ -1339,48 +1533,78 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   pixAmountLabel: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: '#888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    fontWeight: '500',
   },
   pixAmountValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: theme.colors.primary,
+    fontSize: 26,
+    fontWeight: '800',
+    color: lumeraColors.roxoLumera,
+    marginTop: 2,
   },
   copyButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: spacing.md,
+    width: '100%',
+  },
+  copyButtonInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: theme.colors.primary + '10',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 10,
-    marginBottom: spacing.md,
+    borderRadius: 12,
   },
   copyButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.primary,
+    fontWeight: '700',
+    color: lumeraColors.roxoLumera,
   },
   pixTimer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 4,
   },
   pixTimerText: {
     fontSize: 12,
-    color: '#666',
+    color: '#999',
   },
   confirmPixButton: {
     marginTop: spacing.lg,
-    borderRadius: 12,
+    borderRadius: 24,
+    overflow: 'hidden',
     width: '100%',
+    elevation: 4,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
-  confirmPixButtonContent: {
-    paddingVertical: spacing.sm,
+  confirmPixGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  confirmPixText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
   backTextButton: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  backTextButtonLabel: {
+    fontSize: 14,
+    color: lumeraColors.roxoLumera,
+    fontWeight: '600',
   },
 
   // Processing
@@ -1390,15 +1614,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xxl * 2,
   },
+  processingIconOuter: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: lumeraColors.roxoLumera + '08',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  processingIconInner: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   processingTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: theme.colors.onSurface,
-    marginTop: spacing.lg,
+    letterSpacing: -0.3,
   },
   processingSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
     marginTop: spacing.sm,
   },
 
@@ -1409,25 +1649,31 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   successIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#4CAF50',
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
+    elevation: 6,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   successTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#4CAF50',
+    letterSpacing: -0.3,
   },
   successSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
     textAlign: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
+    lineHeight: 20,
   },
   successCard: {
     backgroundColor: '#fff',
@@ -1436,27 +1682,51 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: spacing.xl,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
   successCardRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  successCardRowMiddle: {
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#F0EAFF',
   },
   successCardLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
   },
   successCardValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: theme.colors.onSurface,
   },
   successButton: {
-    borderRadius: 12,
+    borderRadius: 24,
+    overflow: 'hidden',
     width: '100%',
+    elevation: 4,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
-  successButtonContent: {
-    paddingVertical: spacing.sm,
+  successButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  successButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 
   // Failed
@@ -1466,26 +1736,33 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   failedIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: '#F44336',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
+    elevation: 6,
+    shadowColor: '#F44336',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   failedTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#F44336',
+    letterSpacing: -0.3,
   },
   failedSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
     textAlign: 'center',
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
+    lineHeight: 20,
   },
   failedCard: {
     backgroundColor: '#fff',
@@ -1494,6 +1771,10 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: spacing.xl,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
   failedTipRow: {
     flexDirection: 'row',
@@ -1503,67 +1784,78 @@ const styles = StyleSheet.create({
   },
   failedTipTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FF9800',
   },
   failedTipItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginBottom: spacing.xs,
+    marginBottom: 6,
   },
   failedTipText: {
     fontSize: 13,
     color: '#666',
   },
   retryButton: {
-    borderRadius: 12,
+    borderRadius: 24,
+    overflow: 'hidden',
     width: '100%',
-    backgroundColor: theme.colors.primary,
+    elevation: 4,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
-  retryButtonContent: {
-    paddingVertical: spacing.sm,
+  retryButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
   changeMethodButton: {
-    borderRadius: 12,
-    width: '100%',
-    marginTop: spacing.sm,
-    borderColor: theme.colors.primary,
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
   },
-  changeMethodButtonContent: {
-    paddingVertical: spacing.sm,
+  changeMethodText: {
+    fontSize: 14,
+    color: lumeraColors.roxoLumera,
+    fontWeight: '600',
   },
 
-  // Summary
+  // Summary Footer
   summaryContainer: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    elevation: 8,
+    paddingHorizontal: spacing.md,
+    paddingTop: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    elevation: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  summaryDetails: {
-    paddingBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    shadowRadius: 12,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 2,
   },
   summaryLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: '#888',
+    fontWeight: '500',
   },
   summaryValue: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '600',
     color: theme.colors.onSurface,
   },
   discountLabelRow: {
@@ -1572,38 +1864,56 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   discountLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#4CAF50',
+    fontWeight: '500',
   },
   discountValue: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#4CAF50',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   totalContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: '#F0EAFF',
+    marginTop: 6,
+    paddingTop: 8,
   },
   totalLabel: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 11,
+    color: '#999',
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   totalValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: theme.colors.onSurface,
+    letterSpacing: -0.5,
   },
   payButton: {
-    borderRadius: 12,
-    minWidth: 140,
+    borderRadius: 24,
+    overflow: 'hidden',
+    elevation: 6,
+    shadowColor: lumeraColors.roxoLumera,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
   },
-  payButtonContent: {
-    paddingVertical: spacing.sm,
+  payButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    gap: 8,
   },
-  payButtonLabel: {
+  payButtonText: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
