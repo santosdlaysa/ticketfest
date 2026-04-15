@@ -13,7 +13,12 @@
       "Bash(node -e:*)",
       "Bash(npm run build:*)",
       "Bash(PGPASSWORD=6Ql9SRKmrpl7mZvFtMnp0UZrWSVEIM92 psql:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git -C /c/Users/ldsantos/ticketfest/mobile config user.email)",
+      "Bash(git config:*)"
     ]
   }
 }

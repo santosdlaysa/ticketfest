@@ -166,7 +166,7 @@ export default function HomeScreen() {
       <TouchableOpacity
         onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
         activeOpacity={0.8}
-        style={[styles.featuredCard, { borderRadius: theme.roundness }]}
+        style={[styles.featuredCard, { borderRadius: 16 }]}
       >
         <Image source={{ uri: imageUrl }} style={styles.featuredImage} />
         <View style={styles.featuredOverlay}>
@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   featuredCard: {
-    width: CARD_WIDTH * 0.85,
-    height: 180,
+    width: CARD_WIDTH,
+    height: 200,
     marginRight: spacing.md,
     overflow: 'hidden',
   },

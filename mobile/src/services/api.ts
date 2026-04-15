@@ -27,7 +27,7 @@ import { useLogStore } from '../stores/logStore';
 const USE_MOCK_DATA = false;
 
 // API URL
-const API_URL = 'https://ticketfest-tnqy.onrender.com/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://ticketfest-tnqy.onrender.com/api';
 
 // Create axios instance
 export const api = axios.create({

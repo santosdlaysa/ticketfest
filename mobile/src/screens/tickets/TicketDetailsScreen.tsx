@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   qrContainer: {
     padding: spacing.lg,
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 2,
   },
   qrContainerUsed: {
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
-    borderRadius: 8,
+    borderRadius: 14,
     marginTop: spacing.lg,
     width: '100%',
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
-    borderRadius: 8,
+    borderRadius: 14,
     marginTop: spacing.lg,
     width: '100%',
   },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
   },
   detailsCard: {
-    borderRadius: 8,
+    borderRadius: 16,
     padding: spacing.md,
     marginBottom: spacing.md,
     elevation: 2,

@@ -16,9 +16,12 @@
       "supportsTablet": true,
       "infoPlist": {
         "UIBackgroundModes": [
+          "remote-notification",
           "remote-notification"
-        ]
-      }
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.lumera.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -41,7 +44,7 @@
     "extra": {
       "sentryDsn": "https://8add2613e63dca366002af5a04d38acf@o4510602903158784.ingest.us.sentry.io/4510602909843456",
       "eas": {
-        "projectId": "your-expo-project-id"
+        "projectId": "f824828b-524b-4046-a550-deb10a585256"
       }
     },
     "plugins": [
@@ -58,6 +61,7 @@
           }
         }
       ]
-    }
+    },
+    "owner": "santosdlaysa"
   }
 }

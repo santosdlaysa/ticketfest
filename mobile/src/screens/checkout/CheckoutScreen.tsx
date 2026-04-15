@@ -629,7 +629,7 @@ export default function CheckoutScreen() {
       </View>
 
       {/* Spacer */}
-      <View style={{ height: 140 }} />
+      <View style={{ height: 80 }} />
     </>
   );
 
@@ -721,7 +721,7 @@ export default function CheckoutScreen() {
         </View>
       </Surface>
 
-      <View style={{ height: 140 }} />
+      <View style={{ height: 80 }} />
     </View>
   );
 
@@ -932,7 +932,7 @@ export default function CheckoutScreen() {
     if (step === 'processing' || step === 'success' || step === 'pix_qr' || step === 'failed') return null;
 
     return (
-      <View style={[styles.summaryContainer, { paddingBottom: insets.bottom + 8 }]}>
+      <View style={styles.summaryContainer}>
         {/* Summary rows */}
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Subtotal</Text>
@@ -1834,6 +1834,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: spacing.md,
     paddingTop: 12,
+    paddingBottom: 14,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     elevation: 12,
