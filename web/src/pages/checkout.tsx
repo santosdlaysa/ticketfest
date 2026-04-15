@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useCartStore } from '@/contexts/CartContext';
 import { useAuthStore } from '@/contexts/AuthContext';
-import { ordersApi } from '@/services/api';
+import { ordersApi, authApi } from '@/services/api';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import PagarmePaymentForm from '@/components/checkout/PagarmePaymentForm';
@@ -98,6 +98,13 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
+      // Update user profile with CPF and phone before creating order
+      await authApi.updateProfile({
+        name: data.name,
+        cpf: data.cpf.replace(/\D/g, ''),
+        phone: data.phone.replace(/\D/g, ''),
+      });
+
       // Prepare order data
       const orderData = {
         items: cart.items.map((item) => ({
@@ -144,6 +151,13 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
+      // Update user profile with CPF and phone before creating order
+      await authApi.updateProfile({
+        name: pendingOrderData.name,
+        cpf: pendingOrderData.cpf.replace(/\D/g, ''),
+        phone: pendingOrderData.phone.replace(/\D/g, ''),
+      });
+
       // Create order with card token
       const orderData = {
         items: cart.items.map((item) => ({

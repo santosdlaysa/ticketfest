@@ -63,6 +63,11 @@ export const authApi = {
     const response = await api.post('/auth/change-password', { currentPassword, newPassword });
     return response.data;
   },
+
+  updateProfile: async (data: { name?: string; phone?: string; cpf?: string }): Promise<User> => {
+    const response = await api.put('/auth/profile', data);
+    return response.data;
+  },
 };
 
 // Events API
