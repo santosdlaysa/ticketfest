@@ -346,6 +346,14 @@ export default function LoginScreen({ navigation }: Props) {
                   </LinearGradient>
                 </TouchableOpacity>
 
+                {/* Register Link */}
+                <View style={styles.registerContainer}>
+                  <Text style={styles.registerText}>Não tem uma conta? </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                    <Text style={styles.registerLink}>Cadastre-se</Text>
+                  </TouchableOpacity>
+                </View>
+
                 {/* Divider */}
                 <View style={styles.dividerContainer}>
                   <View style={styles.divider} />
@@ -369,19 +377,6 @@ export default function LoginScreen({ navigation }: Props) {
                 </TouchableOpacity>
               </View>
             </BlurView>
-          </Animated.View>
-
-          {/* Register Link */}
-          <Animated.View
-            style={[
-              styles.registerContainer,
-              { opacity: fadeAnim }
-            ]}
-          >
-            <Text style={styles.registerText}>Não tem uma conta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.registerLink}>Cadastre-se</Text>
-            </TouchableOpacity>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -643,7 +638,7 @@ const styles = StyleSheet.create({
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
   registerText: {
     color: '#888',

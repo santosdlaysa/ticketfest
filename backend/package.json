@@ -19,7 +19,8 @@
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "seed": "tsx scripts/seed.ts",
-    "seed:sql": "psql -f scripts/seed.sql"
+    "seed:sql": "psql -f scripts/seed.sql",
+    "test:email": "tsx scripts/test-email.ts"
   },
   "keywords": [
     "Lumera",

@@ -41,7 +41,8 @@
       "Bash(keytool -export -keystore lumera-release.keystore -alias lumera -storepass Lumera@2026 -file lumera-upload-cert.der)",
       "Bash(ls -la lumera-upload-cert.*)",
       "Bash(rm -rf C:/Users/ldsantos/ticketfest/mobile/android/app/build C:/Users/ldsantos/ticketfest/mobile/android/app/.cxx C:/Users/ldsantos/ticketfest/mobile/android/build)",
-      "Bash(./gradlew bundleRelease)"
+      "Bash(./gradlew bundleRelease)",
+      "Bash(ls:*)"
     ]
   }
 }
