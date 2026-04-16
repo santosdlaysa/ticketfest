@@ -26,7 +26,7 @@ export const createEventSchema = z.object({
   longitude: z.number().min(-180).max(180).optional(),
   category: z.string(),
   images: z.array(z.string().url()).default([]),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED']).default('DRAFT'),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED']).default('PUBLISHED'),
 });
 
 export const updateEventSchema = createEventSchema.partial();

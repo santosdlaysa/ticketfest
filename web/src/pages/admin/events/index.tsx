@@ -7,40 +7,6 @@ import { useAuthReady } from '@/hooks/useAuthReady';
 import type { Event } from '@/types';
 import { Button } from '@/components/common/Button';
 
-// Mock events for development
-const mockEvents: Event[] = [
-  {
-    id: '1',
-    name: 'Rock in Rio 2025',
-    slug: 'rock-in-rio-2025',
-    description: 'O maior festival de música do mundo',
-    date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    location: 'Cidade do Rock',
-    address: 'Av. Salvador Allende, s/n',
-    images: ['https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800'],
-    category: 'Música',
-    status: 'PUBLISHED',
-    organizerId: '1',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Tech Conference SP',
-    slug: 'tech-conference-sp',
-    description: 'Conferência de tecnologia e inovação',
-    date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    location: 'Centro de Convenções',
-    address: 'Av. Paulista, 1000',
-    images: [],
-    category: 'Tecnologia',
-    status: 'DRAFT',
-    organizerId: '1',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
 export default function AdminEvents() {
   const isReady = useAuthReady();
   const [events, setEvents] = useState<Event[]>([]);
@@ -60,8 +26,9 @@ export default function AdminEvents() {
       const data = await eventsApi.getMyEvents();
       setEvents(data.events);
     } catch (error: any) {
-      console.warn('Using mock events:', error);
-      setEvents(mockEvents);
+      console.error('Erro ao carregar eventos:', error);
+      toast.error(error.response?.data?.error || 'Erro ao carregar eventos');
+      setEvents([]);
     } finally {
       setLoading(false);
     }

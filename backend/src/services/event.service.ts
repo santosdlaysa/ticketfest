@@ -80,7 +80,7 @@ export class EventService {
         data.longitude || null,
         data.category,
         data.images || [],
-        data.status || 'DRAFT',
+        data.status || 'PUBLISHED',
         organizerId,
       ]
     );

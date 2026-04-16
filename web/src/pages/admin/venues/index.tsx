@@ -12,41 +12,6 @@ interface VenueWithCount extends Venue {
   };
 }
 
-// Mock venues for development
-const mockVenues: VenueWithCount[] = [
-  {
-    id: '1',
-    name: 'Allianz Parque',
-    address: 'Av. Francisco Matarazzo, 1705',
-    city: 'São Paulo',
-    state: 'SP',
-    zipCode: '05001-200',
-    capacity: 55000,
-    description: 'Arena multiuso',
-    images: ['https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800'],
-    phone: '(11) 3674-6000',
-    email: 'contato@allianzparque.com.br',
-    organizerId: '1',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    _count: { events: 3 },
-  },
-  {
-    id: '2',
-    name: 'Teatro Municipal',
-    address: 'Praça Ramos de Azevedo, s/n',
-    city: 'São Paulo',
-    state: 'SP',
-    capacity: 1500,
-    description: 'Teatro histórico',
-    images: [],
-    organizerId: '1',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    _count: { events: 1 },
-  },
-];
-
 export default function AdminVenues() {
   const [venues, setVenues] = useState<VenueWithCount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,8 +27,9 @@ export default function AdminVenues() {
       const data = await venuesApi.getAll();
       setVenues(data as VenueWithCount[]);
     } catch (error: any) {
-      console.warn('Using mock venues:', error);
-      setVenues(mockVenues);
+      console.error('Erro ao carregar locais:', error);
+      toast.error(error.response?.data?.error || 'Erro ao carregar locais');
+      setVenues([]);
     } finally {
       setLoading(false);
     }

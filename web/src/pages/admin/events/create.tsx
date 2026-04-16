@@ -41,7 +41,9 @@ export default function CreateEvent() {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { register, handleSubmit, formState: { errors } } = useForm<EventForm>();
+  const { register, handleSubmit, formState: { errors } } = useForm<EventForm>({
+    defaultValues: { status: 'PUBLISHED' },
+  });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -173,8 +175,8 @@ export default function CreateEvent() {
                       {...register('status', { required: 'Status é obrigatório' })}
                       className="w-full px-4 py-2 border border-lumera-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     >
-                      <option value="DRAFT">Rascunho</option>
                       <option value="PUBLISHED">Publicado</option>
+                      <option value="DRAFT">Rascunho</option>
                     </select>
                     {errors.status && (
                       <p className="mt-1 text-sm text-red-400">{errors.status.message}</p>
