@@ -119,6 +119,35 @@ export default function PrivacyPolicyPage() {
                 <li>Histórico de buscas e preferências de eventos</li>
                 <li>Cookies e tecnologias similares (veja seção 5)</li>
               </ul>
+
+              <h3 className="text-xl font-semibold text-lumera-luminoso mb-3 mt-6">
+                1.4. Permissões do Aplicativo Móvel
+              </h3>
+              <p className="text-lumera-muted leading-relaxed mb-4">
+                O aplicativo Lumera para Android solicita as seguintes permissões, usadas apenas
+                com o seu consentimento e para as finalidades descritas:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-lumera-muted ml-4">
+                <li>
+                  <strong>Câmera (android.permission.CAMERA):</strong> utilizada para (a) ler o QR Code
+                  dos seus ingressos no momento da validação de entrada no evento e (b) permitir que
+                  você capture uma foto para a sua imagem de perfil. As imagens capturadas não são
+                  enviadas aos nossos servidores sem uma ação explícita sua (ex.: confirmar o upload da
+                  foto de perfil). A leitura do QR Code é processada localmente no dispositivo e apenas
+                  o identificador do ingresso é transmitido ao servidor para validação.
+                </li>
+                <li>
+                  <strong>Notificações, Boot Completed, Vibrate e Wake Lock:</strong> utilizadas para
+                  enviar lembretes de eventos e confirmações de compra.
+                </li>
+                <li>
+                  <strong>Autenticação Biométrica (Fingerprint):</strong> opcionalmente usada para
+                  login mais rápido, sem envio de dados biométricos para nossos servidores.
+                </li>
+              </ul>
+              <p className="text-lumera-muted leading-relaxed mt-4">
+                Você pode revogar qualquer permissão a qualquer momento nas configurações do Android.
+              </p>
             </section>
 
             {/* Section 2 */}
