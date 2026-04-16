@@ -85,6 +85,8 @@ const envSchema = z.object({
   PAGARME_SECRET_KEY: z.string().optional(),
   PAGARME_PUBLIC_KEY: z.string().optional(),
   PAGARME_WEBHOOK_SECRET: z.string().optional(),
+  // Master recipient id (Lumera's own recipient on Pagar.me) - receives platform fee
+  PAGARME_MASTER_RECIPIENT_ID: z.string().optional(),
 
   // AWS S3
   AWS_ACCESS_KEY_ID: z.string().optional(),
@@ -100,7 +102,7 @@ const envSchema = z.object({
   RATE_LIMIT_MAX_REQUESTS: z.string().default('100'),
 
   // Platform Fees (Split Payment)
-  PLATFORM_FEE_PERCENTAGE: z.string().default('8'), // Default 8% for platform
+  PLATFORM_FEE_PERCENTAGE: z.string().default('5'), // Default 5% for Lumera platform fee
   PLATFORM_FIXED_FEE: z.string().default('0'), // Fixed fee per transaction (in BRL)
 
   // Security

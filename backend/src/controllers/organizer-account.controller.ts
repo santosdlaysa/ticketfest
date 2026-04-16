@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { query } from '../config/database.js';
 import { AppError } from '../middlewares/errorHandler.js';
+import { pagarmeService, PagarmeBankAccount, PagarmeRecipientRequest } from '../services/pagarme.service.js';
 
 interface BankDetails {
   bankCode: string;
@@ -136,7 +137,16 @@ export class OrganizerAccountController {
         [userId]
       );
 
-      return res.status(201).json(this.formatAccount(result.rows[0]));
+      // Attempt to create Pagar.me recipient (only if bank data was provided)
+      await this.syncRecipient(userId, result.rows[0]);
+
+      // Re-read to get the latest row (including pagarme_recipient_id)
+      const refreshed = await query(
+        `SELECT * FROM organizer_accounts WHERE user_id = $1`,
+        [userId]
+      );
+
+      return res.status(201).json(this.formatAccount(refreshed.rows[0] || result.rows[0]));
     } catch (error) {
       return next(error);
     }
@@ -239,7 +249,15 @@ export class OrganizerAccountController {
         throw new AppError(404, 'Organizer account not found');
       }
 
-      return res.json(this.formatAccount(result.rows[0]));
+      // Create or update Pagar.me recipient with new bank account
+      await this.syncRecipient(userId, result.rows[0]);
+
+      const refreshed = await query(
+        `SELECT * FROM organizer_accounts WHERE user_id = $1`,
+        [userId]
+      );
+
+      return res.json(this.formatAccount(refreshed.rows[0] || result.rows[0]));
     } catch (error) {
       return next(error);
     }
@@ -268,11 +286,13 @@ export class OrganizerAccountController {
         throw new AppError(400, 'Bank details are required for verification');
       }
 
-      // In production, this would send a request to admin or trigger external verification
-      // For now, we'll just return a message
+      // Try to (re-)create the Pagar.me recipient if not created yet
+      const recipientId = await this.syncRecipient(userId, acc);
+
       return res.json({
         message: 'Verification request submitted. You will be notified once verified.',
-        status: 'pending_verification'
+        status: 'pending_verification',
+        pagarmeRecipientId: recipientId,
       });
     } catch (error) {
       return next(error);
@@ -391,12 +411,88 @@ export class OrganizerAccountController {
     }
   }
 
+  /**
+   * Build Pagar.me bank account payload from DB row.
+   * Returns null if required bank fields are missing.
+   */
+  private buildBankAccount(acc: any): PagarmeBankAccount | null {
+    if (!acc.bank_code || !acc.account_number || !acc.account_digit || !acc.agency_number || !acc.holder_name || !acc.holder_document || !acc.account_type || !acc.holder_type) {
+      return null;
+    }
+
+    return {
+      holder_name: acc.holder_name,
+      holder_type: acc.holder_type === 'COMPANY' ? 'company' : 'individual',
+      holder_document: String(acc.holder_document).replace(/\D/g, ''),
+      bank: String(acc.bank_code).padStart(3, '0'),
+      branch_number: String(acc.agency_number).replace(/\D/g, ''),
+      branch_check_digit: acc.agency_digit ? String(acc.agency_digit).replace(/\D/g, '') : undefined,
+      account_number: String(acc.account_number).replace(/\D/g, ''),
+      account_check_digit: String(acc.account_digit).replace(/\D/g, ''),
+      type: acc.account_type === 'SAVINGS' ? 'savings' : 'checking',
+    };
+  }
+
+  /**
+   * Create or update Pagar.me recipient from DB row.
+   * Saves returned recipient id into organizer_accounts.pagarme_recipient_id.
+   * Safe: logs errors but never throws - recipient creation can be retried.
+   */
+  private async syncRecipient(userId: string, acc: any): Promise<string | null> {
+    const bankAccount = this.buildBankAccount(acc);
+    if (!bankAccount) {
+      return acc.pagarme_recipient_id || null;
+    }
+
+    const ownerName = acc.holder_name || acc.company_name || 'Organizador';
+    const ownerEmail = acc.company_email || '';
+    const doc = String(acc.holder_document || acc.cnpj || '').replace(/\D/g, '');
+    if (!doc || !ownerEmail) {
+      console.warn(`[syncRecipient] skipped for user ${userId}: missing email or document`);
+      return acc.pagarme_recipient_id || null;
+    }
+
+    const recipientType: 'individual' | 'corporation' =
+      acc.holder_type === 'COMPANY' ? 'corporation' : 'individual';
+
+    try {
+      if (acc.pagarme_recipient_id) {
+        // Update bank account only - simpler and most common case
+        await pagarmeService.updateRecipientBankAccount(acc.pagarme_recipient_id, bankAccount);
+        return acc.pagarme_recipient_id;
+      }
+
+      const payload: PagarmeRecipientRequest = {
+        name: ownerName,
+        email: ownerEmail,
+        document: doc,
+        type: recipientType,
+        code: acc.id,
+        default_bank_account: bankAccount,
+      };
+
+      const created = await pagarmeService.createRecipient(payload);
+
+      await query(
+        `UPDATE organizer_accounts SET pagarme_recipient_id = $1, updated_at = NOW() WHERE user_id = $2`,
+        [created.id, userId]
+      );
+
+      return created.id;
+    } catch (err: any) {
+      console.error('[syncRecipient] Pagar.me error:', err?.message || err);
+      return acc.pagarme_recipient_id || null;
+    }
+  }
+
   private formatAccount(acc: any) {
     return {
       id: acc.id,
       userId: acc.user_id,
       verified: acc.verified,
       verifiedAt: acc.verified_at,
+      pagarmeRecipientId: acc.pagarme_recipient_id,
+      readyToReceive: Boolean(acc.pagarme_recipient_id && acc.bank_code && acc.account_number),
       companyInfo: {
         companyName: acc.company_name,
         tradingName: acc.trading_name,

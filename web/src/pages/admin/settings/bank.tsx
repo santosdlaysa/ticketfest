@@ -45,6 +45,8 @@ export default function BankSettingsPage() {
   const [hasAccount, setHasAccount] = useState(false);
   const [balance, setBalance] = useState({ available: 0, pending: 0 });
   const [requestingVerification, setRequestingVerification] = useState(false);
+  const [readyToReceive, setReadyToReceive] = useState(false);
+  const [recipientId, setRecipientId] = useState<string | null>(null);
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<BankForm>();
   const selectedBank = watch('bankCode');
@@ -60,6 +62,8 @@ export default function BankSettingsPage() {
       const data = await organizerAccountApi.getMyAccount();
       setHasAccount(true);
       setVerified(data.verified);
+      setReadyToReceive(Boolean(data.readyToReceive));
+      setRecipientId(data.pagarmeRecipientId || null);
       setBalance({
         available: data.balance.available,
         pending: data.balance.pending,
@@ -206,6 +210,39 @@ export default function BankSettingsPage() {
               <div className="text-2xl font-bold text-yellow-600">
                 R$ {balance.pending.toFixed(2)}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pagar.me Recipient Status */}
+        {hasAccount && (
+          <div className={`card p-4 mb-4 border-lumera-border ${readyToReceive ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+            <div className="flex items-center gap-3">
+              {readyToReceive ? (
+                <>
+                  <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <div>
+                    <div className="font-medium text-green-400">Pronto para receber pagamentos</div>
+                    <div className="text-sm text-green-400/80">
+                      Recebedor Pagar.me: <span className="font-mono">{recipientId}</span>. Os valores das vendas serão depositados na sua conta.
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium text-red-400">Cadastro bancário incompleto</div>
+                    <div className="text-sm text-red-400/80">
+                      Preencha e salve seus dados bancários abaixo para que seus eventos possam vender ingressos. Sem isso, seus eventos ficam bloqueados para compra.
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

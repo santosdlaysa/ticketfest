@@ -1,4 +1,4 @@
-import { pagarmeService, PagarmeCustomer, PagarmeItem, PagarmeOrderResponse } from './pagarme.service.js';
+import { pagarmeService, PagarmeCustomer, PagarmeItem, PagarmeOrderResponse, PagarmeSplit } from './pagarme.service.js';
 
 export interface PaymentIntent {
   id: string;
@@ -103,7 +103,8 @@ export class PaymentService {
     items: Array<{ name: string; quantity: number; price: number; id?: string }>,
     cardToken: string,
     installments: number = 1,
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<CardPaymentData> {
     const pagarmeCustomer = this.formatCustomer(customer);
     const pagarmeItems = this.formatItems(items);
@@ -113,7 +114,8 @@ export class PaymentService {
       pagarmeItems,
       cardToken,
       installments,
-      metadata
+      metadata,
+      split
     );
 
     const charge = order.charges[0];
@@ -133,7 +135,8 @@ export class PaymentService {
     customer: CustomerData,
     items: Array<{ name: string; quantity: number; price: number; id?: string }>,
     cardToken: string,
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<CardPaymentData> {
     const pagarmeCustomer = this.formatCustomer(customer);
     const pagarmeItems = this.formatItems(items);
@@ -142,7 +145,8 @@ export class PaymentService {
       pagarmeCustomer,
       pagarmeItems,
       cardToken,
-      metadata
+      metadata,
+      split
     );
 
     const charge = order.charges[0];
@@ -162,7 +166,8 @@ export class PaymentService {
     customer: CustomerData,
     items: Array<{ name: string; quantity: number; price: number; id?: string }>,
     expiresInSeconds: number = 3600,
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<PixPaymentData> {
     const pagarmeCustomer = this.formatCustomer(customer);
     const pagarmeItems = this.formatItems(items);
@@ -171,7 +176,8 @@ export class PaymentService {
       pagarmeCustomer,
       pagarmeItems,
       expiresInSeconds,
-      metadata
+      metadata,
+      split
     );
 
     const charge = order.charges[0];
@@ -216,7 +222,8 @@ export class PaymentService {
     items: Array<{ name: string; quantity: number; price: number; id?: string }>,
     daysToExpire: number = 3,
     instructions?: string,
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<BoletoPaymentData> {
     const pagarmeCustomer = this.formatCustomer(customer);
     const pagarmeItems = this.formatItems(items);
@@ -226,7 +233,8 @@ export class PaymentService {
       pagarmeItems,
       daysToExpire,
       instructions,
-      metadata
+      metadata,
+      split
     );
 
     const charge = order.charges[0];

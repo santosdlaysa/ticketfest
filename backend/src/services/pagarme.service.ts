@@ -33,8 +33,20 @@ export interface PagarmeItem {
   code?: string;
 }
 
+export interface PagarmeSplit {
+  amount: number; // amount or percentage depending on type
+  recipient_id: string;
+  type: 'flat' | 'percentage';
+  options?: {
+    charge_processing_fee?: boolean;
+    charge_remainder_fee?: boolean;
+    liable?: boolean;
+  };
+}
+
 export interface PagarmeCreditCardPayment {
   payment_method: 'credit_card';
+  split?: PagarmeSplit[];
   credit_card: {
     installments: number;
     statement_descriptor?: string;
@@ -62,6 +74,7 @@ export interface PagarmeCreditCardPayment {
 
 export interface PagarmeDebitCardPayment {
   payment_method: 'debit_card';
+  split?: PagarmeSplit[];
   debit_card: {
     statement_descriptor?: string;
     card?: {
@@ -98,6 +111,7 @@ export interface PagarmeDebitCardPayment {
 
 export interface PagarmePixPayment {
   payment_method: 'pix';
+  split?: PagarmeSplit[];
   pix: {
     expires_in: number; // seconds
     additional_information?: Array<{
@@ -109,6 +123,7 @@ export interface PagarmePixPayment {
 
 export interface PagarmeBoletoPayment {
   payment_method: 'boleto';
+  split?: PagarmeSplit[];
   boleto: {
     bank: string; // '001' = Banco do Brasil, '104' = Caixa, '237' = Bradesco, '341' = Itau, '033' = Santander
     instructions: string;
@@ -229,6 +244,52 @@ export interface PagarmeTokenResponse {
   };
 }
 
+export interface PagarmeBankAccount {
+  holder_name: string;
+  holder_type: 'individual' | 'company';
+  holder_document: string; // CPF or CNPJ (numbers only)
+  bank: string; // 3-digit bank code, e.g. '001'
+  branch_number: string; // agency number
+  branch_check_digit?: string;
+  account_number: string;
+  account_check_digit: string;
+  type: 'checking' | 'savings'; // Pagar.me: 'checking' | 'savings'
+}
+
+export interface PagarmeRecipientRequest {
+  name: string; // Organizer's legal name / company name
+  email: string;
+  description?: string;
+  document: string; // CPF or CNPJ (numbers only)
+  type: 'individual' | 'corporation';
+  code?: string; // Our internal reference (organizer_account.id)
+  default_bank_account: PagarmeBankAccount;
+  transfer_settings?: {
+    transfer_enabled?: boolean;
+    transfer_interval?: 'daily' | 'weekly' | 'monthly';
+    transfer_day?: number;
+  };
+}
+
+export interface PagarmeRecipientResponse {
+  id: string;
+  name: string;
+  email: string;
+  document: string;
+  type: string;
+  status: 'registration' | 'affiliation' | 'active' | 'refused' | 'suspended' | 'blocked' | 'inactive';
+  code?: string;
+  description?: string;
+  default_bank_account?: PagarmeBankAccount & { id?: string; status?: string };
+  transfer_settings?: {
+    transfer_enabled?: boolean;
+    transfer_interval?: string;
+    transfer_day?: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
 export class PagarmeService {
   private apiUrl = 'https://api.pagar.me/core/v5';
   private secretKey: string | null = null;
@@ -251,7 +312,7 @@ export class PagarmeService {
 
   private async request<T>(
     endpoint: string,
-    method: 'GET' | 'POST' | 'PATCH' | 'DELETE' = 'GET',
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
     body?: any
   ): Promise<T> {
     const url = `${this.apiUrl}${endpoint}`;
@@ -321,6 +382,75 @@ export class PagarmeService {
   }
 
   /**
+   * Create a recipient on Pagar.me (organizer bank account)
+   */
+  async createRecipient(payload: PagarmeRecipientRequest): Promise<PagarmeRecipientResponse> {
+    if (!this.secretKey) {
+      return this.mockRecipient(payload);
+    }
+    return this.request<PagarmeRecipientResponse>('/recipients', 'POST', payload);
+  }
+
+  /**
+   * Update an existing recipient's bank account / personal info
+   */
+  async updateRecipient(
+    recipientId: string,
+    payload: Partial<PagarmeRecipientRequest>
+  ): Promise<PagarmeRecipientResponse> {
+    if (!this.secretKey) {
+      return this.mockRecipient({ ...(payload as PagarmeRecipientRequest), } , recipientId);
+    }
+    return this.request<PagarmeRecipientResponse>(`/recipients/${recipientId}`, 'PUT', payload);
+  }
+
+  /**
+   * Update a recipient's default bank account (separate endpoint on Pagar.me v5)
+   */
+  async updateRecipientBankAccount(
+    recipientId: string,
+    bankAccount: PagarmeBankAccount
+  ): Promise<PagarmeRecipientResponse> {
+    if (!this.secretKey) {
+      return this.mockRecipient(
+        { default_bank_account: bankAccount } as PagarmeRecipientRequest,
+        recipientId
+      );
+    }
+    return this.request<PagarmeRecipientResponse>(
+      `/recipients/${recipientId}/default-bank-account`,
+      'PATCH',
+      bankAccount
+    );
+  }
+
+  async getRecipient(recipientId: string): Promise<PagarmeRecipientResponse> {
+    if (!this.secretKey) {
+      return this.mockRecipient({} as PagarmeRecipientRequest, recipientId);
+    }
+    return this.request<PagarmeRecipientResponse>(`/recipients/${recipientId}`);
+  }
+
+  private mockRecipient(payload: PagarmeRecipientRequest, id?: string): PagarmeRecipientResponse {
+    const now = new Date().toISOString();
+    const mockId = id || `re_mock_${Date.now()}`;
+    return {
+      id: mockId,
+      name: payload.name || 'Mock Recipient',
+      email: payload.email || 'mock@example.com',
+      document: payload.document || '00000000000',
+      type: payload.type || 'individual',
+      status: 'active',
+      code: payload.code,
+      description: payload.description,
+      default_bank_account: payload.default_bank_account,
+      transfer_settings: payload.transfer_settings,
+      created_at: now,
+      updated_at: now,
+    };
+  }
+
+  /**
    * Create an order with credit card payment
    */
   async createCreditCardOrder(
@@ -328,7 +458,8 @@ export class PagarmeService {
     items: PagarmeItem[],
     cardToken: string,
     installments: number = 1,
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<PagarmeOrderResponse> {
     if (!this.secretKey) {
       return this.mockOrderResponse('credit_card', items, metadata);
@@ -345,6 +476,7 @@ export class PagarmeService {
             statement_descriptor: 'LUMERA',
             card_token: cardToken,
           },
+          ...(split && split.length > 0 ? { split } : {}),
         },
       ],
       metadata,
@@ -360,7 +492,8 @@ export class PagarmeService {
     customer: PagarmeCustomer,
     items: PagarmeItem[],
     cardToken: string,
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<PagarmeOrderResponse> {
     if (!this.secretKey) {
       return this.mockOrderResponse('debit_card', items, metadata);
@@ -376,6 +509,7 @@ export class PagarmeService {
             statement_descriptor: 'LUMERA',
             card_token: cardToken,
           },
+          ...(split && split.length > 0 ? { split } : {}),
         } as any, // debit_card type
       ],
       metadata,
@@ -391,7 +525,8 @@ export class PagarmeService {
     customer: PagarmeCustomer,
     items: PagarmeItem[],
     expiresInSeconds: number = 3600, // 1 hour default
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<PagarmeOrderResponse> {
     if (!this.secretKey) {
       return this.mockPixOrderResponse(items, expiresInSeconds, metadata);
@@ -409,6 +544,7 @@ export class PagarmeService {
               { name: 'Plataforma', value: 'Lumera' },
             ],
           },
+          ...(split && split.length > 0 ? { split } : {}),
         },
       ],
       metadata,
@@ -440,7 +576,8 @@ export class PagarmeService {
     items: PagarmeItem[],
     daysToExpire: number = 3,
     instructions?: string,
-    metadata?: Record<string, string>
+    metadata?: Record<string, string>,
+    split?: PagarmeSplit[]
   ): Promise<PagarmeOrderResponse> {
     if (!this.secretKey) {
       return this.mockBoletoOrderResponse(items, daysToExpire, metadata);
@@ -473,6 +610,7 @@ export class PagarmeService {
               amount: 200, // 2% fine = 200 basis points
             },
           },
+          ...(split && split.length > 0 ? { split } : {}),
         } as PagarmeBoletoPayment,
       ],
       metadata,

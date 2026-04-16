@@ -42,7 +42,10 @@
       "Bash(ls -la lumera-upload-cert.*)",
       "Bash(rm -rf C:/Users/ldsantos/ticketfest/mobile/android/app/build C:/Users/ldsantos/ticketfest/mobile/android/app/.cxx C:/Users/ldsantos/ticketfest/mobile/android/build)",
       "Bash(./gradlew bundleRelease)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx --prefix C:/Users/ldsantos/ticketfest/web tsc -p C:/Users/ldsantos/ticketfest/web/tsconfig.json --noEmit)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Read(//tmp/**)"
     ]
   }
 }

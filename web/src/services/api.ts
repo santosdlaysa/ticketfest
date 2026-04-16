@@ -1027,6 +1027,8 @@ export interface OrganizerAccount {
   userId: string;
   verified: boolean;
   verifiedAt: string | null;
+  pagarmeRecipientId: string | null;
+  readyToReceive: boolean;
   companyInfo: OrganizerAccountCompanyInfo;
   bankDetails: OrganizerAccountBankDetails;
   balance: {

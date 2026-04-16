@@ -3,6 +3,8 @@ import { AppError } from '../middlewares/errorHandler.js';
 import { QRCodeService } from './qrcode.service.js';
 import { PaymentService } from './payment.service.js';
 import { EmailService } from './email.service.js';
+import { PagarmeSplit } from './pagarme.service.js';
+import { env } from '../config/env.js';
 
 const qrCodeService = new QRCodeService();
 const paymentService = new PaymentService();
@@ -107,6 +109,36 @@ export class OrderService {
     }
 
     const eventId = tickets[0].ticket.event_id;
+
+    // Fetch event organizer's Pagar.me recipient to set up payment split
+    const organizerResult = await query<{ organizer_id: string; pagarme_recipient_id: string | null }>(
+      `SELECT e.organizer_id, oa.pagarme_recipient_id
+       FROM events e
+       LEFT JOIN organizer_accounts oa ON oa.user_id = e.organizer_id
+       WHERE e.id = $1`,
+      [eventId]
+    );
+
+    if (organizerResult.rows.length === 0) {
+      throw new AppError(404, 'Event not found');
+    }
+
+    const organizerRecipientId = organizerResult.rows[0].pagarme_recipient_id;
+    const masterRecipientId = env.PAGARME_MASTER_RECIPIENT_ID;
+
+    // If Pagar.me is configured for production, both recipients are required
+    if (env.PAGARME_SECRET_KEY) {
+      if (!organizerRecipientId) {
+        throw new AppError(
+          400,
+          'Organizador deste evento ainda não concluiu o cadastro bancário. Compra temporariamente indisponível.'
+        );
+      }
+      if (!masterRecipientId) {
+        console.error('[createOrder] PAGARME_MASTER_RECIPIENT_ID not configured');
+        throw new AppError(500, 'Configuração de pagamento incompleta. Tente novamente mais tarde.');
+      }
+    }
 
     // Calculate totals
     let subtotal = tickets.reduce((sum, t) => sum + t.ticket.price * t.quantity, 0);
@@ -239,6 +271,39 @@ export class OrderService {
       id: ticket.id,
     }));
 
+    // Build Pagar.me split rules: organizer gets (100 - platformFee)%, Lumera gets platformFee%
+    // Remainder cents favor Lumera (platform) via Math.ceil on the fee amount.
+    let split: PagarmeSplit[] | undefined = undefined;
+    if (organizerRecipientId && masterRecipientId) {
+      const totalCents = Math.round(total * 100);
+      const feePercentage = parseFloat(env.PLATFORM_FEE_PERCENTAGE) || 5;
+      const feeCents = Math.ceil((totalCents * feePercentage) / 100);
+      const organizerCents = Math.max(0, totalCents - feeCents);
+
+      split = [
+        {
+          recipient_id: organizerRecipientId,
+          amount: organizerCents,
+          type: 'flat',
+          options: {
+            charge_processing_fee: true,
+            charge_remainder_fee: false,
+            liable: true,
+          },
+        },
+        {
+          recipient_id: masterRecipientId,
+          amount: feeCents,
+          type: 'flat',
+          options: {
+            charge_processing_fee: false,
+            charge_remainder_fee: true,
+            liable: true,
+          },
+        },
+      ];
+    }
+
     // Process payment
     let paymentData: any = {};
 
@@ -253,7 +318,8 @@ export class OrderService {
           paymentItems,
           data.cardToken,
           data.installments || 1,
-          { orderId: order.id, userId }
+          { orderId: order.id, userId },
+          split
         );
 
         paymentData = { card: cardPayment };
@@ -278,7 +344,8 @@ export class OrderService {
           customerData,
           paymentItems,
           data.cardToken,
-          { orderId: order.id, userId }
+          { orderId: order.id, userId },
+          split
         );
 
         paymentData = { card: cardPayment };
@@ -299,7 +366,8 @@ export class OrderService {
           customerData,
           paymentItems,
           3600,
-          { orderId: order.id, userId }
+          { orderId: order.id, userId },
+          split
         );
 
         paymentData = { pix: pixPayment };
@@ -314,7 +382,8 @@ export class OrderService {
           paymentItems,
           3, // 3 days to expire
           'Pagar ate a data de vencimento. Apos o vencimento, multa de 2% e juros de 1% ao mes.',
-          { orderId: order.id, userId }
+          { orderId: order.id, userId },
+          split
         );
 
         paymentData = { boleto: boletoPayment };
