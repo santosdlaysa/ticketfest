@@ -20,7 +20,28 @@
       "Bash(git -C /c/Users/ldsantos/ticketfest/mobile config user.email)",
       "Bash(git config:*)",
       "Bash(python -c \"from PIL import Image; img = Image.open\\('assets/icon.png'\\); print\\('size:', img.size\\); print\\('mode:', img.mode\\); print\\('has_alpha:', img.mode in \\('RGBA','LA'\\) or \\(img.mode=='P' and 'transparency' in img.info\\)\\)\")",
-      "Bash(eas update:configure --non-interactive)"
+      "Bash(eas update:configure --non-interactive)",
+      "Bash(eas whoami:*)",
+      "Bash(eas build:*)",
+      "Bash(jarsigner -verify -verbose -certs app/build/outputs/apk/release/app-release.apk)",
+      "Bash(./gradlew clean:*)",
+      "Bash(rm -rf C:/Users/ldsantos/ticketfest/mobile/android/app/build/outputs/apk/release/)",
+      "Bash(./gradlew assembleRelease)",
+      "Bash(unzip -l app/build/outputs/apk/release/app-release.apk)",
+      "Bash(./gradlew :app:properties)",
+      "Read(//c/Android/Sdk/**)",
+      "Bash(env)",
+      "Bash(python)",
+      "Bash(mkdir -p com/laysadiniz/lumera)",
+      "Bash(mv com/lumera/app/MainActivity.kt com/laysadiniz/lumera/)",
+      "Bash(mv com/lumera/app/MainApplication.kt com/laysadiniz/lumera/)",
+      "Bash(rmdir com/lumera/app)",
+      "Bash(rmdir com/lumera)",
+      "Bash(keytool -export -rfc -keystore lumera-release.keystore -alias lumera -storepass Lumera@2026 -file lumera-upload-cert.pem)",
+      "Bash(keytool -export -keystore lumera-release.keystore -alias lumera -storepass Lumera@2026 -file lumera-upload-cert.der)",
+      "Bash(ls -la lumera-upload-cert.*)",
+      "Bash(rm -rf C:/Users/ldsantos/ticketfest/mobile/android/app/build C:/Users/ldsantos/ticketfest/mobile/android/app/.cxx C:/Users/ldsantos/ticketfest/mobile/android/build)",
+      "Bash(./gradlew bundleRelease)"
     ]
   }
 }

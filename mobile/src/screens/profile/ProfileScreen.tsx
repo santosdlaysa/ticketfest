@@ -162,7 +162,7 @@ export default function ProfileScreen() {
     // TODO: Substituir pela URL real da loja
     const storeUrl = Platform.OS === 'ios'
       ? 'https://apps.apple.com/app/lumera/id000000000'
-      : 'https://play.google.com/store/apps/details?id=com.lumera.app';
+      : 'https://play.google.com/store/apps/details?id=com.laysadiniz.lumera';
     Linking.openURL(storeUrl).catch(() => {
       Alert.alert('Erro', 'Nao foi possivel abrir a loja de aplicativos.');
     });

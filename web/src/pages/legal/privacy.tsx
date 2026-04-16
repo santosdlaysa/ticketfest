@@ -365,6 +365,12 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="list-disc list-inside space-y-2 text-lumera-muted ml-4 mt-2">
                 <li>Acessar as configurações de sua conta na plataforma</li>
+                <li>
+                  Solicitar a exclusão da conta e dos seus dados na página de{' '}
+                  <Link href="/legal/account-deletion" className="text-primary-400 hover:text-primary-300 underline">
+                    Exclusão de Conta e Dados
+                  </Link>
+                </li>
                 <li>Enviar um e-mail para: <a href="mailto:privacidade@lumera.com.br" className="text-primary-400 hover:text-primary-300 underline">privacidade@lumera.com.br</a></li>
                 <li>Entrar em contato através do nosso canal de suporte</li>
               </ul>

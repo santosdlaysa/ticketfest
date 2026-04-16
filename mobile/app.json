@@ -30,7 +30,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.lumera.app",
+      "package": "com.laysadiniz.lumera",
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
