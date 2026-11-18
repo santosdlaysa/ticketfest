@@ -92,7 +92,7 @@ export default function Cart() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <span className="font-bold text-lg" aria-label={`Subtotal: R$ ${(Number(item.ticket.price) * item.quantity).toFixed(2)}`}>
+                      <span className="font-bold text-lg text-vip-300" aria-label={`Subtotal: R$ ${(Number(item.ticket.price) * item.quantity).toFixed(2)}`}>
                         R$ {(Number(item.ticket.price) * item.quantity).toFixed(2)}
                       </span>
                       <button
@@ -131,7 +131,7 @@ export default function Cart() {
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-baseline">
                   <span className="font-semibold">Total</span>
-                  <span className="text-2xl font-bold text-primary-500" aria-label={`Total: R$ ${Number(cart.total).toFixed(2)}`}>
+                  <span className="text-2xl font-bold text-vip-300" aria-label={`Total: R$ ${Number(cart.total).toFixed(2)}`}>
                     R$ {Number(cart.total).toFixed(2)}
                   </span>
                 </div>

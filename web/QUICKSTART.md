@@ -21,7 +21,7 @@ O arquivo `.env.local` já está criado com as configurações padrão:
 ```env
 NEXT_PUBLIC_API_URL=http://127.0.0.1:3001/api
 NEXT_PUBLIC_SITE_NAME=Lumera
-NEXT_PUBLIC_SITE_URL=http://localhost:3002
+NEXT_PUBLIC_SITE_URL=http://localhost:3003
 ```
 
 ### 3. Iniciar o Servidor de Desenvolvimento
@@ -30,12 +30,12 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3002
 npm run dev
 ```
 
-O frontend estará disponível em: **http://localhost:3002**
+O frontend estará disponível em: **http://localhost:3003**
 
 ## ✅ Testando a Aplicação
 
 ### 1. Acesse a Home
-Abra: http://localhost:3002
+Abra: http://localhost:3003
 
 ### 2. Navegue pelos Eventos
 - Clique em "Explorar Eventos" ou "Ver Todos"
@@ -73,7 +73,7 @@ Se você rodou o seed do backend (`npm run prisma:seed`):
 ## 📦 Scripts Disponíveis
 
 ```bash
-npm run dev          # Desenvolvimento (porta 3002)
+npm run dev          # Desenvolvimento (porta 3003)
 npm run build        # Build de produção
 npm start            # Inicia servidor de produção
 npm run lint         # ESLint
@@ -111,7 +111,7 @@ Exemplo:
 export default function Sobre() {
   return <div>Sobre nós</div>
 }
-// Acesse em: http://localhost:3002/sobre
+// Acesse em: http://localhost:3003/sobre
 ```
 
 ### Adicionar Novo Componente
@@ -138,12 +138,12 @@ npm install
 ```
 
 ### Erro de CORS
-- ✅ Verifique se o CORS do backend permite `http://localhost:3002`
+- ✅ Verifique se o CORS do backend permite `http://localhost:3003`
 
-### Porta 3002 em uso
+### Porta 3003 em uso
 Altere a porta no script:
 ```json
-"dev": "next dev -p 3003"
+"dev": "next dev -p 3004"
 ```
 
 ## 📱 Responsividade

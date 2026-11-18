@@ -424,7 +424,7 @@ export default function Checkout() {
                           {item.ticket.event.name}
                         </h4>
                         <p className="text-xs text-lumera-muted">{item.ticket.name}</p>
-                        <p className="text-xs text-lumera-muted">
+                        <p className="text-xs text-vip-300">
                           {item.quantity}x R$ {Number(item.ticket.price).toFixed(2)}
                         </p>
                       </div>
@@ -447,7 +447,7 @@ export default function Checkout() {
                 <div className="border-t pt-4 mb-6">
                   <div className="flex justify-between items-baseline">
                     <span className="font-semibold">Total</span>
-                    <span className="text-2xl font-bold text-primary-500">
+                    <span className="text-2xl font-bold text-vip-300">
                       R$ {Number(cart.total).toFixed(2)}
                     </span>
                   </div>

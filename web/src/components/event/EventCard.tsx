@@ -99,7 +99,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           {minPrice > 0 && (
             <div className="flex items-baseline" aria-label={`Preço a partir de R$ ${minPrice.toFixed(2)}`}>
               <span className="text-xs text-lumera-muted mr-1">a partir de</span>
-              <span className="text-lg font-bold text-primary-500">
+              <span className="text-lg font-bold text-vip-300">
                 R$ {minPrice.toFixed(2)}
               </span>
             </div>

@@ -194,7 +194,7 @@ export default function EventDetail() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                       </svg>
                       <span className="text-sm md:text-base">
-                        A partir de <span className="text-primary-300 font-semibold">R$ {minPrice.toFixed(2)}</span>
+                        A partir de <span className="text-vip-300 font-semibold">R$ {minPrice.toFixed(2)}</span>
                       </span>
                     </div>
                   )}
@@ -321,7 +321,7 @@ export default function EventDetail() {
                               )}
                             </div>
                             <div className="text-right flex-shrink-0">
-                              <p className="text-lg font-bold text-gradient-lumera">
+                              <p className="text-lg font-bold text-vip-300">
                                 R$ {Number(ticket.price).toFixed(2)}
                               </p>
                             </div>
@@ -380,7 +380,7 @@ export default function EventDetail() {
                           <span className="text-sm text-lumera-muted">
                             {totalSelected} ingresso{totalSelected > 1 ? 's' : ''}
                           </span>
-                          <span className="text-2xl font-bold text-gradient-lumera" aria-label={`Total: R$ ${totalPrice.toFixed(2)}`}>
+                          <span className="text-2xl font-bold text-vip-300" aria-label={`Total: R$ ${totalPrice.toFixed(2)}`}>
                             R$ {totalPrice.toFixed(2)}
                           </span>
                         </div>
