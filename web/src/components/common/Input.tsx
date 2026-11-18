@@ -20,9 +20,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={clsx(
-            'w-full px-4 py-2 border rounded-lg transition-all bg-white/[0.03] text-lumera-luminoso placeholder:text-lumera-muted',
+            'w-full px-4 py-2 border rounded-lg transition-all bg-white text-lumera-luminoso placeholder:text-lumera-muted',
             'focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-[0_0_0_3px_rgba(123,46,255,0.15),0_0_20px_rgba(123,46,255,0.1)]',
-            'disabled:bg-white/[0.02] disabled:cursor-not-allowed',
+            'disabled:bg-lumera-surface-alt disabled:cursor-not-allowed',
             {
               'border-red-500 focus:ring-red-500': error,
               'border-lumera-border': !error,

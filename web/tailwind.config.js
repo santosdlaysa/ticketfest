@@ -27,8 +27,8 @@ module.exports = {
           50: '#F5F0FF',
           100: '#EBE0FF',
           200: '#D6C2FF',
-          300: '#C2A3FF',
-          400: '#9E5CFF',
+          300: '#8A50EF',
+          400: '#7028E4',
           500: '#7B2EFF',   // Roxo Lumera principal
           600: '#6B1FEF',
           700: '#5A14DF',
@@ -40,8 +40,8 @@ module.exports = {
           50: '#EEF1FF',
           100: '#DEE4FF',
           200: '#BDC9FF',
-          300: '#9CAEFF',
-          400: '#7B93FF',
+          300: '#536BD8',
+          400: '#4058D6',
           500: '#4A6CFF',   // Azul Glow principal
           600: '#3A5CEF',
           700: '#2A4CDF',
@@ -53,8 +53,8 @@ module.exports = {
           50: '#FAF5FF',
           100: '#F5EBFF',
           200: '#EBD6FF',
-          300: '#E0C2FF',
-          400: '#D0A3FF',
+          300: '#A469D4',
+          400: '#8E45CC',
           500: '#C084FF',   // Lilás Neon principal
           600: '#B070EF',
           700: '#A060DF',
@@ -76,14 +76,14 @@ module.exports = {
         },
         // Cores de base Lumera
         lumera: {
-          obsidian: '#0A0A0B',     // Background principal (dark)
-          luminoso: '#E8E8F0',     // Texto principal (light on dark)
-          fumaca: '#2A2A2E',       // Cinza Fumaça
-          surface: '#141418',      // Background de cards/surfaces
-          'surface-alt': '#1A1A20', // Surface alternativa mais clara
-          border: '#2D2640',       // Bordas (tom roxo escuro)
-          divider: '#1E1B2E',      // Divisores
-          muted: '#9B95A8',        // Texto secundário/muted
+          obsidian: '#F7F5FA',      // Fundo claro principal
+          luminoso: '#211B2B',      // Texto principal
+          fumaca: '#FFFFFF',        // Superfície clara
+          surface: '#FFFFFF',       // Fundo de cards/superfícies
+          'surface-alt': '#F2EFF7', // Superfície alternativa
+          border: '#E5DFEC',        // Bordas suaves
+          divider: '#ECE7F1',       // Divisores
+          muted: '#6B6475',         // Texto secundário
         },
       },
       fontFamily: {

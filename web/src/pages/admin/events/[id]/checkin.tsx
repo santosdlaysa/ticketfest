@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
-import { eventsApi, checkinWebApi, CheckinStats, TicketForCheckin, CheckinHistoryItem } from '@/services/api';
+import { eventsApi, checkinWebApi, TicketForCheckin, CheckinHistoryItem } from '@/services/api';
 import type { Event } from '@/types';
 
 export default function CheckinDashboard() {
@@ -14,10 +14,9 @@ export default function CheckinDashboard() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const cameraVideoRef = useRef<HTMLVideoElement>(null);
   const cameraControlsRef = useRef<{ stop: () => void } | null>(null);
-  const cameraBusyRef = useRef(false);
+  const qrProcessingRef = useRef(false);
 
   const [event, setEvent] = useState<Event | null>(null);
-  const [stats, setStats] = useState<CheckinStats | null>(null);
   const [tickets, setTickets] = useState<TicketForCheckin[]>([]);
   const [history, setHistory] = useState<CheckinHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,18 +46,21 @@ export default function CheckinDashboard() {
 
     const startCamera = async () => {
       try {
+        if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+          setCameraError('A leitura pela câmera exige HTTPS ou acesso por localhost.');
+          setCameraStatus('Câmera indisponível neste endereço');
+          return;
+        }
         const { BrowserQRCodeReader } = await import('@zxing/browser');
         if (cancelled || !cameraVideoRef.current) return;
         const reader = new BrowserQRCodeReader();
-        cameraControlsRef.current = await reader.decodeFromVideoDevice(
-          undefined,
+        cameraControlsRef.current = await reader.decodeFromConstraints(
+          { audio: false, video: { facingMode: { ideal: 'environment' } } },
           cameraVideoRef.current,
           (result, error) => {
-            if (result && !cameraBusyRef.current) {
-              cameraBusyRef.current = true;
+            if (result && !qrProcessingRef.current) {
               setCameraStatus('QR Code lido. Validando ingresso...');
               void handleQrScan(result.getText()).finally(() => {
-                cameraBusyRef.current = false;
                 if (!cancelled) setCameraStatus('Aponte a câmera para o QR Code');
               });
             } else if (error && error.name === 'NotFoundException' && !cancelled) {
@@ -90,14 +92,12 @@ export default function CheckinDashboard() {
   const loadData = async (eventId: string) => {
     try {
       setLoading(true);
-      const [eventData, statsData, ticketsData, historyData] = await Promise.all([
+      const [eventData, ticketsData, historyData] = await Promise.all([
         eventsApi.getById(eventId),
-        checkinWebApi.getStats(eventId),
         checkinWebApi.searchTickets(eventId, { limit: 50 }),
         checkinWebApi.getHistory(eventId, 10),
       ]);
       setEvent(eventData);
-      setStats(statsData);
       setTickets(ticketsData.tickets);
       setHistory(historyData.history);
     } catch (error: any) {
@@ -105,16 +105,6 @@ export default function CheckinDashboard() {
       console.error(error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const refreshStats = async () => {
-    if (!id || typeof id !== 'string') return;
-    try {
-      const statsData = await checkinWebApi.getStats(id);
-      setStats(statsData);
-    } catch (error) {
-      console.error('Erro ao atualizar stats:', error);
     }
   };
 
@@ -168,7 +158,6 @@ export default function CheckinDashboard() {
           : t
       ));
 
-      refreshStats();
       refreshHistory();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao realizar check-in');
@@ -192,7 +181,6 @@ export default function CheckinDashboard() {
           : t
       ));
 
-      refreshStats();
       refreshHistory();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao desfazer check-in');
@@ -203,7 +191,8 @@ export default function CheckinDashboard() {
 
   // QR Code validation
   const handleQrScan = async (code: string) => {
-    if (!code.trim() || processingId === 'qr') return;
+    if (!code.trim() || qrProcessingRef.current) return;
+    qrProcessingRef.current = true;
 
     try {
       setProcessingId('qr');
@@ -211,7 +200,6 @@ export default function CheckinDashboard() {
 
       if (result.valid && result.ticket) {
         toast.success(`Check-in realizado: ${result.ticket.attendeeName}`);
-        refreshStats();
         refreshHistory();
         handleSearch();
       } else if (result.alreadyCheckedIn) {
@@ -225,6 +213,7 @@ export default function CheckinDashboard() {
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao validar QR Code');
     } finally {
+      qrProcessingRef.current = false;
       setProcessingId(null);
     }
   };
@@ -269,6 +258,10 @@ export default function CheckinDashboard() {
               <h1 className="text-3xl font-bold text-lumera-luminoso">Check-in</h1>
               <p className="text-lumera-muted mt-1">{event.name}</p>
             </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href={`/admin/events/${event.id}/checkin-dashboard`}>
+                <Button variant="outline">Painel de entradas</Button>
+              </Link>
             <Button
               variant={qrScanMode ? 'primary' : 'outline'}
               onClick={() => setQrScanMode(!qrScanMode)}
@@ -278,38 +271,9 @@ export default function CheckinDashboard() {
               </svg>
               {qrScanMode ? 'Ocultar leitor' : 'Abrir leitor QR'}
             </Button>
+            </div>
           </div>
         </div>
-
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="card p-4">
-              <div className="text-2xl font-bold text-lumera-luminoso">{stats.total}</div>
-              <div className="text-sm text-lumera-muted">Total de Ingressos</div>
-            </div>
-            <div className="card p-4">
-              <div className="text-2xl font-bold text-green-400">{stats.checkedIn}</div>
-              <div className="text-sm text-lumera-muted">Check-ins Realizados</div>
-            </div>
-            <div className="card p-4">
-              <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
-              <div className="text-sm text-lumera-muted">Aguardando</div>
-            </div>
-            <div className="card p-4">
-              <div className="text-2xl font-bold text-primary-400">
-                {stats.percentageCheckedIn.toFixed(1)}%
-              </div>
-              <div className="text-sm text-lumera-muted">Taxa de Check-in</div>
-              <div className="w-full bg-lumera-border rounded-full h-2 mt-2">
-                <div
-                  className="bg-primary-600 h-2 rounded-full transition-all"
-                  style={{ width: `${stats.percentageCheckedIn}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* QR Scanner Input */}
         {qrScanMode && (

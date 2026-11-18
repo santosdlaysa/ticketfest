@@ -295,7 +295,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white/[0.03] backdrop-blur-md shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-white/[0.06] ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white backdrop-blur-md shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-lumera-border ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Navegação do painel administrativo"
@@ -407,7 +407,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Main content */}
       <div className="min-w-0 lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white/[0.03] backdrop-blur-md shadow-sm border-b border-white/[0.06]">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md shadow-sm border-b border-lumera-border">
           <div className="flex items-center justify-between gap-2 h-16 px-3 sm:px-4">
             <button
               className="lg:hidden p-2 text-lumera-muted hover:text-primary-400"

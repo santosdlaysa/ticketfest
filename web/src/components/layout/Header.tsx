@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-lumera-obsidian/95 backdrop-blur-md shadow-festival sticky top-0 z-50 border-b border-white/[0.06]">
+    <header className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-lumera-border">
       <nav className="container-custom" aria-label="Navegação principal">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -120,7 +120,7 @@ export const Header: React.FC = () => {
                 </button>
 
                 {/* Dropdown */}
-                <nav className="absolute right-0 mt-2 w-48 bg-white/[0.04] backdrop-blur-lg rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-white/[0.08] animate-scale-in" aria-label="Menu do usuário">
+                <nav className="absolute right-0 mt-2 w-48 bg-white backdrop-blur-lg rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-lumera-border animate-scale-in" aria-label="Menu do usuário">
                   <div className="px-4 py-2 border-b border-lumera-divider">
                     <p className="text-sm font-medium text-lumera-luminoso">{user.name}</p>
                     <p className="text-xs text-lumera-muted">{user.email}</p>

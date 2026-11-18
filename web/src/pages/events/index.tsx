@@ -90,13 +90,13 @@ export default function Events() {
       </Head>
 
       {/* Hero Header */}
-      <section className="relative overflow-hidden border-b border-white/[0.06] min-h-[420px] md:min-h-[480px] flex items-center">
+      <section className="relative overflow-hidden border-b border-lumera-border min-h-[420px] md:min-h-[480px] flex items-center">
         {/* Animated background layers */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-900/20 via-lumera-obsidian to-lumera-obsidian" aria-hidden="true" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary-50 via-lumera-obsidian to-lumera-obsidian" aria-hidden="true" />
 
         {/* Dot grid pattern */}
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 opacity-[0.035]"
           aria-hidden="true"
           style={{
             backgroundImage: 'radial-gradient(circle, rgba(123,46,255,0.8) 1px, transparent 1px)',
@@ -175,7 +175,7 @@ export default function Events() {
                   placeholder="Buscar eventos, shows, festivais..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-5 py-4 text-base bg-white/[0.05] backdrop-blur-md text-lumera-luminoso placeholder:text-lumera-muted border border-white/[0.1] rounded-xl focus:outline-none focus:border-transparent focus:ring-2 focus:ring-primary-500 transition-all"
+                  className="w-full px-5 py-4 text-base bg-white/90 backdrop-blur-md text-lumera-luminoso placeholder:text-lumera-muted border border-lumera-border rounded-xl focus:outline-none focus:border-transparent focus:ring-2 focus:ring-primary-500 transition-all shadow-sm"
                   aria-label="Campo de busca de eventos"
                 />
                 <button
@@ -197,7 +197,7 @@ export default function Events() {
               <button
                 key={cat}
                 onClick={() => router.push(`/events?category=${cat}`)}
-                className="px-4 py-1.5 text-sm text-lumera-luminoso/70 bg-white/[0.04] border border-white/[0.08] rounded-full hover:bg-primary-500/15 hover:text-primary-300 hover:border-primary-500/30 transition-all"
+                className="px-4 py-1.5 text-sm text-lumera-luminoso/80 bg-white/80 border border-lumera-border rounded-full hover:bg-primary-50 hover:text-primary-700 hover:border-primary-500/30 transition-all"
               >
                 {cat}
               </button>

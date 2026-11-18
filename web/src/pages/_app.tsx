@@ -15,6 +15,14 @@ export default function App({ Component, pageProps }: AppProps) {
   const { fetchCart } = useCartStore();
   const hasCheckedAuth = useRef(false);
 
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((error) => {
+      console.error('Não foi possível registrar o service worker da Lumera:', error);
+    });
+  }, []);
+
   const isAuthPage = router.pathname.startsWith('/auth');
 
   const isAdminPage = router.pathname.startsWith('/admin');

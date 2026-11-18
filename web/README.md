@@ -29,6 +29,14 @@ npm start
 
 O aplicativo estará disponível em: **http://localhost:3003**
 
+## 📲 PWA para celular
+
+O web pode ser instalado como aplicativo em celulares Android e iPhone. Em produção, publique em HTTPS. Para testar a instalação localmente, rode `npm run build` e depois `npm start`; o service worker fica desativado durante `npm run dev` para não interferir no hot reload.
+
+- **Android/Chrome:** abra o menu do navegador e escolha **Instalar app** ou **Adicionar à tela inicial**.
+- **iPhone/Safari:** toque em **Compartilhar** e escolha **Adicionar à Tela de Início**.
+- **Sem conexão:** páginas públicas visitadas e arquivos estáticos podem abrir do cache. Login, cadastro, pagamentos e dados da conta continuam exigindo internet.
+
 ## 🔑 Variáveis de Ambiente
 
 Crie um arquivo `.env.local`:
