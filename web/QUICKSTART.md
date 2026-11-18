@@ -3,7 +3,7 @@
 ## Pré-requisitos
 
 - ✅ Node.js 18+ instalado
-- ✅ Backend API rodando em `http://localhost:3000`
+- ✅ Backend API rodando em `http://127.0.0.1:3001`
 
 ## Instalação e Execução
 
@@ -19,9 +19,9 @@ npm install
 O arquivo `.env.local` já está criado com as configurações padrão:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
+NEXT_PUBLIC_API_URL=http://127.0.0.1:3001/api
 NEXT_PUBLIC_SITE_NAME=Lumera
-NEXT_PUBLIC_SITE_URL=http://localhost:3001
+NEXT_PUBLIC_SITE_URL=http://localhost:3002
 ```
 
 ### 3. Iniciar o Servidor de Desenvolvimento
@@ -30,12 +30,12 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3001
 npm run dev
 ```
 
-O frontend estará disponível em: **http://localhost:3001**
+O frontend estará disponível em: **http://localhost:3002**
 
 ## ✅ Testando a Aplicação
 
 ### 1. Acesse a Home
-Abra: http://localhost:3001
+Abra: http://localhost:3002
 
 ### 2. Navegue pelos Eventos
 - Clique em "Explorar Eventos" ou "Ver Todos"
@@ -73,7 +73,7 @@ Se você rodou o seed do backend (`npm run prisma:seed`):
 ## 📦 Scripts Disponíveis
 
 ```bash
-npm run dev          # Desenvolvimento (porta 3001)
+npm run dev          # Desenvolvimento (porta 3002)
 npm run build        # Build de produção
 npm start            # Inicia servidor de produção
 npm run lint         # ESLint
@@ -111,7 +111,7 @@ Exemplo:
 export default function Sobre() {
   return <div>Sobre nós</div>
 }
-// Acesse em: http://localhost:3001/sobre
+// Acesse em: http://localhost:3002/sobre
 ```
 
 ### Adicionar Novo Componente
@@ -128,7 +128,7 @@ export const Badge = ({ text }: { text: string }) => {
 ## 🐛 Troubleshooting
 
 ### Erro: "Cannot connect to API"
-- ✅ Verifique se o backend está rodando em `http://localhost:3000`
+- ✅ Verifique se o backend está rodando em `http://127.0.0.1:3001`
 - ✅ Verifique o `.env.local`
 
 ### Erro: "Module not found"
@@ -138,12 +138,12 @@ npm install
 ```
 
 ### Erro de CORS
-- ✅ Verifique se `FRONTEND_URL=http://localhost:3001` no backend `.env`
+- ✅ Verifique se o CORS do backend permite `http://localhost:3002`
 
-### Porta 3001 em uso
+### Porta 3002 em uso
 Altere a porta no script:
 ```json
-"dev": "next dev -p 3002"
+"dev": "next dev -p 3003"
 ```
 
 ## 📱 Responsividade

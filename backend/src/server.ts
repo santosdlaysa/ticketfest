@@ -1,4 +1,4 @@
-import { initSentry } from './config/sentry.js';
+import Sentry, { initSentry } from './config/sentry.js';
 import app from './app.js';
 import { env, dbConfig } from './config/env.js';
 import DatabaseService from './config/database.js';
@@ -113,7 +113,6 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
   // Captura promise rejections não tratadas no Sentry
   if (reason instanceof Error) {
-    const Sentry = require('./config/sentry.js').default;
     Sentry.captureException(reason, {
       tags: { errorType: 'UnhandledRejection' },
       extra: { promise },
@@ -124,7 +123,6 @@ process.on('unhandledRejection', (reason, promise) => {
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
   // Captura exceções não tratadas no Sentry
-  const Sentry = require('./config/sentry.js').default;
   Sentry.captureException(error, {
     tags: { errorType: 'UncaughtException' },
   });

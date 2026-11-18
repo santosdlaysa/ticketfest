@@ -27,16 +27,16 @@ npm run build
 npm start
 ```
 
-O aplicativo estará disponível em: **http://localhost:3001**
+O aplicativo estará disponível em: **http://localhost:3002**
 
 ## 🔑 Variáveis de Ambiente
 
 Crie um arquivo `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
+NEXT_PUBLIC_API_URL=http://127.0.0.1:3001/api
 NEXT_PUBLIC_SITE_NAME=Lumera
-NEXT_PUBLIC_SITE_URL=http://localhost:3001
+NEXT_PUBLIC_SITE_URL=http://localhost:3002
 ```
 
 ## 📂 Estrutura do Projeto
@@ -172,8 +172,8 @@ npm start
 
 ## 🔗 Links Úteis
 
-- **API Backend**: http://localhost:3000
-- **Frontend**: http://localhost:3001
+- **API Backend**: http://127.0.0.1:3001
+- **Frontend**: http://localhost:3002
 - **Documentação da API**: Ver `backend/README.md`
 
 ## 📝 Notas

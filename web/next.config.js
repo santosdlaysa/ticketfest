@@ -2,8 +2,6 @@ const { withSentryConfig } = require('@sentry/nextjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
   reactStrictMode: true,
   images: {
     unoptimized: true,
@@ -18,9 +16,6 @@ const nextConfig = {
         hostname: 'localhost',
       },
     ],
-  },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002',
   },
 }
 
