@@ -8,6 +8,7 @@ interface PagarmePaymentFormProps {
   onSuccess: (cardToken: string, installments: number) => void;
   onError: (error: string) => void;
   isProcessing: boolean;
+  isDemoMode?: boolean;
 }
 
 interface CardData {
@@ -23,6 +24,7 @@ export default function PagarmePaymentForm({
   onSuccess,
   onError,
   isProcessing,
+  isDemoMode = false,
 }: PagarmePaymentFormProps) {
   const [cardData, setCardData] = useState<CardData>({
     number: '',
@@ -270,11 +272,12 @@ export default function PagarmePaymentForm({
             />
           </svg>
           <div>
-            <p className="text-xs text-gray-600">
-              <span className="font-semibold">Pagamento 100% seguro</span>
+            <p className="text-xs text-gray-700">
+              <span className="font-semibold">{isDemoMode ? 'Pagamento simulado para demonstração' : 'Pagamento seguro'}</span>
               <br />
-              Seus dados sao criptografados e protegidos pela Pagar.me. Nao armazenamos
-              informacoes do cartao.
+              {isDemoMode
+                ? 'Use dados fictícios. Nenhum pagamento será enviado ao provedor ou cobrado.'
+                : 'Seus dados são processados pelo provedor de pagamento. Não armazenamos os dados do cartão.'}
             </p>
           </div>
         </div>

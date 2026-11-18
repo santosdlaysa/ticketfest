@@ -205,6 +205,15 @@ export const cartApi = {
 
 // Orders API
 export const ordersApi = {
+  getPaymentConfig: async (): Promise<{
+    publicKey: string | null;
+    isConfigured: boolean;
+    paymentMethods: string[];
+  }> => {
+    const response = await api.get('/orders/payment-config');
+    return response.data;
+  },
+
   create: async (data: {
     items: Array<{ ticketId: string; quantity: number }>;
     couponCode?: string;

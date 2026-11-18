@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useAuthStore } from '@/contexts/AuthContext';
 import { useCartStore } from '@/contexts/CartContext';
 import { Button } from '@/components/common/Button';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 export const Header: React.FC = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-lumera-border">
+    <header className="bg-lumera-surface shadow-sm sticky top-0 z-50 border-b border-lumera-border">
       <nav className="container-custom" aria-label="Navegação principal">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -60,6 +61,9 @@ export const Header: React.FC = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
             {/* Cart */}
             <Link
               href="/cart"
@@ -120,7 +124,7 @@ export const Header: React.FC = () => {
                 </button>
 
                 {/* Dropdown */}
-                <nav className="absolute right-0 mt-2 w-48 bg-white backdrop-blur-lg rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-lumera-border animate-scale-in" aria-label="Menu do usuário">
+                <nav className="absolute right-0 mt-2 w-48 bg-lumera-surface rounded-lg shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all border border-lumera-border animate-scale-in" aria-label="Menu do usuário">
                   <div className="px-4 py-2 border-b border-lumera-divider">
                     <p className="text-sm font-medium text-lumera-luminoso">{user.name}</p>
                     <p className="text-xs text-lumera-muted">{user.email}</p>
@@ -209,6 +213,9 @@ export const Header: React.FC = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <nav id="mobile-menu" className="md:hidden border-t border-lumera-border py-4 space-y-2" aria-label="Menu mobile">
+            <div className="px-4 pb-2">
+              <ThemeToggle showLabel />
+            </div>
             <Link
               href="/events"
               className="block px-4 py-2 text-lumera-luminoso hover:bg-primary-500/10 rounded-lg"

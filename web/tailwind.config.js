@@ -76,14 +76,14 @@ module.exports = {
         },
         // Cores de base Lumera
         lumera: {
-          obsidian: '#F7F5FA',      // Fundo claro principal
-          luminoso: '#211B2B',      // Texto principal
-          fumaca: '#FFFFFF',        // Superfície clara
-          surface: '#FFFFFF',       // Fundo de cards/superfícies
-          'surface-alt': '#F2EFF7', // Superfície alternativa
-          border: '#E5DFEC',        // Bordas suaves
-          divider: '#ECE7F1',       // Divisores
-          muted: '#6B6475',         // Texto secundário
+          obsidian: 'rgb(var(--lumera-obsidian) / <alpha-value>)',
+          luminoso: 'rgb(var(--lumera-luminoso) / <alpha-value>)',
+          fumaca: 'rgb(var(--lumera-fumaca) / <alpha-value>)',
+          surface: 'rgb(var(--lumera-surface) / <alpha-value>)',
+          'surface-alt': 'rgb(var(--lumera-surface-alt) / <alpha-value>)',
+          border: 'rgb(var(--lumera-border) / <alpha-value>)',
+          divider: 'rgb(var(--lumera-divider) / <alpha-value>)',
+          muted: 'rgb(var(--lumera-muted) / <alpha-value>)',
         },
       },
       fontFamily: {

@@ -20,12 +20,12 @@ Consultei o banco ativo (`lumerafest`) e encontrei estas contas:
 
 | Perfil | E-mail cadastrado | Situação da senha |
 |---|---|---|
-| Administrador | `admin.demo@lumera.example` | A senha não pode ser recuperada do banco; o valor salvo é um hash. |
-| Organizador | `demo+lumera-1795023659709@example.invalid` | A senha não pode ser recuperada do banco; o valor salvo é um hash. |
+| Administrador | `admin.demo@lumera.example` | Senha temporária definida e login verificado. |
+| Organizador | `demo+lumera-1795023659709@example.invalid` | Senha temporária definida e login verificado. |
 
-As senhas padrão encontradas em documentação antiga (`123456` e `password123`) não autenticam essas contas. Portanto, os e-mails acima são os perfis corretos, mas **não há senha funcional confirmada**. Para entrar, o responsável pelo ambiente precisa redefinir as senhas. Como os domínios `.example` e `.invalid` são reservados para exemplos, o fluxo de recuperação por e-mail não é apropriado para essas contas.
+As senhas são de uso interno do apresentador e foram fornecidas separadamente. Não as inclua em materiais enviados ao cliente. Como os domínios `.example` e `.invalid` são reservados para exemplos, o fluxo de recuperação por e-mail não é apropriado para essas contas.
 
-Não use dados ou contas de produção em demonstração. A redefinição deve ocorrer somente no banco destinado à demonstração e ser seguida de um teste de login nos dois perfis.
+Não use dados ou contas de produção em demonstração. Os logins foram validados no banco de demonstração e as contas ficam limitadas aos dados desse ambiente.
 
 ## 3. Roteiro sugerido (10 a 15 minutos)
 
@@ -44,7 +44,7 @@ Não use dados ou contas de produção em demonstração. A redefinição deve o
 2. Adicione ao carrinho e abra `/cart`.
 3. Mostre os itens, quantidades e total.
 4. Abra `/checkout` para apresentar os campos do comprador e meios de pagamento que o ambiente disponibiliza.
-5. Não envie pagamento real durante a apresentação. Para concluir a compra, use somente o modo de teste do provedor e os dados de teste homologados pelo responsável.
+5. O checkout mostra um aviso de modo de demonstração: o cartão é aprovado automaticamente pela simulação e nenhum valor é cobrado. O código PIX é ilustrativo e não deve ser pago.
 6. Apresente as áreas de pedidos e ingressos do participante em `/user/orders` e `/user/tickets` (exigem login).
 
 ### C. Área do organizador (3 a 4 minutos)
@@ -82,7 +82,7 @@ O aplicativo é desenvolvido com React Native/Expo. As telas implementadas inclu
 
 - Confirmar contas de teste **ADMIN** e **ORGANIZER** que realmente autenticam.
 - Confirmar que há eventos publicados, lotes disponíveis e dados de venda de demonstração.
-- Conferir se o checkout está em sandbox e não pode debitar cartão real.
+- Confirmar que o aviso de pagamento simulado aparece no checkout.
 - Confirmar se e-mail, PIX, webhooks e repasses estão em modo de teste.
 - Abrir e autenticar nas áreas restritas antes da reunião.
 - Usar navegador em janela limpa e ocultar tokens, dados pessoais e informações bancárias.
@@ -91,7 +91,7 @@ O aplicativo é desenvolvido com React Native/Expo. As telas implementadas inclu
 ## 6. Respostas rápidas para dúvidas
 
 **O pagamento já está pronto para produção?**  
-O código integra o Pagar.me, mas credenciais, recebedores, webhooks e homologação do ambiente precisam ser confirmados antes de afirmar que pagamentos reais estão ativos.
+Não neste ambiente de demonstração. O checkout usa simulação local: cartão é aprovado sem cobrança e o PIX é apenas ilustrativo. Para produção, ainda são necessárias credenciais, recebedores, webhooks e homologação do Pagar.me.
 
 **O check-in impede reutilização do ingresso?**  
 O fluxo de validação registra check-in e permite consultar histórico/estatísticas. A demonstração deve usar ingresso de teste e equipe autorizada.

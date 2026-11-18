@@ -27,6 +27,7 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCardForm, setShowCardForm] = useState(false);
   const [pendingOrderData, setPendingOrderData] = useState<CheckoutForm | null>(null);
+  const [paymentConfigured, setPaymentConfigured] = useState<boolean | null>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -52,6 +53,12 @@ export default function Checkout() {
   });
 
   const selectedPaymentMethod = watch('paymentMethod');
+
+  useEffect(() => {
+    ordersApi.getPaymentConfig()
+      .then((config) => setPaymentConfigured(config.isConfigured))
+      .catch(() => setPaymentConfigured(null));
+  }, []);
 
   // Pre-fill form with user data
   useEffect(() => {
@@ -237,6 +244,15 @@ export default function Checkout() {
       <div className="container-custom py-8">
         <h1 className="text-3xl font-bold mb-8">Finalizar Compra</h1>
 
+        {paymentConfigured === false && (
+          <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950" role="status">
+            <p className="font-semibold">Ambiente de demonstração: pagamentos simulados</p>
+            <p className="mt-1 text-sm">
+              Nenhuma cobrança real será feita. O cartão é aprovado automaticamente no modo de teste; o QR Code PIX é ilustrativo e não deve ser pago.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left column - Forms */}
@@ -393,6 +409,7 @@ export default function Checkout() {
                     onSuccess={handleCardPaymentSuccess}
                     onError={handleCardPaymentError}
                     isProcessing={isProcessing}
+                    isDemoMode={paymentConfigured !== true}
                   />
                 </div>
               )}

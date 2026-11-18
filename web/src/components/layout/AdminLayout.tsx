@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuthStore } from '@/contexts/AuthContext';
 import { usePermissions, PERMISSION_CODES, PermissionCode } from '@/hooks/usePermissions';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -288,14 +289,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-lumera-obsidian bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white backdrop-blur-md shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-lumera-border ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-lumera-surface shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 border-r border-lumera-border ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="Navegação do painel administrativo"
@@ -407,7 +408,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Main content */}
       <div className="min-w-0 lg:pl-64">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md shadow-sm border-b border-lumera-border">
+        <header className="sticky top-0 z-30 bg-lumera-surface shadow-sm border-b border-lumera-border">
           <div className="flex items-center justify-between gap-2 h-16 px-3 sm:px-4">
             <button
               className="lg:hidden p-2 text-lumera-muted hover:text-primary-400"
@@ -424,7 +425,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <span className="font-semibold text-lumera-luminoso">Admin</span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <ThemeToggle />
               {/* Só mostra botão de criar evento se tiver permissão */}
               {hasPermission(PERMISSION_CODES.EVENTS_CREATE) && (
                 <Link

@@ -54,8 +54,10 @@ export default function App({ Component, pageProps }: AppProps) {
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#363636',
-              color: '#fff',
+              background: '#FFFFFF',
+              color: '#211B2B',
+              border: '1px solid #E5DFEC',
+              boxShadow: '0 8px 24px rgba(33, 27, 43, 0.12)',
             },
             success: {
               iconTheme: {
@@ -89,8 +91,10 @@ export default function App({ Component, pageProps }: AppProps) {
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#363636',
-              color: '#fff',
+              background: '#FFFFFF',
+              color: '#211B2B',
+              border: '1px solid #E5DFEC',
+              boxShadow: '0 8px 24px rgba(33, 27, 43, 0.12)',
             },
             success: {
               iconTheme: {
