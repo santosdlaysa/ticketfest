@@ -12,6 +12,9 @@ export default function CheckinDashboard() {
   const router = useRouter();
   const { id } = router.query;
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const cameraVideoRef = useRef<HTMLVideoElement>(null);
+  const cameraControlsRef = useRef<{ stop: () => void } | null>(null);
+  const cameraBusyRef = useRef(false);
 
   const [event, setEvent] = useState<Event | null>(null);
   const [stats, setStats] = useState<CheckinStats | null>(null);
@@ -24,6 +27,8 @@ export default function CheckinDashboard() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [qrScanMode, setQrScanMode] = useState(true);
   const [qrInput, setQrInput] = useState('');
+  const [cameraStatus, setCameraStatus] = useState('Iniciando câmera...');
+  const [cameraError, setCameraError] = useState('');
 
   // Load initial data
   useEffect(() => {
@@ -31,6 +36,56 @@ export default function CheckinDashboard() {
       loadData(id);
     }
   }, [id]);
+
+  // Start a browser camera reader when the QR panel is open. The scanner is
+  // imported client-side so it does not touch browser APIs during SSR.
+  useEffect(() => {
+    if (!qrScanMode || !event || !cameraVideoRef.current) return;
+    let cancelled = false;
+    setCameraError('');
+    setCameraStatus('Solicitando acesso à câmera...');
+
+    const startCamera = async () => {
+      try {
+        const { BrowserQRCodeReader } = await import('@zxing/browser');
+        if (cancelled || !cameraVideoRef.current) return;
+        const reader = new BrowserQRCodeReader();
+        cameraControlsRef.current = await reader.decodeFromVideoDevice(
+          undefined,
+          cameraVideoRef.current,
+          (result, error) => {
+            if (result && !cameraBusyRef.current) {
+              cameraBusyRef.current = true;
+              setCameraStatus('QR Code lido. Validando ingresso...');
+              void handleQrScan(result.getText()).finally(() => {
+                cameraBusyRef.current = false;
+                if (!cancelled) setCameraStatus('Aponte a câmera para o QR Code');
+              });
+            } else if (error && error.name === 'NotFoundException' && !cancelled) {
+              setCameraStatus('Aponte a câmera para o QR Code');
+            }
+          }
+        );
+        if (!cancelled) setCameraStatus('Aponte a câmera para o QR Code');
+        else cameraControlsRef.current?.stop();
+      } catch (error: any) {
+        if (cancelled) return;
+        setCameraError(error?.name === 'NotAllowedError'
+          ? 'Permita o acesso à câmera no navegador para ler ingressos.'
+          : error?.name === 'NotFoundException'
+            ? 'Nenhuma câmera foi encontrada neste dispositivo.'
+            : 'Não foi possível iniciar a câmera. Confira as permissões do navegador.');
+        setCameraStatus('Câmera indisponível');
+      }
+    };
+
+    void startCamera();
+    return () => {
+      cancelled = true;
+      cameraControlsRef.current?.stop();
+      cameraControlsRef.current = null;
+    };
+  }, [qrScanMode, event?.id]);
 
   const loadData = async (eventId: string) => {
     try {
@@ -148,7 +203,7 @@ export default function CheckinDashboard() {
 
   // QR Code validation
   const handleQrScan = async (code: string) => {
-    if (!code.trim()) return;
+    if (!code.trim() || processingId === 'qr') return;
 
     try {
       setProcessingId('qr');
@@ -259,7 +314,17 @@ export default function CheckinDashboard() {
         {/* QR Scanner Input */}
         {qrScanMode && (
           <div className="card p-4 sm:p-6 mb-6 bg-primary-500/10 border-primary-500/30">
-            <div className="flex items-center gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div className="min-w-0">
+                <div className="overflow-hidden rounded-xl bg-black aspect-video relative">
+                  <video ref={cameraVideoRef} className="w-full h-full object-cover" muted playsInline />
+                  <div className="pointer-events-none absolute inset-[16%] border-2 border-primary-400/90 rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.18)]" />
+                </div>
+                <p className={`mt-2 text-sm ${cameraError ? 'text-red-400' : 'text-lumera-muted'}`}>
+                  {cameraError || cameraStatus}
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
               <div className="p-3 bg-primary-500/20 rounded-lg">
                 <svg className="w-8 h-8 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -287,6 +352,7 @@ export default function CheckinDashboard() {
               >
                 Validar
               </Button>
+              </div>
             </div>
           </div>
         )}
