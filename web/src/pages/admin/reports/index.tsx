@@ -98,14 +98,14 @@ export default function AdminReportsPage() {
   return (
     <>
       <Head><title>Relatorios de Vendas - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-lumera-luminoso">Relatorios de Vendas</h1>
             <p className="text-lumera-muted mt-1">Analise detalhada das suas vendas</p>
           </div>
-          <div className="mt-4 md:mt-0 flex gap-3">
+          <div className="mt-4 md:mt-0 flex flex-wrap gap-3">
             <Button variant="outline" onClick={() => handleExport('orders')}>
               Exportar Pedidos
             </Button>
@@ -116,7 +116,7 @@ export default function AdminReportsPage() {
         </div>
 
         {/* Filters */}
-        <div className="card p-6 mb-6">
+        <div className="card p-4 sm:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-lumera-muted mb-1">Data Inicial</label>
@@ -237,7 +237,7 @@ export default function AdminReportsPage() {
             {/* Tables */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Sales by Event */}
-              <div className="card p-6">
+              <div className="card p-4 sm:p-6">
                 <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Vendas por Evento</h3>
                 {report.salesByEvent.length > 0 ? (
                   <div className="overflow-x-auto">
@@ -268,7 +268,7 @@ export default function AdminReportsPage() {
               </div>
 
               {/* Sales by Payment Method */}
-              <div className="card p-6">
+              <div className="card p-4 sm:p-6">
                 <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Vendas por Metodo de Pagamento</h3>
                 {report.salesByPaymentMethod.length > 0 ? (
                   <div className="space-y-4">

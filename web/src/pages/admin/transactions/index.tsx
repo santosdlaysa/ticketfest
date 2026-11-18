@@ -91,7 +91,7 @@ export default function AdminTransactionsPage() {
   return (
     <>
       <Head><title>Historico de Transacoes - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
@@ -105,15 +105,15 @@ export default function AdminTransactionsPage() {
         {/* Summary Cards */}
         {transactions.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <p className="text-sm text-lumera-muted">Total Transacionado</p>
               <p className="text-2xl font-bold text-lumera-luminoso">{formatCurrency(totals.total)}</p>
             </div>
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <p className="text-sm text-lumera-muted">Receita Plataforma</p>
               <p className="text-2xl font-bold text-primary-400">{formatCurrency(totals.platform)}</p>
             </div>
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <p className="text-sm text-lumera-muted">Receita Organizadores</p>
               <p className="text-2xl font-bold text-green-400">{formatCurrency(totals.organizer)}</p>
             </div>
@@ -121,7 +121,7 @@ export default function AdminTransactionsPage() {
         )}
 
         {/* Filters */}
-        <div className="card p-6 mb-6">
+        <div className="card p-4 sm:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-lumera-muted mb-1">Status</label>
@@ -176,12 +176,12 @@ export default function AdminTransactionsPage() {
         {/* Transactions Table */}
         <div className="card overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-5 sm:p-8 text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
               <p className="mt-4 text-lumera-muted">Carregando transacoes...</p>
             </div>
           ) : transactions.length === 0 ? (
-            <div className="p-8 text-center text-lumera-muted">
+            <div className="p-5 sm:p-8 text-center text-lumera-muted">
               Nenhuma transacao encontrada
             </div>
           ) : (
@@ -260,7 +260,7 @@ export default function AdminTransactionsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-t flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="text-sm text-lumera-muted">
                 Pagina {page} de {totalPages}
               </div>

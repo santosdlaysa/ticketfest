@@ -128,7 +128,7 @@ export default function AdminUsersPage() {
       <Head>
         <title>Gerenciar Usuarios - Lumera</title>
       </Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Filters */}
-        <div className="card p-6 mb-6">
+        <div className="card p-4 sm:p-6 mb-6">
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-lumera-muted mb-1">Buscar</label>

@@ -42,7 +42,7 @@ export default function SettingsPage() {
         <title>Configurações - Lumera</title>
       </Head>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-lumera-luminoso">Configurações</h1>
           <p className="text-lumera-muted mt-2">
@@ -53,7 +53,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {settingsSections.map((section) => (
             <Link key={section.href} href={section.href}>
-              <div className="card p-6 hover:shadow-lg transition-shadow cursor-pointer group">
+              <div className="card p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer group">
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-primary-500/10 text-primary-400 rounded-lg group-hover:bg-primary-500/20 transition-colors">
                     {section.icon}

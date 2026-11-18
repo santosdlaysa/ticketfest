@@ -22,7 +22,7 @@ export default function CheckinDashboard() {
   const [searchStatus, setSearchStatus] = useState<'all' | 'checked_in' | 'pending'>('all');
   const [searching, setSearching] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [qrScanMode, setQrScanMode] = useState(false);
+  const [qrScanMode, setQrScanMode] = useState(true);
   const [qrInput, setQrInput] = useState('');
 
   // Load initial data
@@ -197,7 +197,7 @@ export default function CheckinDashboard() {
         <title>Check-in - {event.name} - Lumera</title>
       </Head>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -221,7 +221,7 @@ export default function CheckinDashboard() {
               <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
-              {qrScanMode ? 'Modo Scanner Ativo' : 'Ativar Scanner'}
+              {qrScanMode ? 'Ocultar leitor' : 'Abrir leitor QR'}
             </Button>
           </div>
         </div>
@@ -258,7 +258,7 @@ export default function CheckinDashboard() {
 
         {/* QR Scanner Input */}
         {qrScanMode && (
-          <div className="card p-6 mb-6 bg-primary-500/10 border-primary-500/30">
+          <div className="card p-4 sm:p-6 mb-6 bg-primary-500/10 border-primary-500/30">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary-500/20 rounded-lg">
                 <svg className="w-8 h-8 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -267,7 +267,7 @@ export default function CheckinDashboard() {
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium text-primary-300 mb-1">
-                  Scanner de QR Code
+                  Leitor de QR Code
                 </label>
                 <input
                   ref={searchInputRef}
@@ -276,7 +276,7 @@ export default function CheckinDashboard() {
                   onChange={(e) => setQrInput(e.target.value)}
                   onKeyDown={handleQrInputKeyDown}
                   className="w-full px-4 py-3 border-2 border-primary-500/30 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
-                  placeholder="Escaneie ou digite o QR Code e pressione Enter"
+                  placeholder="Leia o QR Code com um leitor conectado ou digite o código e pressione Enter"
                   autoFocus
                 />
               </div>

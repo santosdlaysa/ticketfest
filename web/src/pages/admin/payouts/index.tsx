@@ -118,7 +118,7 @@ export default function AdminPayoutsPage() {
   return (
     <>
       <Head><title>Gestao de Repasses - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
@@ -130,7 +130,7 @@ export default function AdminPayoutsPage() {
         </div>
 
         {/* Filters */}
-        <div className="card p-6 mb-6">
+        <div className="card p-4 sm:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-lumera-muted mb-1">Status</label>
@@ -153,12 +153,12 @@ export default function AdminPayoutsPage() {
         {/* Payouts Table */}
         <div className="card overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center">
+            <div className="p-5 sm:p-8 text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
               <p className="mt-4 text-lumera-muted">Carregando repasses...</p>
             </div>
           ) : payouts.length === 0 ? (
-            <div className="p-8 text-center text-lumera-muted">
+            <div className="p-5 sm:p-8 text-center text-lumera-muted">
               Nenhum repasse encontrado
             </div>
           ) : (
@@ -247,7 +247,7 @@ export default function AdminPayoutsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-t flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="text-sm text-lumera-muted">
                 Pagina {page} de {totalPages}
               </div>
@@ -276,7 +276,7 @@ export default function AdminPayoutsPage() {
         {/* Reject Modal */}
         {showRejectModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-lumera-surface rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-lumera-surface rounded-lg p-4 sm:p-6 w-full max-w-md mx-4">
               <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Rejeitar Repasse</h3>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-lumera-muted mb-1">Motivo da rejeicao</label>

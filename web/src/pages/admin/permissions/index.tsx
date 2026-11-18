@@ -178,7 +178,7 @@ export default function AdminPermissionsPage() {
         <title>Gerenciar Permissões | Admin</title>
       </Head>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
@@ -199,7 +199,7 @@ export default function AdminPermissionsPage() {
         </div>
 
         {/* Filters */}
-        <div className="card p-6">
+        <div className="card p-4 sm:p-6">
           <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <input
@@ -356,7 +356,7 @@ export default function AdminPermissionsPage() {
       {isModalOpen && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-lumera-surface rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b">
+            <div className="p-4 sm:p-6 border-b">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-lumera-luminoso">
@@ -387,7 +387,7 @@ export default function AdminPermissionsPage() {
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
+            <div className="p-4 sm:p-6 overflow-y-auto max-h-[60vh]">
               {/* Quick actions */}
               <div className="flex gap-2 mb-6">
                 <Button variant="outline" size="sm" onClick={selectAllPermissions}>
@@ -421,7 +421,7 @@ export default function AdminPermissionsPage() {
                           : 'Marcar todas'}
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 gap-3">
                       {modulePermissions.map((permission) => (
                         <label
                           key={permission.id}
@@ -451,7 +451,7 @@ export default function AdminPermissionsPage() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-lumera-border bg-lumera-obsidian flex justify-end gap-3">
+            <div className="p-4 sm:p-6 border-t border-lumera-border bg-lumera-obsidian flex justify-end gap-3">
               <Button variant="outline" onClick={closeModal}>
                 Cancelar
               </Button>

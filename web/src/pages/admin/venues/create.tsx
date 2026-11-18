@@ -99,7 +99,7 @@ export default function CreateVenue() {
   return (
     <>
       <Head><title>Criar Local - Lumera</title></Head>
-      <div className="p-6 max-w-3xl">
+      <div className="p-4 sm:p-6 max-w-3xl">
         <div className="mb-8">
           <Link
             href="/admin/venues"
@@ -116,7 +116,7 @@ export default function CreateVenue() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="card p-4 sm:p-6 space-y-6">
           {/* Informações Básicas */}
           <div>
             <h2 className="text-lg font-semibold mb-4">Informações Básicas</h2>
@@ -236,7 +236,7 @@ export default function CreateVenue() {
           </div>
 
           {/* Botões */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4">
             <Link href="/admin/venues" className="flex-1">
               <Button type="button" variant="outline" className="w-full">
                 Cancelar

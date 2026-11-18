@@ -138,7 +138,7 @@ export default function ManageTickets() {
     return (
       <>
         <Head><title>Gerenciar Ingressos - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-lumera-muted">Carregando...</p>
@@ -151,7 +151,7 @@ export default function ManageTickets() {
   return (
     <>
       <Head><title>Gerenciar Ingressos - {event.name} - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="mb-8">
@@ -169,7 +169,7 @@ export default function ManageTickets() {
 
           {/* Formulário de Adicionar/Editar */}
           {showForm ? (
-            <div className="card p-6 mb-8">
+            <div className="card p-4 sm:p-6 mb-8">
               <h2 className="text-xl font-bold mb-4">
                 {editingTicket ? 'Editar Ingresso' : 'Adicionar Novo Ingresso'}
               </h2>
@@ -247,7 +247,7 @@ export default function ManageTickets() {
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 border-t border-lumera-border">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-lumera-border">
                   <Button
                     type="button"
                     variant="outline"
@@ -313,7 +313,7 @@ export default function ManageTickets() {
           ) : (
             <div className="grid gap-4">
               {tickets.map((ticket) => (
-                <div key={ticket.id} className="card p-6">
+                <div key={ticket.id} className="card p-4 sm:p-6">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <h3 className="text-xl font-bold">{ticket.name}</h3>
@@ -400,7 +400,7 @@ export default function ManageTickets() {
       {batchManagerTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-lumera-surface rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <BatchManager
                 ticketId={batchManagerTicket.id}
                 ticketName={batchManagerTicket.name}

@@ -143,7 +143,7 @@ export function BatchManager({ ticketId, ticketName, onClose }: BatchManagerProp
 
       {/* Summary */}
       {data && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="text-sm text-gray-600">Total</div>
             <div className="text-xl font-bold">{data.totalQuantity}</div>
@@ -222,7 +222,7 @@ export function BatchManager({ ticketId, ticketName, onClose }: BatchManagerProp
                 {...register('salesEnd', { required: 'Data de fim é obrigatória' })}
               />
             </div>
-            <div className="flex gap-3 pt-4 border-t">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={handleCancelForm} className="flex-1">
                 Cancelar
               </Button>

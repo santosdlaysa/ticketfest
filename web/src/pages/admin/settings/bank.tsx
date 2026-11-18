@@ -179,7 +179,7 @@ export default function BankSettingsPage() {
         <title>Dados Bancarios - Lumera</title>
       </Head>
 
-      <div className="p-6 max-w-3xl">
+      <div className="p-4 sm:p-6 max-w-3xl">
         <div className="mb-8">
           <Link
             href="/admin/settings"
@@ -305,7 +305,7 @@ export default function BankSettingsPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="card p-4 sm:p-6 space-y-6">
           {/* Banco */}
           <div>
             <h2 className="text-lg font-semibold mb-4">Dados da Conta</h2>
@@ -449,7 +449,7 @@ export default function BankSettingsPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-4 border-t border-lumera-border">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-lumera-border">
             <Link href="/admin/settings" className="flex-1">
               <Button type="button" variant="outline" className="w-full">
                 Cancelar

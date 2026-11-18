@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '@/contexts/AuthContext';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { PasswordVisibilityToggle } from '@/components/common/PasswordVisibilityToggle';
 
 interface LoginForm {
   email: string;
@@ -17,6 +18,7 @@ export default function Login() {
   const router = useRouter();
   const { login, loginMock, isAuthenticated, user, _hasHydrated } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
   const useMockAuth = process.env.NEXT_PUBLIC_MOCK_AUTH === 'true';
 
@@ -88,15 +90,23 @@ export default function Login() {
               aria-invalid={errors.email ? 'true' : 'false'}
               aria-describedby={errors.email ? 'email-error' : undefined}
             />
-            <Input
-              label="Senha"
-              type="password"
-              {...register('password', { required: 'Senha obrigatória' })}
-              error={errors.password?.message}
-              aria-required="true"
-              aria-invalid={errors.password ? 'true' : 'false'}
-              aria-describedby={errors.password ? 'password-error' : undefined}
-            />
+            <div className="relative">
+              <Input
+                label="Senha"
+                type={showPassword ? 'text' : 'password'}
+                className="pr-12"
+                {...register('password', { required: 'Senha obrigatória' })}
+                error={errors.password?.message}
+                aria-required="true"
+                aria-invalid={errors.password ? 'true' : 'false'}
+                aria-describedby={errors.password ? 'password-error' : undefined}
+              />
+              <PasswordVisibilityToggle
+                visible={showPassword}
+                onToggle={() => setShowPassword((visible) => !visible)}
+                label="a senha"
+              />
+            </div>
 
             <div className="text-right">
               <Link href="/auth/forgot-password" className="text-sm text-primary-500 hover:text-primary-400 hover:underline">

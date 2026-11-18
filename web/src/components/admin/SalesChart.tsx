@@ -66,7 +66,7 @@ export function SalesChart({
   };
 
   return (
-    <div className="card p-6">
+    <div className="card p-4 sm:p-6">
       {title && (
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       )}

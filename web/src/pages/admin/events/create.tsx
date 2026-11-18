@@ -106,7 +106,7 @@ export default function CreateEvent() {
   return (
     <>
       <Head><title>Criar Evento - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Criar Novo Evento</h1>
@@ -115,7 +115,7 @@ export default function CreateEvent() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="card p-5 sm:p-8 space-y-6">
             {/* Informações Básicas */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Informações Básicas</h2>
@@ -287,7 +287,7 @@ export default function CreateEvent() {
               <h2 className="text-xl font-semibold mb-4">Imagens</h2>
               <div className="space-y-4">
                 {/* Upload Area */}
-                <div className="border-2 border-dashed border-lumera-border rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                <div className="border-2 border-dashed border-lumera-border rounded-lg p-4 sm:p-6 text-center hover:border-primary-500 transition-colors">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -368,7 +368,7 @@ export default function CreateEvent() {
             </div>
 
             {/* Botões */}
-            <div className="flex gap-4 pt-4 border-t border-lumera-border">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-lumera-border">
               <Button
                 type="button"
                 variant="outline"

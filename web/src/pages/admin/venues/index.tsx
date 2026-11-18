@@ -56,7 +56,7 @@ export default function AdminVenues() {
     return (
       <>
         <Head><title>Locais - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-lumera-muted">Carregando locais...</p>
@@ -69,15 +69,15 @@ export default function AdminVenues() {
   return (
     <>
       <Head><title>Locais - Lumera</title></Head>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-8">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold">Meus Locais</h1>
             <p className="text-lumera-muted mt-2">
               Gerencie os locais dos seus eventos
             </p>
           </div>
-          <Link href="/admin/venues/create">
+          <Link href="/admin/venues/create" className="w-full sm:w-auto">
             <Button>
               <svg
                 className="w-5 h-5 mr-2"
@@ -133,7 +133,7 @@ export default function AdminVenues() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {venues.map((venue) => (
-              <div key={venue.id} className="card p-6">
+              <div key={venue.id} className="card p-4 sm:p-6">
                 {/* Imagem do local */}
                 {venue.images && venue.images[0] ? (
                   <img

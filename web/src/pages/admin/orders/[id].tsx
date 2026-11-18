@@ -107,7 +107,7 @@ export default function OrderDetailsPage() {
     return (
       <>
         <Head><title>Carregando... - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-lumera-muted">Carregando pedido...</p>
@@ -121,7 +121,7 @@ export default function OrderDetailsPage() {
     return (
       <>
         <Head><title>Pedido nao encontrado - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-lumera-luminoso">Pedido nao encontrado</h1>
             <Link href="/admin/orders">
@@ -136,7 +136,7 @@ export default function OrderDetailsPage() {
   return (
     <>
       <Head><title>Pedido {order.id.slice(0, 8)} - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
@@ -157,7 +157,7 @@ export default function OrderDetailsPage() {
               </span>
             </div>
           </div>
-          <div className="mt-4 md:mt-0 flex gap-3">
+          <div className="mt-4 md:mt-0 flex flex-wrap gap-3">
             {order.paymentStatus === 'PAID' && order.status !== 'CANCELLED' && (
               <>
                 <Button variant="outline" onClick={handleResendEmail}>
@@ -175,7 +175,7 @@ export default function OrderDetailsPage() {
           {/* Order Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Items */}
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Itens do Pedido</h2>
               <div className="space-y-4">
                 {order.items.map((item) => (
@@ -213,7 +213,7 @@ export default function OrderDetailsPage() {
 
             {/* Tickets */}
             {order.items.some((item) => item.ticketInstances && item.ticketInstances.length > 0) && (
-              <div className="card p-6">
+              <div className="card p-4 sm:p-6">
                 <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Ingressos</h2>
                 <div className="space-y-4">
                   {order.items.map((item) =>
@@ -248,7 +248,7 @@ export default function OrderDetailsPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Customer */}
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Cliente</h2>
               <div className="space-y-3">
                 <div>
@@ -269,7 +269,7 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Event */}
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Evento</h2>
               <div className="space-y-3">
                 <div>
@@ -288,7 +288,7 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Payment */}
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Pagamento</h2>
               <div className="space-y-3">
                 <div>
@@ -315,7 +315,7 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Order ID */}
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <h2 className="text-lg font-semibold text-lumera-luminoso mb-4">Identificacao</h2>
               <div className="space-y-3">
                 <div>

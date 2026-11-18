@@ -136,7 +136,7 @@ export default function EditVenue() {
     return (
       <>
         <Head><title>Editar Local - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-lumera-muted">Carregando local...</p>
@@ -149,7 +149,7 @@ export default function EditVenue() {
   return (
     <>
       <Head><title>Editar {venue.name} - Lumera</title></Head>
-      <div className="p-6 max-w-3xl">
+      <div className="p-4 sm:p-6 max-w-3xl">
         <div className="mb-8">
           <Link
             href="/admin/venues"
@@ -166,7 +166,7 @@ export default function EditVenue() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="card p-4 sm:p-6 space-y-6">
           {/* Informações Básicas */}
           <div>
             <h2 className="text-lg font-semibold mb-4">Informações Básicas</h2>
@@ -286,7 +286,7 @@ export default function EditVenue() {
           </div>
 
           {/* Botões */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4">
             <Link href="/admin/venues" className="flex-1">
               <Button type="button" variant="outline" className="w-full">
                 Cancelar

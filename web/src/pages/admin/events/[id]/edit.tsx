@@ -182,7 +182,7 @@ export default function EditEvent() {
     return (
       <>
         <Head><title>Editar Evento - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-lumera-muted">Carregando evento...</p>
@@ -198,7 +198,7 @@ export default function EditEvent() {
   return (
     <>
       <Head><title>Editar {event.name} - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
             <Link
@@ -245,7 +245,7 @@ export default function EditEvent() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="card p-5 sm:p-8 space-y-6">
             {/* Informações Básicas */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Informações Básicas</h2>
@@ -433,7 +433,7 @@ export default function EditEvent() {
               <div className="space-y-4">
                 {/* Upload Area */}
                 {!isCompleted && (
-                  <div className="border-2 border-dashed border-lumera-border rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+                  <div className="border-2 border-dashed border-lumera-border rounded-lg p-4 sm:p-6 text-center hover:border-primary-500 transition-colors">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -541,7 +541,7 @@ export default function EditEvent() {
             </div>
 
             {/* Botões */}
-            <div className="flex gap-4 pt-4 border-t border-lumera-border">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-4 border-t border-lumera-border">
               <Button
                 type="button"
                 variant="outline"

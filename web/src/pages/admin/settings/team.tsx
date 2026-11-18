@@ -112,7 +112,7 @@ export default function TeamSettingsPage() {
         <title>Equipe - Lumera</title>
       </Head>
 
-      <div className="p-6 max-w-4xl">
+      <div className="p-4 sm:p-6 max-w-4xl">
         <div className="mb-8">
           <Link
             href="/admin/settings"
@@ -123,14 +123,14 @@ export default function TeamSettingsPage() {
             </svg>
             Voltar para Configurações
           </Link>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-lumera-luminoso">Equipe</h1>
               <p className="text-lumera-muted mt-2">
                 Gerencie os membros da sua equipe e suas permissões
               </p>
             </div>
-            <Button onClick={() => setShowInviteModal(true)}>
+            <Button className="w-full sm:w-auto" onClick={() => setShowInviteModal(true)}>
               <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -261,7 +261,7 @@ export default function TeamSettingsPage() {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-lumera-surface rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-lumera-surface rounded-lg p-4 sm:p-6 w-full max-w-md mx-4">
             <h2 className="text-xl font-bold mb-4">Convidar Membro</h2>
             <form onSubmit={handleSubmit(onInvite)} className="space-y-4">
               <Input
@@ -290,7 +290,7 @@ export default function TeamSettingsPage() {
                   Administradores têm acesso total. Gerentes podem gerenciar eventos. Membros têm acesso limitado.
                 </p>
               </div>
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
                 <Button
                   type="button"
                   variant="outline"

@@ -54,14 +54,14 @@ export default function AdminFinancialsPage() {
   return (
     <ProtectedPage permission={PERMISSION_CODES.FINANCE_VIEW} pageTitle="Dashboard Financeiro">
       <Head><title>Dashboard Financeiro - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-lumera-luminoso">Dashboard Financeiro</h1>
             <p className="text-lumera-muted mt-1">Visao geral das financas da plataforma</p>
           </div>
-          <div className="mt-4 md:mt-0 flex gap-3">
+          <div className="mt-4 md:mt-0 flex flex-wrap gap-3">
             <PermissionGate permission={PERMISSION_CODES.FINANCE_TRANSACTIONS}>
               <Link href="/admin/transactions">
                 <Button variant="outline">Ver Transacoes</Button>
@@ -76,7 +76,7 @@ export default function AdminFinancialsPage() {
         </div>
 
         {/* Filters */}
-        <div className="card p-6 mb-6">
+        <div className="card p-4 sm:p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-lumera-muted mb-1">Data Inicial</label>
@@ -196,7 +196,7 @@ export default function AdminFinancialsPage() {
 
             {/* Revenue Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="card p-6">
+              <div className="card p-4 sm:p-6">
                 <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Detalhamento de Receita</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
@@ -222,7 +222,7 @@ export default function AdminFinancialsPage() {
                 </div>
               </div>
 
-              <div className="card p-6">
+              <div className="card p-4 sm:p-6">
                 <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">Divisao de Receita (Split)</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-lumera-obsidian rounded-lg">
@@ -259,7 +259,7 @@ export default function AdminFinancialsPage() {
 
             {/* Quick Links */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Link href="/admin/orders" className="card p-6 hover:shadow-lg transition-shadow">
+              <Link href="/admin/orders" className="card p-4 sm:p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-primary-500/20 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -273,7 +273,7 @@ export default function AdminFinancialsPage() {
                 </div>
               </Link>
 
-              <Link href="/admin/transactions" className="card p-6 hover:shadow-lg transition-shadow">
+              <Link href="/admin/transactions" className="card p-4 sm:p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -287,7 +287,7 @@ export default function AdminFinancialsPage() {
                 </div>
               </Link>
 
-              <Link href="/admin/payouts" className="card p-6 hover:shadow-lg transition-shadow">
+              <Link href="/admin/payouts" className="card p-4 sm:p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                     <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

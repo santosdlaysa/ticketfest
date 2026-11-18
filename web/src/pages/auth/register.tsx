@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '@/contexts/AuthContext';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { PasswordVisibilityToggle } from '@/components/common/PasswordVisibilityToggle';
 
 interface RegisterForm {
   name: string;
@@ -19,6 +20,8 @@ export default function Register() {
   const router = useRouter();
   const { register: authRegister } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterForm>();
 
   const onSubmit = async (data: RegisterForm) => {
@@ -84,21 +87,37 @@ export default function Register() {
               {...register('email', { required: 'Email obrigatório' })}
               error={errors.email?.message}
             />
-            <Input
-              label="Senha"
-              type="password"
-              {...register('password', {
-                required: 'Senha obrigatória',
-                minLength: { value: 8, message: 'Mínimo 8 caracteres' },
-              })}
-              error={errors.password?.message}
-            />
-            <Input
-              label="Confirmar Senha"
-              type="password"
-              {...register('confirmPassword', { required: 'Confirme a senha' })}
-              error={errors.confirmPassword?.message}
-            />
+            <div className="relative">
+              <Input
+                label="Senha"
+                type={showPassword ? 'text' : 'password'}
+                className="pr-12"
+                {...register('password', {
+                  required: 'Senha obrigatória',
+                  minLength: { value: 8, message: 'Mínimo 8 caracteres' },
+                })}
+                error={errors.password?.message}
+              />
+              <PasswordVisibilityToggle
+                visible={showPassword}
+                onToggle={() => setShowPassword((visible) => !visible)}
+                label="a senha"
+              />
+            </div>
+            <div className="relative">
+              <Input
+                label="Confirmar Senha"
+                type={showConfirmPassword ? 'text' : 'password'}
+                className="pr-12"
+                {...register('confirmPassword', { required: 'Confirme a senha' })}
+                error={errors.confirmPassword?.message}
+              />
+              <PasswordVisibilityToggle
+                visible={showConfirmPassword}
+                onToggle={() => setShowConfirmPassword((visible) => !visible)}
+                label="a confirmação da senha"
+              />
+            </div>
 
             <Button type="submit" className="w-full" isLoading={loading}>
               Criar Conta

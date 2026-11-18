@@ -78,7 +78,7 @@ export default function AdminEvents() {
     return (
       <>
         <Head><title>Meus Eventos - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-lumera-muted">Carregando eventos...</p>
@@ -91,15 +91,15 @@ export default function AdminEvents() {
   return (
     <>
       <Head><title>Meus Eventos - Lumera</title></Head>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-8">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold">Meus Eventos</h1>
             <p className="text-lumera-muted mt-2">
               Gerencie seus eventos e ingressos
             </p>
           </div>
-          <Link href="/admin/events/create">
+          <Link href="/admin/events/create" className="w-full sm:w-auto">
             <Button>
               <svg
                 className="w-5 h-5 mr-2"
@@ -149,7 +149,7 @@ export default function AdminEvents() {
         ) : (
           <div className="grid gap-6">
             {events.map((event) => (
-              <div key={event.id} className="card p-6">
+              <div key={event.id} className="card p-4 sm:p-6">
                 <div className="flex flex-col md:flex-row gap-6">
                   {/* Imagem */}
                   <div className="w-full md:w-48 flex-shrink-0">

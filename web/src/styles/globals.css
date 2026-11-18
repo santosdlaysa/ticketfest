@@ -184,6 +184,55 @@
   }
 }
 
+/* Keep every admin page inside the viewport on narrow screens. */
+.admin-main,
+.admin-main > * {
+  min-width: 0;
+}
+
+.admin-main .card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-main :is(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-main :is(h1, h2, h3, p, td, th) {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 639px) {
+  .admin-main h1 {
+    font-size: clamp(1.5rem, 7vw, 1.875rem);
+    line-height: 1.2;
+  }
+
+  .admin-main .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .admin-main :is(button, a, select) {
+    max-width: 100%;
+  }
+
+  .admin-main table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-main table :is(th, td) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

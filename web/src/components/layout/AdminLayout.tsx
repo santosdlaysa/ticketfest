@@ -405,10 +405,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="min-w-0 lg:pl-64">
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-white/[0.03] backdrop-blur-md shadow-sm border-b border-white/[0.06]">
-          <div className="flex items-center justify-between h-16 px-4">
+          <div className="flex items-center justify-between gap-2 h-16 px-3 sm:px-4">
             <button
               className="lg:hidden p-2 text-lumera-muted hover:text-primary-400"
               onClick={() => setSidebarOpen(true)}
@@ -429,12 +429,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               {hasPermission(PERMISSION_CODES.EVENTS_CREATE) && (
                 <Link
                   href="/admin/events/create"
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-lumera text-white text-sm font-medium rounded-lg hover:opacity-90 transition-all shadow-sm hover:shadow-glow"
+                  className="flex shrink-0 items-center gap-2 px-2 sm:px-4 py-2 bg-gradient-lumera text-white text-xs sm:text-sm font-medium rounded-lg hover:opacity-90 transition-all shadow-sm hover:shadow-glow"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  Novo Evento
+                  <span className="hidden sm:inline">Novo Evento</span>
+                  <span className="sm:hidden">Novo</span>
                 </Link>
               )}
             </div>
@@ -442,7 +443,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main className="min-h-[calc(100vh-4rem)]" role="main" aria-label="Conteúdo principal">
+        <main className="admin-main min-h-[calc(100vh-4rem)] w-full min-w-0" role="main" aria-label="Conteúdo principal">
           {children}
         </main>
       </div>

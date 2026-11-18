@@ -83,7 +83,7 @@ export default function AdminDashboard() {
     return (
       <>
         <Head><title>Dashboard - Lumera</title></Head>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary-600 border-r-transparent"></div>
             <p className="mt-4 text-lumera-muted">Carregando dashboard...</p>
@@ -96,16 +96,16 @@ export default function AdminDashboard() {
   return (
     <>
       <Head><title>Dashboard - Lumera</title></Head>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-lumera-luminoso animate-fade-in">Dashboard</h1>
             <p className="text-lumera-muted mt-1">
               Acompanhe suas vendas em tempo real
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-lumera-muted">
               <input
                 type="checkbox"
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
 
         {/* Today's Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 stagger-children">
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-lumera-muted">Receita Hoje</p>
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-lumera-muted">Pedidos Hoje</p>
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-lumera-muted">Receita do Mes</p>
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-lumera-muted">Pendentes</p>
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 stagger-children">
-          <div className="card p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white">
+          <div className="card p-4 sm:p-6 bg-gradient-to-br from-primary-500 to-primary-700 text-white">
             <p className="text-sm opacity-80">Receita Total (Todos os Tempos)</p>
             <p className="text-3xl font-bold mt-1">
               {formatCurrency(dashboard?.summary.totalRevenue || 0)}
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="card p-6 bg-gradient-to-br from-green-500 to-green-700 text-white">
+          <div className="card p-4 sm:p-6 bg-gradient-to-br from-green-500 to-green-700 text-white">
             <p className="text-sm opacity-80">Esta Semana</p>
             <p className="text-3xl font-bold mt-1">
               {formatCurrency(dashboard?.summary.weekRevenue || 0)}
@@ -226,7 +226,7 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="card p-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white">
+          <div className="card p-4 sm:p-6 bg-gradient-to-br from-purple-500 to-purple-700 text-white">
             <p className="text-sm opacity-80">Este Mes</p>
             <p className="text-3xl font-bold mt-1">
               {formatCurrency(dashboard?.summary.monthRevenue || 0)}
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
         {/* Recent Orders and Upcoming Events */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-fade-in">
           {/* Recent Orders */}
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-lumera-luminoso">
                 Pedidos Recentes
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Upcoming Events */}
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-lumera-luminoso">
                 Proximos Eventos
@@ -361,7 +361,7 @@ export default function AdminDashboard() {
 
         {/* Top Events This Month */}
         {dashboard?.topEvents && dashboard.topEvents.length > 0 && (
-          <div className="card p-6">
+          <div className="card p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-lumera-luminoso mb-4">
               Top Eventos Este Mes
             </h3>

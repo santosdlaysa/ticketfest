@@ -29,7 +29,7 @@ export function StatCard({
   color = 'primary',
 }: StatCardProps) {
   return (
-    <div className="card p-6">
+    <div className="card p-4 sm:p-6">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-500">{title}</p>
